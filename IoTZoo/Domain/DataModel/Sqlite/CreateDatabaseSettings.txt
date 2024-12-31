@@ -12,6 +12,7 @@ create table setting
 );
 
 insert into setting(category, setting_key, setting_value) values ('MqttBrokerSettings', 'MqttBrokerSettings', '{"UseInternalMqttBroker":true,"Ip":"","Port":1883,"User":null,"Password":null}');
+insert into setting(category, setting_key, setting_value) values ('MqttBrokerSettings', 'MqttMessagesQueueSize', '250');
 
 insert into setting(category, setting_key, setting_value) values ('General', 'DateAndTimeFormat', 'dd.MM.yyyy HH:mm:ss');
 
