@@ -1,0 +1,22 @@
+﻿@inherits AboutDialogBase
+
+@using IotZoo.Components
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">About IoT Zoo</MudText>
+   </TitleContent>
+   <DialogContent>
+      <Logo></Logo>
+      <br />
+      <MudText Align="Align.Center" Typo="Typo.body2" Style="color: #E81154;"><b>Version @Version</b></MudText>
+      <br />
+      <MudText Align="Align.Center" Typo="Typo.body2" Style="color: #E81154;"><b>© 2025 - @DateTime.Now.Year Holger Freudenreich under the MIT licence</b></MudText>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="OkBtnPress">
+         Ok
+      </MudButton>
+   </DialogActions>
+</MudDialog>

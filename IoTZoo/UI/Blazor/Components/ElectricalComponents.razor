@@ -1,0 +1,16 @@
+﻿@using Domain.Pocos
+@using DataAccess.Services
+
+@inherits ElectricalComponentsBase;
+
+@{
+   if (null != Stockings)
+   {
+      foreach (var stocking in Stockings)
+      {
+         <ElectricalComponent Stocking=@stocking></ElectricalComponent>
+      }
+   }
+}
+
+

@@ -1,0 +1,84 @@
+﻿@inherits PinEditorBase
+
+@using IotZoo.Components
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+         @DialogTitle
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.FirstChild>
+
+                  <MudSwitch @bind-Value="@ConnectedDevice.IsEnabled"
+                             Label="Enabled"
+                             Color="Color.Info" />
+                  @{
+                     <MudTextField @bind-Value="@ConnectedDevice.DeviceIndex"
+                                   MaxLength="10"
+                                   Required="true"
+                                   Immediate="true"
+                                   Label="Device Index"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                     </MudTextField>
+                     <br />
+                     if (null != ConnectedDevice.Pins)
+                     {
+                        foreach (var pin in ConnectedDevice.Pins)
+                        {
+                           <MudTextField @bind-Value="@pin.MicrocontrollerGpoPin"
+                                         MaxLength="500"
+                                         Required="true"
+                                         Immediate="true"
+                                         Disabled="@pin.IsReadOnly"
+                                         Adornment="Adornment.Start"
+                                         AdornmentIcon="@Icons.Material.Filled.Key"
+                                         Label="@pin.PinName"
+                                         Variant="Variant.Text"
+                                         Margin="Margin.Normal">
+                           </MudTextField>
+                        }
+                        <br />
+                     }
+                     if (null != ConnectedDevice.PropertyValues)
+                     {
+                        foreach (var propertyValue in ConnectedDevice.PropertyValues)
+                        {
+                           <MudTextField @bind-Value="@propertyValue.Value"
+                                         MaxLength="500"
+                                         Required="true"
+                                         Immediate="true"
+                                         Adornment="Adornment.Start"
+                                         AdornmentIcon="@Icons.Material.Filled.Key"
+                                         Disabled="@propertyValue.IsReadOnly"
+                                         Label="@propertyValue.Name"
+                                         Variant="Variant.Text"
+                                         Margin="Margin.Normal">
+                           </MudTextField>
+                        }
+                     }
+    
+                  }
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Variant="Variant.Filled"
+                 Color="Color.Success"
+                 OnClick="Save">Ok</MudButton>
+   </DialogActions>
+</MudDialog>

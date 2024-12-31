@@ -1,0 +1,55 @@
+﻿@inherits ComponentEditorBase
+
+@using IotZoo.Components
+
+<MudDialog>
+  <TitleContent>
+    <MudText Typo="Typo.h6">
+      <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+      @DialogTitle
+    </MudText>
+  </TitleContent>
+  <DialogContent>
+    <MudGrid>
+      <MudItem xs="12">
+        <MudCardContent>
+          <MudFocusTrap Disabled="false"
+                        DefaultFocus=DefaultFocus.FirstChild>
+            <MudTextField @bind-Value="@Component.Sku"
+                          MaxLength="500"
+                          Required="true"
+                          Immediate="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Key"
+                          Label="Short Description"
+                          Variant="Variant.Text"
+                          Margin="Margin.Normal">
+            </MudTextField>
+
+            <MudTextField @bind-Value="@Component.Description"
+                          MaxLength="100"
+                          Required="false"
+                          Immediate="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Key"
+                          Label="Description"
+                          Variant="Variant.Text"
+                          Margin="Margin.Normal">
+            </MudTextField>
+
+          </MudFocusTrap>
+          <br />
+        </MudCardContent>
+      </MudItem>
+    </MudGrid>
+  </DialogContent>
+  <DialogActions>
+    <MudButton Class="MudButtonText"
+               OnClick="Cancel">
+      Cancel
+    </MudButton>
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Success"
+               OnClick="Save">Save</MudButton>
+  </DialogActions>
+</MudDialog>

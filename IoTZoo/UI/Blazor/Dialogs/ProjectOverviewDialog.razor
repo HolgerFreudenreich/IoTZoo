@@ -1,0 +1,20 @@
+﻿@inherits ProjectOverviewDialogBase
+
+@using IotZoo.Components
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">Overview of Project '@Project.ProjectName'</MudText>
+   </TitleContent>
+   <DialogContent>
+      <HtmlRender Selector=".mermaid"
+                  HtmlContent="@this.HtmlContent"
+                  SecurityLevel="SecurityLevel.Loose" />
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="OkBtnPress">
+         Ok
+      </MudButton>
+   </DialogActions>
+</MudDialog>

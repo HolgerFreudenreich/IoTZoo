@@ -1,0 +1,172 @@
+﻿@page "/Rules"
+
+@using Domain.Pocos
+
+@inherits RulesPageBase
+
+<PageTitle>Rules</PageTitle>
+
+<MudStack Row="true">
+   <div style="width:250px">
+      <MudSelect T="Project"
+      Margin="Margin.Dense"
+      Label="Project"
+      @bind-Value="SelectedProject"
+      AnchorOrigin="Origin.BottomCenter"
+      Variant="Variant.Text"
+      Clearable="true">
+         @foreach (var project in this.ProjectsCatalog)
+         {
+            <MudSelectItem Value="@project">@project?.ProjectName</MudSelectItem>
+         }
+      </MudSelect>
+   </div>
+  
+   @if (DataTransferService.SelectedProject == null)
+   {
+      <MudAlert Severity="Severity.Info">Please select a project to add a rule.</MudAlert>
+   }
+   else
+   {
+      <MudButton OnClick="OpenRuleEditorAsync"
+                 Disabled="@(DataTransferService.SelectedProject == null)"
+                 Style="height: 40px"
+                 StartIcon="@Icons.Material.Filled.Add"
+                 Variant="Variant.Filled"
+                 Color="Color.Primary">
+         Add Rule
+      </MudButton>
+   }
+   <MudSpacer></MudSpacer>
+   <MudTooltip Color="Color.Tertiary">
+      <ChildContent>
+         <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                        OnClick="RefreshData">
+         </MudIconButton>
+      </ChildContent>
+      <TooltipContent>
+         <MudText Typo="Typo.h6">Refresh</MudText>
+      </TooltipContent>
+   </MudTooltip>
+</MudStack>
+<br />
+<br />
+<MudTable Items="@Rules"
+          Filter="new Func<Rule, bool>(SearchHelper.Search)"
+          FixedHeader="true"
+          HorizontalScrollbar="true"
+          Height="1040px"
+          Striped="true"
+          Dense="true"
+          Hover="true">
+   <ToolBarContent>
+      <MudText Typo="Typo.h6">Rules</MudText>
+      <MudSpacer />
+      <MudTextField @bind-Value="SearchHelper.SearchString"
+                    Placeholder="Search..."
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    IconSize="Size.Medium"
+                    Class="mt-0">
+      </MudTextField>
+   </ToolBarContent>
+   <HeaderContent>
+      <MudTh><MudTableSortLabel SortBy="new Func<Rule, object>(x => x.RuleId)">Id</MudTableSortLabel></MudTh>
+      <MudTh></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<Rule, object>(x => x.SourceTopic!)">Full Qualified Source Topic</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<Rule, object>(x => x.Expression!)">Expression</MudTableSortLabel></MudTh>
+@*       <MudTh><MudTableSortLabel SortBy="new Func<Rule, object>(x => x.ExpressionEvaluationProtocol!)">Expression Evaluation Protocol</MudTableSortLabel></MudTh> *@
+      <MudTh><MudTableSortLabel SortBy="new Func<Rule, object>(x => x.ExpressionEvaluationResult)">ExpressionEvaluationResult</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<Rule, object>(x => x.TargetTopic!)">Full Qualified Target Topic</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<Rule, object>(x => x.TargetPayload!)">Target Payload</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<Rule, object>(x => x.Priority)">Priority</MudTableSortLabel></MudTh>
+      <MudTh>Triggers on</MudTh>
+      <MudTh>Delay [ms]</MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<Rule, object>(x => x.Enabled)">Enabled</MudTableSortLabel></MudTh>
+   </HeaderContent>
+   <RowTemplate>
+      <MudTd DataLabel="Id">@context.RuleId</MudTd>
+      <MudTd DataLabel="">
+         <div style="width: 250px;">
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => EditRule(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.Edit"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Edit</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => DeleteRule(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Error"
+                          StartIcon="@Icons.Material.Filled.Delete"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Delete</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => CloneRule(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.CopyAll"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Clone</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => ExecuteRule(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.ArrowRight"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Execute</MudText>
+               </TooltipContent>
+            </MudTooltip>
+         </div>
+      </MudTd>
+      <MudTd DataLabel="SourceTopicFullQualified">@context.SourceTopicFullQualified</MudTd>
+      <MudTd DataLabel="Expression">@context.Expression</MudTd>
+@*       <MudTd DataLabel="Expression">@context.ExpressionEvaluationProtocol</MudTd> *@
+      <MudTd DataLabel="ExpressionEvaluationResult">@context.ExpressionEvaluationResult</MudTd>
+      <MudTd DataLabel="TargetTopicFullQualified">@context.TargetTopicFullQualified</MudTd>
+      <MudTd DataLabel="Target Payload">@context.TargetPayload</MudTd>
+      <MudTd DataLabel="Priority">@context.Priority</MudTd>
+      <MudTd DataLabel="TriggerCondition">@context.TriggerCondition</MudTd>
+      <MudTd DataLabel="Delay [ms]">@context.DelayMs</MudTd>
+      <MudTd DataLabel="">
+         <MudCheckBox Disabled="true" @bind-Value="@context.Enabled"></MudCheckBox>
+      </MudTd>
+   </RowTemplate>
+</MudTable>
+
+@*
+<style>
+
+   /* hide scrollbar but allow scrolling */
+   body {
+      -ms-overflow-style: none; /* for Internet Explorer, Edge */
+      scrollbar-width: none; /* for Firefox */
+      overflow-y: hidden;
+   }
+</style> *@

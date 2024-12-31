@@ -1,0 +1,77 @@
+﻿@inherits ScriptEditorBase
+
+@using Domain.Pocos
+@using IotZoo.Components
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+         @DialogTitle
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.Element>
+                  <MudTextField @bind-Value="@Script.ScriptName"
+                                MaxLength="250"
+                                Required="true"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Key"
+                                Label="Script Name"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+                  <MudTextField @bind-Value="@Script.Author"
+                                MaxLength="100"
+                                Required="false"
+                                Immediate="true"
+                                Label="Author"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+                  <MudTextField @bind-Value="@Script.Description"
+                                MaxLength="1000"
+                                Required="true"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Key"
+                                Label="Description"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+                  <MudTextField @bind-Value="@Script.SourceCode"
+                                Lines="40"
+                                MaxLines=1000
+                                Required="true"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Key"
+                                Label="Source Code"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Variant="Variant.Filled"
+                 Color="Color.Primary"
+                 OnClick="Compile">Compile</MudButton>
+      <MudButton Variant="Variant.Filled"
+                 Color="Color.Success"
+                 OnClick="Save">Save</MudButton>
+   </DialogActions>
+</MudDialog>

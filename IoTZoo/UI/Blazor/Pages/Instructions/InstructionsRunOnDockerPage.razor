@@ -1,0 +1,100 @@
+﻿@page "/RunOnDocker"
+
+@inherits InstructionsRunOnDockerPageBase
+<br />
+<MudText Typo="Typo.h5">Step 1 Install Docker on the Raspberry pi</MudText>
+<br />
+<MudText>Connect via ssh to the Raspberry pi. ssh &lt;username&gt;@@&lt;url_of_your_raspberrypi&gt;</MudText>
+<br />
+<MudStack Row="true">
+   <MudText>curl -fsSL https://get.Docker.com -o get-Docker.sh; sudo sh get-Docker.sh;</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("curl -fsSL https://get.Docker.com -o get-Docker.sh;"))"
+           Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.ContentCopy"
+           Size="Size.Small"
+           IconSize="Size.Small" />
+</MudStack>
+<MudStack Row="true">
+   <MudText>sudo sh get-Docker.sh</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("sudo sh get-Docker.sh"))"
+           Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.ContentCopy"
+           Size="Size.Small"
+           IconSize="Size.Small" />
+</MudStack>
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 2 Copy the source code to the Raspberry Pi</MudText>
+<br />
+<MudText>A convinient method is to do this with WinSCP.</MudText>
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 3 Build the docker image</MudText>
+<br />
+<br />
+<MudStack Row="true">
+   <MudText>sudo su</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("sudo su"))"
+           Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.ContentCopy"
+           Size="Size.Small"
+           IconSize="Size.Small" />
+</MudStack>
+<br />
+<MudText>Switch to the folder where the .sln file is located (folder /Server). Enter the following commands in this folder one after the other:</MudText>
+<br />
+<MudStack Row="true">
+   <MudText>docker build -f ./UI/Blazor/Dockerfile -t iotzoo .;</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("docker build -f ./UI/Blazor/Dockerfile -t iotzoo .;"))"
+           Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.ContentCopy"
+           Size="Size.Small"
+           IconSize="Size.Small" />
+</MudStack>
+<br />
+<MudStack Row="true">
+   <MudText>docker save iotzoo -o iotzoo.tar;</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("docker save iotzoo -o iotzoo.tar;"))"
+           Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.ContentCopy"
+           Size="Size.Small"
+           IconSize="Size.Small" />
+</MudStack>
+<br />
+<MudStack Row="true">
+   <MudText>docker load -i iotzoo.tar;</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("docker load -i iotzoo.tar;"))"
+           Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.ContentCopy"
+           Size="Size.Small"
+           IconSize="Size.Small" />
+</MudStack>
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 4 Run the docker image</MudText>
+<br />
+<MudStack Row="true">
+   <MudText>docker run -e TZ=Europe/Berlin -p 8085:8080 -p 1883:1883 -d --restart  always iotzoo:latest;</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("docker run -e TZ=Europe/Berlin -p 8085:8080 -p 1883:1883 -d --restart  always iotzoo:latest;"))"
+           Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.ContentCopy"
+           Size="Size.Small"
+           IconSize="Size.Small" />
+</MudStack>
+<br />
+<br>
+<MudStack Row="true">
+   <MudText>Click here if you want all commands from Step 3 and Step 4 summarized</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("docker stop $(docker ps -a -q);docker rm $(docker ps -a -q);docker rmi $(docker images -a -q);docker build --force-rm  -f ./UI/Blazor/Dockerfile -t iotzoo .;docker save iotzoo -o iotzoo.tar;docker load -i iotzoo.tar;docker run -e TZ=Europe/Berlin -p 8085:8080 -p 1883:1883 -d --restart  always iotzoo:latest;"))"
+           Color="Color.Success"
+           StartIcon="@Icons.Material.Filled.ContentCopy"
+           Size="Size.Large"
+           IconSize="Size.Large" />
+</MudStack>
+<br />
+<br />
+<MudStack Row="true">
+   <MudText Typo="Typo.h5">Step 5 Test in Browser</MudText>
+</MudStack>
+<br />
+<MudText>http://&lt;url_of_your_raspberrypi&gt;:8085</MudText>

@@ -1,0 +1,94 @@
+﻿@page "/StockAllocation"
+
+@using Domain.Pocos
+@using IotZoo.Components
+
+@inherits StockAllocationPageBase
+
+<br />
+<!-- FILTER -->
+<MudPaper Elevation="0"
+          Height="70px"
+          Style="padding: 10px;">
+   <MudStack Row="true">
+      <div class="d-flex" style="width:450px;">
+         <MudSelect @bind-Value="SelectedComponent"
+                    T="Component"
+                    Margin="Margin.Dense"
+                    Label="Component"
+                    AnchorOrigin="Origin.BottomCenter"
+                    Variant="Variant.Outlined"
+                    Clearable=true>
+            @if (null != this.ComponentsCatalog)
+            {
+               @foreach (var component in this.ComponentsCatalog)
+               {
+                  <MudSelectItem Value="@component">@component?.Sku</MudSelectItem>
+               }
+            }
+         </MudSelect>
+      </div>
+   </MudStack>
+</MudPaper>
+<br />
+
+<MudTable Items="@StorageBins"
+          Filter="new Func<StorageBin, bool>(SearchHelper.Search)"
+          FixedHeader="true"
+          HorizontalScrollbar="true"
+          Height="1040px"
+          Striped="true"
+          Dense="true"
+          Hover="true">
+   <ToolBarContent>
+      <MudText Typo="Typo.h6">Boxes</MudText>
+      <MudSpacer />
+      <MudTextField @bind-Value="SearchHelper.SearchString"
+                    Placeholder="Search Box..."
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    IconSize="Size.Medium"
+                    Class="mt-0">
+      </MudTextField>
+   </ToolBarContent>
+   <HeaderContent>
+      @*   <MudTh><MudTableSortLabel SortBy="new Func<StorageBin, object>(x => x.StorageBinId)">Id</MudTableSortLabel></MudTh> *@
+      <MudTh>
+         <MudTableSortLabel InitialDirection="SortDirection.Ascending"
+                            SortBy="new Func<StorageBin, object>(x => x.BoxNrNumeric)">Box Label</MudTableSortLabel>
+      </MudTh>
+      <MudTh>Included Components</MudTh>
+   </HeaderContent>
+   <RowTemplate>
+      @*     <MudTd DataLabel="StorageBinId">@context.StorageBinId</MudTd> *@
+      <MudTd DataLabel="BoxNr">@context.BoxNr</MudTd>
+      <MudTd DataLabel="IncludedComponents"><ElectricalComponents StorageBin=@context></ElectricalComponents></MudTd>
+      <MudTd DataLabel="">
+         <div style="width: 150px;">
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => OpenAssignComponentEditor(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.AddCircle"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Insert component</MudText>
+               </TooltipContent>
+            </MudTooltip>
+         </div>
+      </MudTd>
+   </RowTemplate>
+</MudTable>
+
+@* <style>
+   /* hide scrollbar but allow scrolling */
+   body {
+      -ms-overflow-style: none; /* for Internet Explorer, Edge */
+      scrollbar-width: none; /* for Firefox */
+      overflow-y: hidden;
+   }
+</style> *@

@@ -1,0 +1,84 @@
+﻿@page "/Boxes"
+
+@using Domain.Pocos
+
+@inherits BoxesPageBase
+
+<MudButton OnClick="OpenEditor"
+           Style="height: 40px"
+           StartIcon="@Icons.Material.Filled.Add"
+           Variant="Variant.Filled"
+           Color="Color.Primary">
+   Add Box
+</MudButton>
+<br />
+<br />
+<MudTable Items="@Boxes"
+          Filter="new Func<StorageBin, bool>(SearchHelper.Search)"
+          FixedHeader="true"
+          HorizontalScrollbar="true"
+          Height="1040px"
+          Striped="true"
+          Dense="true"
+          Hover="true">
+   <ToolBarContent>
+      <MudText Typo="Typo.h6">Boxes</MudText>
+      <MudSpacer />
+      <MudTextField @bind-Value="SearchHelper.SearchString"
+                    Placeholder="Search..."
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    IconSize="Size.Medium"
+                    Class="mt-0">
+      </MudTextField>
+   </ToolBarContent>
+   <HeaderContent>
+      <MudTh>
+         <MudTableSortLabel InitialDirection="SortDirection.Ascending"
+                            SortBy="new Func<StorageBin, object>(x => x.BoxNrNumeric)">Box Label</MudTableSortLabel>
+      </MudTh>
+   </HeaderContent>
+   <RowTemplate>
+      <MudTd DataLabel="BoxNr">@context.BoxNr</MudTd>
+      <MudTd DataLabel="">
+         <div style="width: 150px;">
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => EditAsync(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.Edit"
+                          Size="Size.Small"
+                          IconSize="Size.Small"></MudFab>
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Edit</MudText>
+               </TooltipContent>
+            </MudTooltip>
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => Delete(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Error"
+                          StartIcon="@Icons.Material.Filled.Delete"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Delete</MudText>
+               </TooltipContent>
+            </MudTooltip>
+         </div>
+      </MudTd>
+   </RowTemplate>
+</MudTable>
+
+@* <style>
+
+   /* hide scrollbar but allow scrolling */
+   body {
+      -ms-overflow-style: none; /* for Internet Explorer, Edge */
+      scrollbar-width: none; /* for Firefox */
+      overflow-y: hidden;
+   }
+</style> *@

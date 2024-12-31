@@ -1,0 +1,184 @@
+﻿@page "/KnownMicrocontrollers"
+
+@using Domain.Pocos
+
+@inherits KnownMicrocontrollersPageBase
+
+<MudStack Row="true">
+   <div style="width:250px">
+      <MudSelect T="Project"
+      Margin="Margin.Dense"
+      Label="Project"
+      @bind-Value="SelectedProject"
+      AnchorOrigin="Origin.BottomCenter"
+      Variant="Variant.Text"
+      Clearable="true">
+         @foreach (var project in this.ProjectsCatalog)
+         {
+            <MudSelectItem Value="@project">@project?.ProjectName</MudSelectItem>
+         }
+      </MudSelect>
+   </div>
+   @if (DataTransferService.SelectedProject == null)
+   {
+      <MudAlert Severity="Severity.Info">Please select a project to add a microcontroller.</MudAlert>
+   }
+   else
+   {
+      <MudButton OnClick="OpenKnownMicrocontrollerEditor"
+      Style="width: 310px; height:50px;"
+              StartIcon="@Icons.Material.Filled.Add"
+              Variant="Variant.Filled"
+              Color="Color.Primary">
+      Add Microcontroller
+   </MudButton>
+   }
+   <MudSpacer></MudSpacer>
+   <MudAlert Severity="Severity.Info" Style="width:750px;">
+      Each microcontroller is registered automatically. A Register-Microcontroller-Message is sent by the microcontroller during the start process of the microcontroller.
+   </MudAlert>
+   <MudTooltip Color="Color.Tertiary">
+      <ChildContent>
+         <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                        OnClick="RefreshData">
+         </MudIconButton>
+      </ChildContent>
+      <TooltipContent>
+         <MudText Typo="Typo.h6">Refresh</MudText>
+      </TooltipContent>
+   </MudTooltip>
+</MudStack>
+<br />
+<MudTable Items="@Microcontrollers"
+          Filter="new Func<KnownMicrocontroller, bool>(SearchHelper.Search)"
+          FixedHeader="true"
+          HorizontalScrollbar="true"
+          Height="1040px"
+          Striped="true"
+          Dense="true"
+          Hover="true">
+   <ToolBarContent>
+      <MudText Typo="Typo.h6">Known Microcontrollers</MudText>
+      <MudSpacer />
+      <MudTextField @bind-Value="SearchHelper.SearchString"
+                    Placeholder="Search..."
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    IconSize="Size.Medium"
+                    Class="mt-0">
+      </MudTextField>
+   </ToolBarContent>
+   <HeaderContent>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownMicrocontroller, object>(x => x.MicroControllerId)">Id</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownMicrocontroller, object>(x => x.NamespaceName!)">Namespace</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownMicrocontroller, object>(x => x.ProjectName!)">Project</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownMicrocontroller, object>(x => x.BoardType)">Board Type</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownMicrocontroller, object>(x => x.MacAddress!)">Mac Address</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownMicrocontroller, object>(x => x.IpAddress!)">IP Address</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownMicrocontroller, object>(x => x.IpMqttBroker!)">IP MQTT Broker</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownMicrocontroller, object>(x => x.FirmwareVersion!)">Firmware Version</MudTableSortLabel></MudTh>
+      @*     <MudTh><MudTableSortLabel SortBy="new Func<KnownMicrocontroller, object>(x => x.Description!)">Description</MudTableSortLabel></MudTh> *@
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownMicrocontroller, object>(x => x.Online!)">Ready</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownMicrocontroller, object>(x => x.BootDateTime!)">BootDateTime</MudTableSortLabel></MudTh>
+   </HeaderContent>
+   <RowTemplate>
+      <MudTd DataLabel="Id">@context.MicroControllerId</MudTd>
+      <MudTd DataLabel="Namespace">@context.NamespaceName</MudTd>
+      <MudTd DataLabel="Project">@context.ProjectName</MudTd>
+      <MudTd DataLabel="BoardType">@context.BoardType</MudTd>
+      <MudTd DataLabel="Mac Address">@context.MacAddress</MudTd>
+      <MudTd DataLabel="IpAddress">@context.IpAddress</MudTd>
+      <MudTd DataLabel="IpMqttBroker">@context.IpMqttBroker</MudTd>
+      <MudTd DataLabel="FirmwareVersion">@context.FirmwareVersion</MudTd>
+      @*       <MudTd DataLabel="Description">@context.Description</MudTd> *@
+      <MudTd DataLabel="Online">@(context.Online == null ? "unkown" : context.Online)</MudTd>
+      <MudTd DataLabel="BootDateTime">@(context.BootDateTime == null ? "never" : context.BootDateTime)</MudTd>
+      <MudTd DataLabel="">
+         <div style="width: 290px;">
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => EditMicrocontrollerAsync(@context))"
+                          Disabled="@(context.Online == null ? true : context.Online == false)"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.Edit"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Edit</MudText>
+               </TooltipContent>
+            </MudTooltip>
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => DeleteMicrocontrollerAsync(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Error"
+                          StartIcon="@Icons.Material.Filled.Delete"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Delete</MudText>
+               </TooltipContent>
+            </MudTooltip>
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => ConfigureConnectedDevicesAsync(@context))"
+                          Disabled="@(context.Online == null ? true : context.Online == false)"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.DeveloperBoard"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Configure connected Devices</MudText>
+               </TooltipContent>
+            </MudTooltip>
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => Reboot(@context))"
+                          Disabled="@(context.Online == null ? true : context.Online == false)"
+                          Style="Margin: 1px;"
+                          Color="Color.Warning"
+                          StartIcon="@Icons.Material.Filled.RestartAlt"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Restart Microcontroller</MudText>
+               </TooltipContent>
+            </MudTooltip>
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => this.MicrocontrollerService.PushMicrocontrollerConfigToMicrocontroller(@context))"
+                          Disabled="@(context.Online == null ? true : context.Online == false)"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.ArrowRightAlt"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Send Microcontroller Configuration via MQTT (ProjectName, MessageBrokerIp) to Microcontroller</MudText>
+               </TooltipContent>
+            </MudTooltip>
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => this.MicrocontrollerService.PostMicrocontrollerConfigToMicrocontroller(@context))"
+                         
+                          Style="Margin: 1px;"
+                          Color="Color.Secondary"
+                          StartIcon="@Icons.Material.Filled.ArrowRightAlt"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Send Microcontroller Configuration via POST (ProjectName, MessageBrokerIp) to Microcontroller</MudText>
+               </TooltipContent>
+            </MudTooltip>
+         </div>
+      </MudTd>
+   </RowTemplate>
+</MudTable>

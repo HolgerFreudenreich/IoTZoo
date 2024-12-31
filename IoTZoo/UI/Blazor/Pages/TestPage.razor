@@ -1,0 +1,35 @@
+﻿@page "/TestPage"
+
+@inherits TestPageBase
+
+<MudStack Row="true">
+   <MudTextField @bind-Value="@Expression"
+                 Immediate="true"
+                 Adornment="Adornment.Start"
+                 AdornmentIcon="@Icons.Material.Filled.Key"
+                 Label="Expression like Calc(1 + 1); or Calc(Read('heatmap/index') + 1); or ::GetCalendarWeek(); or ::GetJoke();"
+                 Variant="Variant.Text"
+                 Margin="Margin.Normal">
+   </MudTextField>
+
+   <MudTextField @bind-Value="@Payload"
+                 Immediate="true"
+                 Label="Payload"
+                 Variant="Variant.Text"
+                 Margin="Margin.Normal">
+   </MudTextField>
+
+   <MudButton Class="MudButtonText"
+              OnClick="Execute">
+      Execute
+   </MudButton>
+</MudStack>
+<br />
+<br />
+<MudPaper Elevation="3" Style="padding: 40px;">
+   <br />
+   <MudText>Cron Test</MudText>
+   <br />
+   <IotZoo.Components.CronExpression></IotZoo.Components.CronExpression>
+   <br />
+</MudPaper>

@@ -1,0 +1,68 @@
+﻿@inherits AssignComponentEditorBase
+
+@using IotZoo.Components
+@using Domain.Pocos
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+         @DialogTitle
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.FirstChild>
+
+                  <MudTextField @bind-Value="@Stocking.StorageBin.BoxNr"
+                                MaxLength="500"
+                                ReadOnly="true"
+                                Required="true"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Key"
+                                Label="Box Label"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+
+                  <MudAutocomplete T="Component"
+                                   @bind-Value="@this.Stocking.Component"
+                                   Immediate="true"
+                                   Clearable="true"
+                                   ResetValueOnEmptyText="true"
+                                   MaxItems=null
+                                   SearchFunc="@SearchComponent"
+                                   Label="Sku">
+                  </MudAutocomplete>
+
+                  <MudNumericField @bind-Value="@Stocking.Quantity"
+                                   Min="0"
+                                   Max="10000"
+                                   Required="false"
+                                   Immediate="true"
+                                   Adornment="Adornment.Start"
+                                   Label="Quantity"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                  </MudNumericField>
+
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Class="MudButtonText"
+                 Color="Color.Success"
+                 OnClick="Save">Save</MudButton>
+   </DialogActions>
+</MudDialog>

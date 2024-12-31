@@ -1,0 +1,48 @@
+﻿@using Domain.Pocos
+@using DataAccess.Services
+
+@{
+   <div class="@ClassName">
+      <MudStack Row="true">
+         <MudStack Row="true">
+            <MudText Class="d-flex align-center" Style="width:200px;">@Stocking.Component.Sku</MudText>
+            <MudText Class="d-flex align-center" Style="width:200px;">@Stocking.Component.Description</MudText>
+         </MudStack>
+
+         <MudTooltip Color="Color.Tertiary">
+            <ChildContent>
+               <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                              Style="position: relative; top: 12px; left: 60px; width: 64px; height: 64px; z-index:10;"
+                              OnClick="RemoveComponentFromStocking">
+               </MudIconButton>
+            </ChildContent>
+            <TooltipContent>
+               <MudText Typo="Typo.h6">Remove</MudText>
+            </TooltipContent>
+         </MudTooltip>
+         <MudNumericField Value=@Stocking.Quantity
+                          ValueChanged="(int newValue) => OnValueChanged(newValue)"
+                          Style="width:100px;"
+                          Min="0"
+                          Max="10000"
+                          Required="false"
+                          Immediate="true"
+                          Adornment="Adornment.Start"
+                          Label="Quantity"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Normal">
+         </MudNumericField>
+      </MudStack>
+   </div>
+}
+
+<style>
+   .show {
+      visibility: visible;
+   }
+
+   .hide {
+      visibility: hidden;
+      height: 0px;
+   }
+</style>

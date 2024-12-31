@@ -1,0 +1,313 @@
+﻿@inherits MicrocontrollerConnectedDevicesEditorBase
+
+@using IotZoo.Components
+@using Domain.Pocos
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+         @DialogTitle
+         @BaseTopic
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.LastChild>
+                  <br />
+                  <!-- INPUT -->
+                  <MudButton OnClick="AddButton"
+                             Style="height: 70px; width:280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Button
+                  </MudButton>
+
+                  <MudButton OnClick="AddSwitch"
+                             Style="height: 70px; width:280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Switch
+                  </MudButton>
+
+                  <MudTooltip>
+                     <ChildContent>
+                        <MudButton OnClick="AddDS18B20TemperatureSensor"
+                                   Style="height: 70px; width:280px; margin: 5px;"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary">
+                           Add DS18B20 Temperature Sensor Manager
+                        </MudButton>
+                     </ChildContent>
+                     <TooltipContent>
+                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/temperature/0 | Payload: Temperature °C</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+
+                  <MudTooltip>
+                     <ChildContent>
+                        <MudButton OnClick="AddHCSR501MotionDetector"
+                                   Style="height: 70px; width: 280px; margin: 5px;"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary">
+                           HC-SR 501 Motion detector
+                        </MudButton>
+                     </ChildContent>
+                     <TooltipContent>
+                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/motion_detector/0/triggered</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+
+                  <MudButton OnClick="AddHW040RotaryEncoder"
+                             Style="height: 65px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Add HW-040 Rotary Encoder
+                  </MudButton>
+
+                  <MudButton OnClick="Add4x4ButtonMatrix"
+                             Style="height: 70px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Add 4x4 Button Matrix
+                  </MudButton>
+
+                  <!-- DISPLAYS -->
+                  <MudButton OnClick="AddTM1637_4_DigitDisplay"
+                             Style="height: 70px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Add TM1637 4 digit Display
+                  </MudButton>
+
+                  <MudButton OnClick="AddTM1637_6_DigitDisplay"
+                             Style="height: 70px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Add TM1637 6 digit Display
+                  </MudButton>
+
+                  <MudButton OnClick="AddTM1638Display"
+                             Style="height: 70px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Add TM1638 8 digit Display "LED&KEY"
+                  </MudButton>
+
+                  <MudButton OnClick="AddOledDisplaySSD1306"
+                             Style="height: 70px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Add OLED LED Display SSD1306
+                  </MudButton>
+
+                  <MudButton OnClick="AddLiquidCristalDisplay"
+                             Style="height: 70px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Add Liquid Cristal Display (LCD1602, LCD1604, LCD2002, LCD2004)
+                  </MudButton>
+
+                  <MudTooltip>
+                     <ChildContent>
+                        <MudButton OnClick="AddLedsTrafficLight"
+                                   Style="height: 70px; width: 280px; margin: 5px;"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary">
+                           Add LEDs [Red, Yellow, Green]
+                        </MudButton>
+                     </ChildContent>
+                     <TooltipContent>
+                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/traffic_light/0/r | Payload: 0/1</MudText>
+                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/traffic_light/0/g | Payload: 0/1</MudText>
+                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/traffic_light/0/b | Payload: 0/1</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+
+                  <MudTooltip>
+                     <ChildContent>
+                        <MudButton OnClick="AddNeoPixel"
+                                   Style="height: 65px; width: 280px; margin: 5px;"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary">
+                           Add NEO Pixel WS2818
+                        </MudButton>
+                     </ChildContent>
+                     <TooltipContent>
+                        <MudText Typo="Typo.h6">If necessary, connect extra power supply for more than 128 LEDs</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+
+                  <!-- Actuators -->
+                  <MudTooltip>
+                     <ChildContent>
+                        <MudButton OnClick="AddRemoteGpio"
+                                   Style="height: 65px; width: 280px; margin: 5px;"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary">
+                           Add remote GPIO
+                        </MudButton>
+                     </ChildContent>
+                     <TooltipContent>
+                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/gpio/</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+
+                  <MudTooltip>
+                     <ChildContent>
+                        <MudButton OnClick="Add28BYJ48StepperMoter"
+                                   Style="height: 65px; width: 280px; margin: 5px;"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary">
+                           Add 28BYJ-48 Stepper Motor
+                        </MudButton>
+                     </ChildContent>
+                     <TooltipContent>
+                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/gpio/</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+                  <br />
+                  <br />
+                  <MudTable Items="@MicrocontrollerService.ConnectedDevicesList"
+                            FixedHeader="true"
+                            HorizontalScrollbar="true"
+                            Height="400px"
+                            Striped="true"
+                            Dense="true"
+                            Hover="true">
+                     <ToolBarContent>
+                        <MudText Typo="Typo.h6">Connected Devices</MudText>
+                     </ToolBarContent>
+                     <HeaderContent>
+                        <MudTh><MudTableSortLabel SortBy="new Func<ConnectedDevice, object>(x => x.DeviceType)">Device Type</MudTableSortLabel></MudTh>
+                        <MudTh><MudTableSortLabel SortBy="new Func<ConnectedDevice, object>(x => x.DeviceIndex!)">Device Index</MudTableSortLabel></MudTh>
+                        <MudTh><MudTableSortLabel SortBy="new Func<ConnectedDevice, object>(x => x.IsEnabled)">Is Enabled</MudTableSortLabel></MudTh>
+                        <MudTh>Pins</MudTh>
+                        <MudTh>Properties</MudTh>
+                     </HeaderContent>
+                     <RowTemplate>
+                        <MudTd DataLabel="DeviceType">@context.DeviceType</MudTd>
+                        <MudTd DataLabel="DeviceIndex">@context.DeviceIndex</MudTd>
+                        <MudTd DataLabel="Mac Address">@context.IsEnabled</MudTd>
+
+                        <MudTd DataLabel="Pins">
+                           @{
+                              if (null != context.Pins)
+                              {
+                                 foreach (var pin in context.Pins)
+                                 {
+                                    <MudStack Row="true">
+                                       <MudText>@pin.PinName:</MudText>
+                                       <MudText>@pin.MicrocontrollerGpoPin</MudText>
+                                    </MudStack>
+                                 }
+                              }
+                           }
+                        </MudTd>
+
+                        <MudTd DataLabel="Properties">
+                           @{
+                              if (null != context.PropertyValues)
+                              {
+                                 foreach (var pin in context.PropertyValues)
+                                 {
+                                    <MudStack Row="true">
+                                       <MudText>@pin.Name:</MudText>
+                                       <MudText>@pin.Value</MudText>
+                                    </MudStack>
+                                 }
+                              }
+                           }
+                        </MudTd>
+                        <MudTd DataLabel="">
+                           <div style="width: 150px;">
+                              <MudTooltip Color="Color.Tertiary">
+                                 <ChildContent>
+                                    <MudFab @onclick="@(() => RemoveDevice(@context))"
+                                            Style="Margin: 1px;"
+                                            Color="Color.Error"
+                                            StartIcon="@Icons.Material.Filled.Delete"
+                                            Size="Size.Small"
+                                            IconSize="Size.Small" />
+                                 </ChildContent>
+                                 <TooltipContent>
+                                    <MudText Typo="Typo.h6">Delete</MudText>
+                                 </TooltipContent>
+                              </MudTooltip>
+                              <MudTooltip Color="Color.Tertiary">
+                                 <ChildContent>
+                                    <MudFab @onclick="@(() => ManagePins(@context))"
+                                            Style="Margin: 1px;"
+                                            Color="Color.Default"
+                                            StartIcon="@Icons.Material.Filled.Edit"
+                                            Size="Size.Small"
+                                            IconSize="Size.Small" />
+                                 </ChildContent>
+                                 <TooltipContent>
+                                    <MudText Typo="Typo.h6">Edit</MudText>
+                                 </TooltipContent>
+                              </MudTooltip>
+                           </div>
+                        </MudTd>
+                     </RowTemplate>
+                  </MudTable>
+                  <br />
+
+
+                  @*  <MudTextField @bind-Value="@KnownMicrocontroller.MacAddress"
+                  MaxLength="500"
+                  Required="true"
+                  Immediate="true"
+                  ReadOnly="true"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Key"
+                  Label="MacAddress"
+                  Variant="Variant.Text"
+                  Margin="Margin.Normal">
+                  </MudTextField>
+
+                  <MudTextField @bind-Value="@KnownMicrocontroller.Description"
+                  MaxLength="500"
+                  Required="true"
+                  Immediate="true"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Key"
+                  Label="Description"
+                  Variant="Variant.Text"
+                  Margin="Margin.Normal">
+                  </MudTextField> *@
+
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Class="MudButtonText"
+                 Color="Color.Success"
+                 OnClick="Save">Save on Device</MudButton>
+   </DialogActions>
+</MudDialog>

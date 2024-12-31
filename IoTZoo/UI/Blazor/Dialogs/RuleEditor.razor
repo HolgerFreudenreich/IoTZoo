@@ -1,0 +1,152 @@
+﻿@inherits RuleEditorBase
+
+@using Domain.Pocos
+@using IotZoo.Components
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+         @DialogTitle
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.Element>
+                  <MudCheckBox @bind-Value="@Rule.Enabled"
+                               LabelPosition="LabelPosition.Start"
+                               Label="Enabled"></MudCheckBox>
+                  <MudStack Row="true">
+                     <MudTextField @bind-Value="@Rule.NamespaceName"
+                                   MaxLength="40"
+                                   Required="true"
+                                   Immediate="true"
+                                   ReadOnly="true"
+                                   Adornment="Adornment.Start"
+                                   AdornmentIcon="@Icons.Material.Filled.Lock"
+                                   Label="Namespace"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                     </MudTextField>
+                     <MudTextField @bind-Value="@Rule.ProjectName"
+                                   MaxLength="40"
+                                   Required="true"
+                                   Immediate="true"
+                                   ReadOnly="true"
+                                   Adornment="Adornment.Start"
+                                   AdornmentIcon="@Icons.Material.Filled.Lock"
+                                   Label="Project"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                     </MudTextField>
+                  </MudStack>
+                  <MudStack Row="true">
+                     <MudAutocomplete T="KnownTopic"
+                                      @bind-Value="KnownSourceTopic"
+                                      SearchFunc="@SearchSourceTopic"
+                                      MaxItems=null
+                                      Immediate="true"
+                                      Required="true"
+                                      Label="Source Topic"
+                                      Clearable="true"
+                                      ResetValueOnEmptyText="false" />
+                     <MudTooltip Color="Color.Tertiary">
+                        <ChildContent>
+                           <MudFab @onclick="@(OpenKnownTopicCatalogForSource)"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.DataArray"
+                                   Size="Size.Small"
+                                   IconSize="Size.Small" />
+                        </ChildContent>
+                        <TooltipContent>
+                           <MudText Typo="Typo.h6">Catalog</MudText>
+                        </TooltipContent>
+                     </MudTooltip>
+                  </MudStack>
+                  <MudTextField @bind-Value="@Rule.Expression"
+                                MaxLength="1000"
+                                Required="false"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Key"
+                                Label="Expression"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+                  <MudStack Row="true">
+                     <MudAutocomplete T="KnownTopic"
+                                      @bind-Value="KnownTargetTopic"
+                                      SearchFunc="@SearchTargetTopic"
+                                      MaxItems=null
+                                      Immediate="true"
+                                      Required="true"
+                                      Label="Target Topic"
+                                      Clearable="true"
+                                      ResetValueOnEmptyText="false" />
+
+                     <MudTooltip Color="Color.Tertiary">
+                        <ChildContent>
+                           <MudFab @onclick="@(OpenKnownTopicCatalogForTarget)"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.DataArray"
+                                   Size="Size.Small"
+                                   IconSize="Size.Small" />
+                        </ChildContent>
+                        <TooltipContent>
+                           <MudText Typo="Typo.h6">Catalog</MudText>
+                        </TooltipContent>
+                     </MudTooltip>
+                  </MudStack>
+                  <MudTextField @bind-Value="@Rule.TargetPayload"
+                                MaxLength="1000"
+                                Required="false"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Key"
+                                Label="Target Payload (Value to Publish/Send)"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+                  <MudTooltip Color="Color.Tertiary">
+                     <ChildContent>
+                        <MudNumericField @bind-Value="Rule.Priority"
+                                         Label="Priority"
+                                         Variant="Variant.Text"
+                                         Min="0"
+                                         Max="10000" />
+                     </ChildContent>
+                     <TooltipContent>
+                        <MudText Typo="Typo.h6">0 is the highest Priority</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+                  <MudSelect T="TriggerCondition" @bind-Value="Rule.TriggerCondition" Label="Trigger Condition">
+                     @foreach (TriggerCondition item in Enum.GetValues(typeof(TriggerCondition)))
+                     {
+                        <MudSelectItem Value="@item">@item</MudSelectItem>
+                     }
+                  </MudSelect>
+
+                  <MudNumericField @bind-Value="Rule.DelayMs"
+                                   Label="Delay [ms]"
+                                   Variant="Variant.Text"
+                                   Min="0"
+                                   Max="60000000" />
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Variant="Variant.Filled"
+                 Color="Color.Success"
+                 OnClick="Save">Save</MudButton>
+   </DialogActions>
+</MudDialog>

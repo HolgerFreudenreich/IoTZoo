@@ -1,0 +1,89 @@
+﻿@inherits ExampleProjects01PageBase
+
+@page "/ExampleProjects01"
+
+<MudText Typo="Typo.h3">Time on a TM1637 4 digits display</MudText>
+<br />
+<br />
+<MudImage Src="./projects/0001/WiringOverview.png" Width="1800" Class="rounded-lg"> </MudImage>
+<br />
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 1 Prepare the Microcontroller</MudText>
+<br />
+<MudLink OnClick="@(() => OpenBrowserTab("FlashFirmware"))">Flash the IoTZoo firmware to the ES32 Microcontroller.</MudLink>
+<br />
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 2 Prepare IotZoo</MudText>
+<br />
+<MudText>- Open IotZoo in Webbrowser</MudText>
+<MudText>- Reboot ESP32, so that it registers into IotZoo.</MudText>
+<MudText>- Navigate to &quot;Known Microcontrollers&quot;, select the Project.</MudText>
+<MudText>- Click Symbol &quot;Configure connected Devices&quot; for the microcontroller.</MudText>
+<MudText>- Click Button &quot;ADD TM1637 4 DIGIT DISPLAY&quot;.</MudText>
+<MudText>- Edit the associated pins or take the default settings.</MudText>
+<br />
+<p><MudImage Src="./projects/0001/Wiring.png" Class="rounded-lg" Width="750" /></p>
+<br />
+<MudText Typo="Typo.h5">Step 3 Connect the cables between ESP32 and  the display</MudText>
+<br />
+<p>Power off the ESP32 and connect the cables as specified.</p>
+<br />
+<div style="width:300px">
+   <MudAlert Severity="Severity.Warning">Never swap VCC with GND!</MudAlert>
+</div>
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 4 Configure Rule</MudText>
+<br />
+<MudText>Navigate to &quot;Rules&quot; in IotZoo</MudText>
+<MudText>Click button &quot;ADD RULE&quot;</MudText>
+<MudText>Choose as Source Topic <b>iotzoo/example1/timer/every_minute</b></MudText>
+<MudText>Target Topic: esp32/&lt;MAC from your ESP32&gt;/tm1637_4/0/time. Example: iotzoo/example1/esp32/E4:65:B8:AE:4B:CC/tm1637_4/0/time</MudText>
+<MudText>Target Payload: $['TimeShort']</MudText>
+<br />
+<MudImage Src="./projects/0001/Rule1.png" Elevation="25" Class="rounded-lg" Width="1000" />
+<br />
+<br />
+<MudText>
+   Every minute the build in topic timer/every_minute is fired. Example: { "DateTime": "25.01.2025 17:32:00", "Time": "17:32:00", "TimeShort": "17:32" }. The assigned rule is executed and the
+   topic iotzoo/example1/esp32/08:D1:F9:E0:31:78/tm1637_4/0/time is fired with the time as payload.
+   <br />
+   You can access each JSON property with the json path notation $['&lt;PropertyName&gt;''].
+</MudText>
+<br />
+<br />
+<MudText Typo="Typo.h5">Sequence diagram</MudText>
+<br />
+<MudPaper Elevation="3" Style="background: white;">
+   <br />
+<pre class="mermaid">
+sequenceDiagram
+    IotZoo Client->>Broker: subscribe to all topics
+    ESP32->>Broker: subscribe to /tm1637_4/0/time
+    IotZoo CronJob every minute->>Broker: /timer/every_minute { "DateTime": "25.01.2025 17:32:00", "Time": "17:32:00", "TimeShort": "17:32" }
+    Broker->>IotZoo Client: /timer/every_minute { "DateTime": "25.01.2025 17:32:00", "Time": "17:32:00", "TimeShort": "17:32" }
+    IotZoo Client->>IotZoo RuleEngine: Execute rules for topic /timer/every_minute
+    IotZoo RuleEngine->>IotZoo Client: Rule 1: $["TimeShort"] => /tmp1637_4/0/time 17:32
+    IotZoo Client->>Broker: /tmp1637_4/0/time 17:32
+    Broker->>ESP32: /tmp1637_4/0/time 17:32
+    ESP32->>TM1637: 17:32
+</pre>
+   <br />
+   <MermaidRender Selector=".mermaid" />
+</MudPaper>
+<br />
+<MudText>This will work, but the disadvantage is, that you have to wait up to one minute until the time is shown after booting the microcontroller. Of cource you could change the timer from a one minute interval to a one second interval </MudText>
+<MudText>but than there are unneccessary many messages. We can solve the by adding two additional rules:</MudText>
+<br />
+<MudImage Src="./projects/0001/Rule2.png" Elevation="25" Class="rounded-lg" Width="1000" />
+<br />
+<MudText>With the build in function <b>Read</b>('&lt;Topic&gt;') you can read the last payload of a known topic.</MudText>
+<br />
+<MudImage Src="./projects/0001/Rule3.png" Elevation="25" Class="rounded-lg" Width="1000" />
+<br />
+<br />
+<MudText Typo="Typo.h6">False information is worse than no information</MudText>
+<br>
+<MudText>If iotzoo no longer sends an alive message, the time on the TM1637 display will be cleared.</MudText>

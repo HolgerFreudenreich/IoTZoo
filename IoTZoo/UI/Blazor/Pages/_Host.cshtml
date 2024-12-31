@@ -1,0 +1,14 @@
+﻿@page "/"
+@namespace IotZoo.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+   Layout = "_Layout";
+}
+
+<component type="typeof(App)" render-mode="ServerPrerendered" />
+
+<script>
+   function openNewTab(url) {
+       window.open(url, '_blank');
+   }
+</script>

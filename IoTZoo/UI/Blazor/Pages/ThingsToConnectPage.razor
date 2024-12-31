@@ -1,0 +1,306 @@
+﻿@page "/ThingsToConnect"
+
+@inherits ThingsToConnectPageBase
+
+@using DataAccess.Services
+@using IotZoo.Components
+@using Domain.Pocos;
+
+<MudText Typo="Typo.h5">Presentation of things that can be connected</MudText>
+<br />
+<br />
+<MudText Typo="Typo.h6">Button</MudText>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/button/<index>/push_counter"
+                     Description="Button with <index> was pushed."
+                     ExamplePayload="push counter">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/button/<index>/set_push_counter"
+                     Description="Sets how often the button was pushed."
+                     ExamplePayload="0">
+</KnownTopicComponent>
+<br />
+<br />
+<MudText Typo="Typo.h6">Switch</MudText>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/switch/<index>/on"
+                     Description="Switch with <index> was turned on."
+                     ExamplePayload="15697 (milliseconds since starting the Microcontroller)">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/switch/<index>/off"
+                     Description="Switch with <index> was turned off."
+                     ExamplePayload="16124 (milliseconds since starting the Microcontroller)">
+</KnownTopicComponent>
+<br />
+<MudText Typo="Typo.h6">DS18B20 Temperature Sensor</MudText>
+<br />
+<MudText>Measures Temperatures from -55°C to +125°C with ±0.5°C Accuracy from -10°C to +85°C</MudText>
+<br />
+<MudText>You can connect up to 64 sensors in series. You can change the sending interval in the microcontroller settings. The default setting is every 20 seconds.</MudText>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/ds18b20/temperature/<index>/celsius"
+                     Description="The Temperature of Sensor <index> in °C."
+                     ExamplePayload="22.1">
+</KnownTopicComponent>
+<br />
+<MudLink OnClick="@(() => OpenBrowserTab("https://www.analog.com/media/en/technical-documentation/data-sheets/DS18B20.pdf"))">Datasheet (External Link)</MudLink>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">HC-SR 501 Motion Detector</MudText>
+<br />
+<MudText>Motion sensing range: Less than 120 degree within 7 meters.</MudText>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/motion_detector/<index>/triggered"
+                     Description="Motion detector <index> triggered. Payload: Trigger counter"
+                     ExamplePayload="34">
+</KnownTopicComponent>
+<br />
+<MudLink OnClick="@(() => OpenBrowserTab("https://www.mpja.com/download/31227sc.pdf"))">Datasheet (External Link)</MudLink>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">HW-040 Rotary Encoder</MudText>
+<br />
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/rotary_encoder/<index>/value"
+                     Description="Value of Rotary encoder <index> changed."
+                     ExamplePayload="58">
+</KnownTopicComponent>
+
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/rotary_encoder/<index>/set_value"
+                     Description="Sets the value of the rotary encoder <index>."
+                     ExamplePayload="58">
+</KnownTopicComponent>
+
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/rotary_encoder/<index>/button_pressed"
+                     Description="Button of rotary encoder <index> has been pressed. Example payload: Millis of the ESP32."
+                     ExamplePayload="58411">
+</KnownTopicComponent>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">4x4 Button Matrix</MudText>
+<br />
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/button_matrix/<index>/toggle_button/<button_char>"
+                     Description="Status of button <button_char> has changed. Payload: PRESSED | HOLD | RELEASED"
+                     ExamplePayload="PRESSED">
+</KnownTopicComponent>
+
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/button_matrix/<index>/toggle_button/<button_char>/pressed"
+                     Description="Button <button_char> has been pressed. Payload: Millis() of the ESP32."
+                     ExamplePayload="343231">
+</KnownTopicComponent>
+
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/button_matrix/<index>/toggle_button/<button_char>/hold"
+                     Description="Button <button_char> has been hold. Payload: Millis() of the ESP32."
+                     ExamplePayload="344231">
+</KnownTopicComponent>
+
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/button_matrix/<index>/toggle_button/<button_char>/released"
+                     Description="Button <button_char> was released. Payload: Millis() of the ESP32."
+                     ExamplePayload="345231">
+</KnownTopicComponent>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">TM1637 4 digit display</MudText>
+<br />
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/tm1637_4/<display index>/number"
+                     Description="integer value or time value (example: 16:37). Send clear to clear the display."
+                     ExamplePayload="1234">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/tm1637_4/<display index>"
+                     ExamplePayload="{'device_index': 0, 'number'': 7, 'leading_zero': false, 'display_length': 4, 'position': 0}">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/tm1637_4/<display index>/text"
+                     Description="text. Send clear to clear the display."
+                     ExamplePayload="-HI-">
+</KnownTopicComponent>
+<MudText>You can connect up to 10 devices.</MudText>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">TM1637 6 digit display</MudText>
+<br />
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/tm1637_6/<display index>/number"
+                     Description="integer value or time value (example: 16:37:12). Send clear to clear the display."
+                     ExamplePayload="123456">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/tm1637_6/<display index>"
+                     ExamplePayload="{'device_index': 0, 'number'': 7, 'leading_zero': false, 'display_length': 6, 'position': 0}">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/tm1637_6/<display index>/text"
+                     Description="text. Send clear to clear the display."
+                     ExamplePayload="- HI -">
+</KnownTopicComponent>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">SD1306 oled display</MudText>
+<br />
+<br />
+<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine1 | Payload: text</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine2 | Payload: text</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine3 | Payload: text</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine4 | Payload: text</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine5 | Payload: text</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine6 | Payload: text</MudText>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">LCD1602, LCD1604, LCD2002, LCD2004 display</MudText>
+<br />
+<br />
+<MudText>Topic: esp32/&lt;MacAddress&gt;/lcd160x/&lt;display index&gt; | Payload: {"text": "IoT Zoo", "clear": true, "x":1, "y": 0}</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/lcd160x/&lt;display index&gt;/backlight | Payload: 0 (off); 1 (on)</MudText>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">LEDS (RED, YELLOW, GREEN)</MudText>
+<br />
+<br />
+<MudText>Topic: esp32/&lt;MacAddress&gt;/traffic_light/&lt;index&gt; | Payload: To turn green led on (and yellow and red off): g, 0, green</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/traffic_light/&lt;index&gt; | Payload: To turn yellow led on (and green and red off): y, 1, yellow</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/traffic_light/&lt;index&gt; | Payload: To turn red led on (and green and yellow off): r, 2, red</MudText>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">NEO Pixel WS2818</MudText>
+<br />
+<br />
+<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt;/setPixelColor | Payload: {"color": 1106052, "index": 15, "length": 1, "brightness": 50}</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt;/setPixelColorRgb | Payload: {"r": 0, "g": 125, "b": 0, "index": 15, "length": 1, "brightness": 35}</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt;/setPixelColorHex | Payload Example 1: {"color": "#10E084" "index": 0, "length": 10, "brightness": 10}</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt;/setPixelColorHex | Payload Example 2: {"color": "0x10E084" "index": 0, "length": 10, "brightness": 10}</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt;/setPixelColorHex | Payload Example 3: {"color": "10E084" "index": 0, "length": 10, "brightness": 10}</MudText>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">Remote GPIO</MudText>
+<br />
+<br />
+<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt; | Payload: 0, LOW, OFF or 1, HIGH, ON or TOGGLE for toggling state</MudText>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">28BYJ-48 Stepper Motor</MudText>
+<br />
+<br />
+<MudText>Topic: esp32/&lt;MacAddress&gt;/stepper/&lt;index&gt;/action | Payload: {"degrees": 5, "rpm":2}</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/stepper/&lt;index&gt;/actionEnded | Payload: none</MudText>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">Led & Key</MudText>
+<br />
+<br />
+<MudText>Topic: esp32/&lt;MacAddress&gt;/ledAndKey/&lt;device index&gt;/led | Payload: 1: on; 0: off</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/ledAndKey/&lt;device index&gt;/text | Payload: text</MudText>
+<MudText>Topic: esp32/&lt;MacAddress&gt;/ledAndKey/&lt;device index&gt;/command | Payload: reset</MudText>
+
+<MudText>Topic: esp32/&lt;MacAddress&gt;/ledAndKey/&lt;device index&gt;/button_row/state | Payload: 1 (button 0 pressed), 2 (button 1 pressed), 4, 8, 16, 32, 64, 128 and combinations</MudText>
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">KY-25 Reed contact</MudText>
+<br />
+<br />
+<MudText>Topic: esp32/&lt;MacAddress&gt;/rpm/&lt;device index&gt; | Payload: rpm</MudText>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">Interaction with Philips HUE</MudText>
+<br />
+<br />
+<MudText>Topic: HUE_LIGHT_ON | Payload: lightId</MudText>
+<MudText>Topic: HUE_LIGHT_OFF | Payload: lightId</MudText>
+<MudText>Topic: HUE_LIGHT_COLOR | Payload: {"LightId": 9, "Color": {"X": 0.2465, "Y": 0.6425}} | green</MudText>
+<MudText>To determine the Y and Y value for the color set the color of a lightId with an app and look at the topic hue_bridge/lights/&lt;lightId&gt; or use the following predefined colors:</MudText>
+<MudText>Topic: HUE_LIGHT_COLOR_BLUE | Payload: LightId</MudText>
+<MudText>Topic: HUE_LIGHT_COLOR_YELLOW | Payload: LightId</MudText>
+<MudText>Topic: HUE_LIGHT_COLOR_ORANGE | Payload: LightId</MudText>
+<MudText>Topic: HUE_LIGHT_COLOR_GREEN | Payload: LightId</MudText>
+<MudText>Topic: HUE_LIGHT_COLOR_RED | Payload: LightId</MudText>
+<MudText>Topic: HUE_LIGHT_COLOR_WHITE_COLD | Payload: LightId</MudText>
+<MudText>Topic: HUE_LIGHT_COLOR_WHITE_WARM | Payload: LightId</MudText>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">Internal Topics</MudText>
+<br />
+<br />
+<MudText Typo="Typo.h6">Time based topics</MudText>
+<br />
+<br />
+<MudText>Topic: IOTZOO/SYSTEM/STARTED | Payload: none</MudText>
+<MudText>Topic: IOTZOO/@TopicConstants.EVERY_SECOND | Payload Example: { "DateTime": "17.11.2025 17:23:00", "Time": "17:23:00", "TimeShort": "17:23" }</MudText>
+<MudText>Topic: IOTZOO/@TopicConstants.EVERY_05_SECONDS | Payload Example: { "DateTime": "17.11.2025 17:23:05", "Time": "17:23:05", "TimeShort": "17:23" }</MudText>
+<MudText>Topic: IOTZOO/@TopicConstants.EVERY_10_SECONDS | Payload Example: { "DateTime": "17.11.2025 17:23:10", "Time": "17:23:10", "TimeShort": "17:23" }</MudText>
+<MudText>Topic: IOTZOO/@TopicConstants.EVERY_15_SECONDS | Payload Example: { "DateTime": "17.11.2025 17:23:15", "Time": "17:23:15", "TimeShort": "17:23" }</MudText>
+<MudText>Topic: IOTZOO/@TopicConstants.EVERY_30_SECONDS | Payload Example: { "DateTime": "17.11.2025 17:23:30", "Time": "17:23:15", "TimeShort": "17:23" }</MudText>
+<MudText>Topic: IOTZOO/@TopicConstants.EVERY_MINUTE | Payload Example: { "DateTime": "17.11.2025 17:23:00", "Time": "17:23:00", "TimeShort": "17:23" }</MudText>
+<MudText>Topic: IOTZOO/@TopicConstants.EVERY_05_MINUTES | Payload Example: { "DateTime": "17.11.2025 17:30:00", "Time": "17:30:00", "TimeShort": "17:30" }</MudText>
+<MudText>Topic: IOTZOO/@TopicConstants.EVERY_15_MINUTES | Payload Example: { "DateTime": "17.11.2025 17:30:00", "Time": "17:30:00", "TimeShort": "17:30" }</MudText>
+<MudText>Topic: IOTZOO/@TopicConstants.EVERY_30_MINUTES | Payload Example: { "DateTime": "17.11.2025 17:30:00", "Time": "17:30:00", "TimeShort": "17:30" }</MudText>
+<MudText>Topic: IOTZOO/@TopicConstants.EVERY_HOUR   | Payload Example: { "DateTime": "17.11.2025 18:00:00", "Time": "18:00:00", "TimeShort": "18:00" }</MudText>
+<MudText>Topic: IOTZOO/EVERY_HOUR | Payload: DateTime.Now</MudText>
+<br />
+<br />
+<MudText Typo="Typo.h6">Sunrise and Sunset</MudText>
+<br />
+<MudText>Topic: IOTZOO/SUNRISE_NOW | Payload: DateTime.Now</MudText>
+<br />
+<MudText>Topic: IOTZOO/SUNSET_NOW | Payload: DateTime.Now</MudText>
+<br />
+

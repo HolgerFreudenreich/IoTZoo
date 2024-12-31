@@ -1,0 +1,149 @@
+﻿@page "/Projects"
+
+@using Domain.Pocos;
+
+@inherits ProjectsPageBase
+
+<PageTitle>Projects</PageTitle>
+
+<MudStack Row="true">
+   <MudButton OnClick="OpenProjectEditorAsync"
+              Style="height: 40px"
+              StartIcon="@Icons.Material.Filled.Add"
+              Variant="Variant.Filled"
+              Color="Color.Primary">
+      Add Project
+   </MudButton>
+   <MudSpacer></MudSpacer>
+   <MudTooltip Color="Color.Tertiary">
+      <ChildContent>
+         <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                        OnClick="LoadData">
+         </MudIconButton>
+      </ChildContent>
+      <TooltipContent>
+         <MudText Typo="Typo.h6">Refresh</MudText>
+      </TooltipContent>
+   </MudTooltip>
+</MudStack> 
+
+<br />
+<br />
+<MudTable Items="@Projects"
+          Filter="new Func<Project, bool>(SearchHelper.Search)"
+          FixedHeader="true"
+          HorizontalScrollbar="true"
+          Height="1040px"
+          Striped="true"
+          Dense="true"
+          Hover="true">
+   <ToolBarContent>
+      <MudText Typo="Typo.h6">Projects</MudText>
+      <MudSpacer />
+      <MudTextField @bind-Value="SearchHelper.SearchString"
+                    Placeholder="Search..."
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    IconSize="Size.Medium"
+                    Class="mt-0">
+      </MudTextField>
+   </ToolBarContent>
+   <HeaderContent>
+      <MudTh><MudTableSortLabel SortBy="new Func<Project, object>(x => x.ProjectId)">Id</MudTableSortLabel></MudTh>
+      <MudTh></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<Project, object>(x => x.ProjectName)">ProjectName</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<Project, object>(x => x.Description!)">Description</MudTableSortLabel></MudTh>
+   </HeaderContent>
+   <RowTemplate>
+      <MudTd DataLabel="Id">@context.ProjectId</MudTd>
+      <MudTd DataLabel="">
+         <div style="width: 280px;">
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => EditProject(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.Edit"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Edit Project</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => RegisterProjectTopics(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Secondary"
+                          StartIcon="@Icons.Material.Filled.AppRegistration"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Register Project Known Topics</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => EditProjectCronJobs(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.Timer"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Edit Cron Jobs</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => DeleteProject(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Error"
+                          StartIcon="@Icons.Material.Filled.Delete"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Delete</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => RestartProject(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Warning"
+                          StartIcon="@Icons.Material.Filled.RestartAlt"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Restart</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => OpenProjectOverviewDialog(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.RemoveRedEye"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Overview</MudText>
+               </TooltipContent>
+            </MudTooltip>
+         </div>
+      </MudTd>
+      <MudTd DataLabel="ProjectName">@context.ProjectName</MudTd>
+      <MudTd DataLabel="DescriptionCode">@context.Description</MudTd>
+   </RowTemplate>
+</MudTable>

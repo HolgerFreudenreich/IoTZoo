@@ -1,0 +1,47 @@
+﻿---------------------------------------------------------------------------------------------------
+-- Component management
+---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+-- table 001 sku
+---------------------------------------------------------------------------------------------------
+create table if not exists component
+(
+  -- primary key
+  component_id integer primary key autoincrement,
+  sku character varying(50) not null,
+  description character varying(5000) null,
+  constraint uk_component unique (sku)
+);
+
+---------------------------------------------------------------------------------------------------
+-- table 002 storage_bin
+-- One sku can be in serveral boxes. A box can be in another box.
+---------------------------------------------------------------------------------------------------
+create table if not exists storage_bin
+(
+ -- primary key
+  storage_bin_id integer primary key autoincrement,
+  boxnr character varying(50) not null,
+  --parent_boxnr character varying(50) null,
+  constraint uk_storage_bin unique (boxnr)
+  --,constraint fk_storage_bin_self foreign key (parent_boxnr) references boxnr(storage_bin) on delete cascade on update cascade
+ );
+
+---------------------------------------------------------------------------------------------------
+-- table 004 stocking
+-- One component (sku) can be in serveral boxes. A box can be in another box.
+---------------------------------------------------------------------------------------------------
+create table if not exists stocking
+(
+  -- primary key
+  stocking_id integer primary key autoincrement,
+  storage_bin_id integer not null,
+  sku character varying(50) not null, -- or join componentn.component_id
+  quantity integer null default 0,
+  constraint fk_stocking_component foreign key (sku) references component (sku) on delete cascade on update cascade,
+  constraint fk_stocking_storage_bin foreign key (storage_bin_id) references storage_bin(storage_bin_id) on delete cascade on update cascade
+);
+
+---------------------------------------------------------------------------------------------------
+-- End Component management
+---------------------------------------------------------------------------------------------------

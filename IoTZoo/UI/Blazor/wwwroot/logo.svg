@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" >
+  <g transform="translate(0, 0)">
+    <rect rx="5" ry="5" width="100" height="100" stroke="black" fill="none" stroke-width="3"/>
+  </g>
+  <g transform="translate(0,105)">
+    <rect rx="5" ry="5" width="100" height="100" stroke="black" fill="none" stroke-width="3"/>
+    <svg width="100px" height="100px">
+      <text font-size="96" x="50%" y="50%" alignment-baseline="central" text-anchor="middle">I</text>
+    </svg>
+  </g>
+
+  <g transform="translate(105,0)">
+    <rect rx="5" ry="5" width="100" height="100" stroke="black" fill="none" stroke-width="3"/>
+    <svg width="100px" height="100px">
+      <text font-size="96" x="50%" y="50%" alignment-baseline="central" text-anchor="middle">Z</text>
+    </svg>
+  </g>
+  <g transform="translate(210, 0)">
+    <rect rx="5" ry="5" width="100" height="100" stroke="black" fill="none" stroke-width="3"/>
+  </g>
+  <g transform="translate(105,105)">
+    <rect rx="5" ry="5" width="100" height="100" stroke="black" fill="none" stroke-width="3"/>
+    <svg width="100px" height="100px">
+      <text font-size="96" x="50%" y="50%" alignment-baseline="central" text-anchor="middle">O</text>
+    </svg>
+  </g>
+
+  <g transform="translate(210,105)">
+    <rect rx="5" ry="5" width="100" height="100" stroke="black" fill="none" stroke-width="3"/>
+    <svg width="100px" height="100px">
+      <text font-size="96" x="50%" y="50%" alignment-baseline="central" text-anchor="middle">T</text>
+    </svg>
+  </g>
+
+  <g transform="translate(0, 210)">
+    <rect rx="5" ry="5" width="100" height="100" stroke="black" fill="none" stroke-width="3"/>
+  </g>
+
+  <g transform="translate(105,210)">
+    <rect rx="5" ry="5" width="100" height="100" stroke="black" fill="none" stroke-width="3"/>
+    <svg width="100px" height="100px">
+      <text font-size="96" x="50%" y="50%" alignment-baseline="central" text-anchor="middle">O</text>
+    </svg>
+  </g>
+  <g transform="translate(210, 210)">
+    <rect rx="5" ry="5" width="100" height="100" stroke="black" fill="none" stroke-width="3"/>
+  </g>
+</svg>

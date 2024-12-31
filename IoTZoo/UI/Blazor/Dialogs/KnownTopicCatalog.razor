@@ -1,0 +1,91 @@
+﻿@inherits KnownTopicCatalogBase
+
+@using Domain.Pocos
+@using IotZoo.Components
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         Known Topics
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      @*  <MudButton OnClick="OpenKnowTopicEditor"
+                 Style="height: 40px"
+                 StartIcon="@Icons.Material.Filled.Add"
+                 Variant="Variant.Filled"
+                 Color="Color.Primary">
+         Add Known Topic
+      </MudButton> *@
+      <br />
+      <MudTable @ref="MudTable"
+                Items="@KnownTopics"
+                Filter="new Func<KnownTopic, bool>(SearchHelper.Search)"
+                OnRowClick="RowClickEvent" T="KnownTopic"
+                RowClassFunc="SelectedRowClassFunc"
+                FixedHeader="true"
+                HorizontalScrollbar="true"
+                Height="700px"
+                Striped="true"
+                Dense="true"
+                Hover="true">
+         <ToolBarContent>
+            <MudText Typo="Typo.h6">Known Topics</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="SearchHelper.SearchString"
+                          Placeholder="Search..."
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0">
+            </MudTextField>
+         </ToolBarContent>
+         <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<KnownTopic, object>(x => x.KnownTopicId)">Id</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<KnownTopic, object>(x => x.Topic)">Topic</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<KnownTopic, object>(x => x.Description!)">Description</MudTableSortLabel></MudTh>
+
+         </HeaderContent>
+         <RowTemplate>
+            <MudTd DataLabel="Id">@context.KnownTopicId</MudTd>
+            <MudTd DataLabel="Mac Address">@context.Topic</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+         </RowTemplate>
+      </MudTable>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Class="MudButtonText"
+                 Color="Color.Success"
+                 OnClick="Take">Take</MudButton>
+   </DialogActions>
+</MudDialog>
+
+<style>
+   .selected {
+      background-color: #85BFC9 !important;
+   }
+
+      .selected > td {
+         color: white !important;
+      }
+
+         .selected > td .mud-input {
+            color: white !important;
+         }
+</style>
+
+<style>
+   body {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      overflow-y: scroll;
+   }
+
+      body::-webkit-scrollbar {
+         display: none;
+      }
+</style>

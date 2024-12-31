@@ -1,0 +1,99 @@
+﻿@page "/TopicsHistory"
+
+@using Domain.Pocos
+
+@inherits TopicsHistoryPageBase
+
+<MudStack Row="true">
+   <div style="width:250px">
+      <MudSelect T="Project"
+                 Margin="Margin.Dense"
+                 Label="Project"
+                 @bind-Value="SelectedProject"
+                 AnchorOrigin="Origin.BottomCenter"
+                 Variant="Variant.Text"
+                 Clearable="true">
+         @foreach (var project in this.ProjectsCatalog)
+         {
+            <MudSelectItem Value="@project">@project?.ProjectName</MudSelectItem>
+         }
+      </MudSelect>
+   </div>
+   <MudButton OnClick="Delete"
+              Style="height: 40px"
+              StartIcon="@Icons.Material.Filled.Add"
+              Variant="Variant.Filled"
+              Color="Color.Error">
+      Delete all
+   </MudButton>
+   <MudSpacer></MudSpacer>
+   <MudTooltip Color="Color.Tertiary">
+      <ChildContent>
+         <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                        OnClick="RefreshData">
+         </MudIconButton>
+      </ChildContent>
+      <TooltipContent>
+         <MudText Typo="Typo.h6">Refresh</MudText>
+      </TooltipContent>
+   </MudTooltip>
+</MudStack>
+<br />
+<br />
+<br />
+<MudTable Items="@TopicHistoryList"
+          Filter="new Func<TopicHistory, bool>(SearchHelper.Search)"
+          FixedHeader="true"
+          HorizontalScrollbar="true"
+          Height="1040px"
+          Striped="true"
+          Dense="true"
+          Hover="true">
+   <ToolBarContent>
+      <MudText Typo="Typo.h6">Topics History</MudText>
+      <MudSpacer />
+      <MudTextField @bind-Value="SearchHelper.SearchString"
+                    Placeholder="Search..."
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    IconSize="Size.Medium"
+                    Class="mt-0">
+      </MudTextField>
+   </ToolBarContent>
+   <HeaderContent>      
+      <MudTh><MudTableSortLabel SortBy="new Func<TopicHistory, object>(x => x.TopicHistoryId)">Id</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<TopicHistory, object>(x => x.Topic)">Topic</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<TopicHistory, object>(x => x.Payload!)">Payload</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<TopicHistory, object>(x => x.ProjectName!)">Project</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<TopicHistory, object>(x => x.DateReceived)">Date of receipt</MudTableSortLabel></MudTh>
+      <MudTh></MudTh>
+   </HeaderContent>
+   <RowTemplate>
+      <MudTd DataLabel="TopicHistoryId">@context.TopicHistoryId</MudTd>
+      <MudTd DataLabel="Topic">@context.Topic</MudTd>
+      <MudTd DataLabel="Payload">@context.Payload</MudTd>
+      <MudTd DataLabel="Project">@context.ProjectName</MudTd>
+      <MudTd DataLabel="DateOfReceiped">@context.DateReceived</MudTd>
+      <MudTd DataLabel="">
+         <div style="width: 90px;">
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => DeleteTopicHistoryEntry(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Error"
+                          StartIcon="@Icons.Material.Filled.Delete"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Delete</MudText>
+               </TooltipContent>
+            </MudTooltip>
+         </div>
+      </MudTd>
+   </RowTemplate>
+   <PagerContent>
+      <MudTablePager PageSizeOptions="new[] { 100, 250, 500, 1000, 2000 }"
+                     HorizontalAlignment="HorizontalAlignment.Left" />
+   </PagerContent>
+</MudTable>

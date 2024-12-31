@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "author": "Holger Freudenreich",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": -201.6,
+      "left": -119.96,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-tm1637-7segment",
+      "id": "sevseg1",
+      "top": -240.04,
+      "left": -348.17,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-tm1637-7segment",
+      "id": "sevseg2",
+      "top": -19.24,
+      "left": -348.17,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-lcd2004",
+      "id": "lcd1",
+      "top": -233.6,
+      "left": 5.6,
+      "attrs": { "pins": "i2c" }
+    },
+    { "type": "wokwi-ky-040", "id": "encoder1", "top": -123.1, "left": -346.4, "attrs": {} }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "sevseg1:CLK", "esp:27", "green", [ "h57.6", "v134.4" ] ],
+    [ "sevseg1:DIO", "esp:26", "blue", [ "h48", "v115.2" ] ],
+    [ "sevseg1:VCC", "esp:5V", "red", [ "h19.2", "v192" ] ],
+    [ "sevseg2:VCC", "esp:5V", "red", [ "h28.8", "v-19.2" ] ],
+    [ "sevseg1:GND", "esp:GND.1", "black", [ "h9.6", "v134.4" ] ],
+    [ "sevseg2:GND", "esp:GND.1", "black", [ "h9.6", "v-86.4" ] ],
+    [ "sevseg2:CLK", "esp:14", "green", [ "h48", "v-105.6" ] ],
+    [ "sevseg2:DIO", "esp:12", "blue", [ "h57.6", "v-67.2" ] ],
+    [ "lcd1:GND", "esp:GND.1", "black", [ "v-19.2", "h-172.8", "v172.8" ] ],
+    [ "lcd1:VCC", "esp:5V", "red", [ "h-163.2", "v249.7" ] ],
+    [ "lcd1:SDA", "esp:21", "green", [ "h-19.2", "v57.8" ] ],
+    [ "lcd1:SCL", "esp:22", "blue", [ "h-19.2", "v77.1" ] ],
+    [ "encoder1:GND", "esp:GND.1", "black", [ "h67.2", "v29.6" ] ],
+    [ "encoder1:VCC", "esp:5V", "red", [ "h96", "v86.8" ] ],
+    [ "encoder1:SW", "esp:33", "green", [ "h0" ] ],
+    [ "encoder1:CLK", "esp:32", "violet", [ "h0" ] ],
+    [ "encoder1:DT", "esp:34", "cyan", [ "h96", "v-28.7" ] ]
+  ],
+  "dependencies": {}
+}

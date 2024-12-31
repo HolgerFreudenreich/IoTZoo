@@ -1,0 +1,79 @@
+﻿@inherits ExampleProjects04PageBase
+
+@page "/ExampleProjects04"
+@using DataAccess.Services
+
+<MudText Typo="Typo.h3">Control a Philips HUE lamp with a rotary encoder</MudText>
+<br />
+<MudImage Src="./projects/0004/WiringOverview.png" Width="1800" Class="rounded-lg"> </MudImage>
+<br />
+<br />
+<div style="width:450px">
+   <MudAlert Severity="Severity.Info">
+      <MudLink OnClick="@(() => OpenBrowserTab("Settings"))">Preconditions: Set up your HUE Bridge under Settings.</MudLink>
+   </MudAlert>
+</div>
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 1 Prepare the Microcontroller</MudText>
+<br />
+<MudLink OnClick="@(() => OpenBrowserTab("FlashFirmware"))">Flash the IoTZoo firmware to the ES32 Microcontroller.</MudLink>
+<br />
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 2 Prepare IotZoo</MudText>
+<br />
+<MudText>- Open IotZoo in Webbrowser</MudText>
+<MudText>- Reboot ESP32, so that it registers into IotZoo.</MudText>
+<MudText>- Navigate to &quot;Known Microcontrollers&quot;, order by BootDateTime desc.</MudText>
+<MudText>- Click Symbol &quot;Configure connected Devices&quot;.</MudText>
+<MudText>- Click Button <b>&quot;ADD HW-040 ROTARY ENCODER&quot;</b>.</MudText>
+<MudText>- Edit the associated pins or take the default settings.</MudText>
+<br />
+<MudImage Src="./projects/0004/Wiring.png" Elevation="25" Class="rounded-lg" Width="1200" />
+<br />
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 3 Connect the cables between ESP32 and  the rotary encoder.</MudText>
+<br />
+<p>Power off the ESP32 and connect the cables as specified.</p>
+<br />
+<div style="width:450px">
+   <MudAlert Severity="Severity.Warning">Never swap VCC with GND!</MudAlert>
+</div>
+<br />
+<div style="width:450px">
+   <MudAlert Severity="Severity.Info">Swap CLK and DT if the encoder works in the wrong direction.</MudAlert>
+</div>
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 4 Configure Rules</MudText>
+<br />
+<MudText Typo="Typo.h6">To control Brightness</MudText>
+<br />
+<MudText>Navigate to &quot;Rules&quot; in IotZoo</MudText>
+<MudText>Click button &quot;ADD RULE&quot;</MudText>
+<MudText>Source Topic: &lt;ProjectName&gt;/esp32/&lt;MAC from your ESP32&gt;/rotary_encoder/0/value. Example: example4/esp32/B0:A7:32:28:3C:F8/rotary_encoder/0/value</MudText>
+<MudText>Target Topic: &lt;ProjectName&gt;/@TopicConstants.HUE/@TopicConstants.LIGHT/@TopicConstants.BRIGHTNESS</MudText>
+
+<MudText>Target Payload: <b>{ "LightId": 9, "Brightness": input}</b></MudText>
+<br />
+<div style="width:450px">
+   <MudAlert Severity="Severity.Info">
+      <MudLink OnClick="@(() => OpenBrowserTab("Hue"))">You can get your LightIds from 'Philips Hue' page.</MudLink>
+   </MudAlert>
+</div>
+<br />
+<MudImage Src="./projects/0004/RuleBrightness.png" Elevation="25" Class="rounded-lg" Width="1050" />
+<br />
+<br />
+<MudText Typo="Typo.h6">To control On/Off status</MudText>
+<br />
+<MudText>Navigate to &quot;Rules&quot; in IotZoo</MudText>
+<MudText>Click button &quot;ADD RULE&quot;</MudText>
+<MudText>Choose as Source Topic <b>IOTZOO/HUE_LIGHT_TOGGLE</b></MudText>
+<MudText>Input as Target Topic esp32/&lt;MAC from your ESP32&gt;/rotary_encoder/0/button_pressed. Example: esp32/B0:A7:32:28:3C:F8/rotary_encoder/0/button_pressed</MudText>
+<MudText>Payload <b>9</b></MudText>
+<br />
+<MudImage Src="./projects/0004/RuleOnOff.png" Elevation="25" Class="rounded-lg" Width="1050" />
+
