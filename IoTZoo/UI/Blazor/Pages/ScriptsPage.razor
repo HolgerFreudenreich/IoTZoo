@@ -1,0 +1,115 @@
+﻿@page "/Scripts"
+
+@using Domain.Pocos
+
+@inherits ScriptsPageBase
+
+<PageTitle>Scripts</PageTitle>
+
+<MudStack Row="true">
+   <MudButton OnClick="OpenScriptEditorAsync"
+              Style="height: 40px"
+              StartIcon="@Icons.Material.Filled.Add"
+              Variant="Variant.Filled"
+              Color="Color.Primary">
+      Add C# Script
+   </MudButton>
+   <MudSpacer></MudSpacer>
+   <MudLink Href="https://dotnetfiddle.net/">You can use <b>dotnetfiddle</b><br />to write your script (Projecttype Script).</MudLink>
+   <MudSpacer></MudSpacer>
+   <MudTooltip Color="Color.Tertiary">
+      <ChildContent>
+         <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                        aria-label="Refresh"
+                        OnClick="LoadData">
+         </MudIconButton>
+      </ChildContent>
+      <TooltipContent>
+         <MudText Typo="Typo.h6">Refresh</MudText>
+      </TooltipContent>
+   </MudTooltip>
+</MudStack>
+<br />
+<br />
+<MudAlert Severity="Severity.Warning">If you call the script more often than the execution time of the script is, your system will crash after some time because lack of resources!</MudAlert>
+<br />
+<MudAlert Severity="Severity.Info">You can execute your Script in your Rule TargetPayload. Please write :: in front of the name of the script function. Example ::GetCalendarWeek().</MudAlert>
+<br />
+<MudTable Items="@Scripts"
+          Filter="new Func<Script, bool>(SearchHelper.Search)"
+          FixedHeader="true"
+          HorizontalScrollbar="true"
+          Height="1040px"
+          Striped="true"
+          Dense="true"
+          Hover="true">
+   <ToolBarContent>
+      <MudText Typo="Typo.h6">Scripts</MudText>
+      <MudSpacer />
+      <MudTextField @bind-Value="SearchHelper.SearchString"
+                    Placeholder="Search..."
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    IconSize="Size.Medium"
+                    Class="mt-0">
+      </MudTextField>
+   </ToolBarContent>
+   <HeaderContent>
+      <MudTh><MudTableSortLabel SortBy="new Func<Script, object>(x => x.ScriptId)">Id</MudTableSortLabel></MudTh>
+      <MudTh></MudTh>
+      @* <MudTh><MudTableSortLabel SortBy="new Func<Script, object>(x => x.ScriptLanguageId)">Script Language</MudTableSortLabel></MudTh> *@
+      <MudTh><MudTableSortLabel SortBy="new Func<Script, object>(x => x.ScriptName)">ScriptName</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<Script, object>(x => x.SourceCode)">SourceCode</MudTableSortLabel></MudTh>
+   </HeaderContent>
+   <RowTemplate>
+      <MudTd DataLabel="Id">@context.ScriptId</MudTd>
+      <MudTd DataLabel="">
+         <div style="width: 140px;">
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => EditScript(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.Edit"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Edit</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => DeleteScript(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Error"
+                          StartIcon="@Icons.Material.Filled.Delete"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Delete</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => CloneScript(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.CopyAll"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Clone</MudText>
+               </TooltipContent>
+            </MudTooltip>
+         </div>
+      </MudTd>
+      @*       <MudTd DataLabel="Language">@context.ScriptLanguageId</MudTd> *@
+      <MudTd DataLabel="ScriptName">@context.ScriptName</MudTd>
+      <MudTd DataLabel="SourceCode">@context.SourceCode</MudTd>
+   </RowTemplate>
+</MudTable>

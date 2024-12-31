@@ -1,0 +1,34 @@
+﻿---------------------------------------------------------------------------------------------------
+-- Scripting
+---------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------
+-- table 001 script.script_language
+---------------------------------------------------------------------------------------------------
+create table if not exists script_language
+(
+  script_language_id integer primary key,
+  language_name character varying(40) not null
+);
+
+insert into script_language (script_language_id, language_name) values (0, 'CSharpScript');
+
+---------------------------------------------------------------------------------------------------
+-- table 002 script.Script
+---------------------------------------------------------------------------------------------------
+create table if not exists script
+(
+  -- primary key
+  script_id integer primary key autoincrement,
+  script_name character varying(100) not null,
+  author character varying(100) null,
+  description text not null,
+  source_code text not null,
+  script_language_id integer not null,
+  constraint uk_script_script_name unique (script_name),
+  constraint fk_script foreign key (script_language_id) references script_language(script_language_id) on delete cascade on update cascade
+);
+
+---------------------------------------------------------------------------------------------------
+-- End Scripting
+---------------------------------------------------------------------------------------------------

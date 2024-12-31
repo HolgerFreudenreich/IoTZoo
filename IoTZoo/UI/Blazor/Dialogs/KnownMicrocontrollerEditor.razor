@@ -1,0 +1,106 @@
+﻿@inherits KnownMicrocontrollerEditorBase
+
+@using IotZoo.Components
+@using Domain.Pocos
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+         @DialogTitle
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.LastChild>
+                  <MudSelect @bind-Value="@Microcontroller.BoardType"
+                             T="string"
+                             Margin="Margin.Dense"
+                             Label="Board Type"
+                             Required="true"
+                             Immediate="true"
+                             RequiredError="Please choose the board type!"
+                             MultiSelection="false"
+                             Clearable="false">
+                     <MudSelectItem Value="@("esp32")">esp32</MudSelectItem>
+                     <MudSelectItem Value="@("esp8266")">esp8266</MudSelectItem>
+                  </MudSelect>
+
+                  <MudTextField @bind-Value="@Microcontroller.MacAddress"
+                                MaxLength="16"
+                                Required="true"
+                                ReadOnly="@(!IsNewRecord)"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Key"
+                                Label="Mac Address"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+
+                  <MudTextField @bind-Value="@Microcontroller.IpAddress"
+                                MaxLength="16"
+                                Required="true"
+                                ReadOnly="@(!IsNewRecord)"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Key"
+                                Label="Ip Address"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+
+                  <MudTextField @bind-Value="@Microcontroller.NamespaceName"
+                                MaxLength="40"
+                                Required="true"
+                                Immediate="true"
+                                ReadOnly="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Lock"
+                                Label="Namespace"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+
+                  <MudSelect T="Project"
+                             @bind-Value="@SelectedProject"
+                             Immediate="true"
+                             Required="true"
+                             Label="Project Name"
+                             Clearable="true">
+                     @if (null != this.ProjectCatalog)
+                     {
+                        @foreach (var project in this.ProjectCatalog)
+                        {
+                           <MudSelectItem Value="@project">@project?.ProjectName</MudSelectItem>
+                        }
+                     }
+                  </MudSelect>
+
+                  @*  <MudTextField @bind-Value="@Microcontroller.Description"
+                                MaxLength="1000"
+                                Lines="3"
+                                Required="false"
+                                Immediate="true"
+                                Label="Description"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField> *@
+
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton OnClick="Cancel">Cancel</MudButton>
+
+      <MudButton Variant="Variant.Filled"
+                 StartIcon="@Icons.Material.Filled.Save"
+                 Color="Color.Success"
+                 Size="Size.Small"
+                 OnClick="Save">Save</MudButton>
+   </DialogActions>
+</MudDialog>

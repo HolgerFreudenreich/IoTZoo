@@ -1,0 +1,96 @@
+﻿@page "/Hue"
+
+@using Color = MudBlazor.Color
+@using Domain.Pocos
+
+@inherits HueComponentsPageBase
+
+<div style="position: absolute; right: 30px; top: 70px;">
+   <MudTooltip Color="Color.Tertiary">
+      <ChildContent>
+         <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                        aria-label="Refresh"
+                        OnClick="LoadData">
+         </MudIconButton>
+      </ChildContent>
+      <TooltipContent>
+         <MudText Typo="Typo.h6">Refresh</MudText>
+      </TooltipContent>
+   </MudTooltip>
+</div>
+<br />
+<br />
+@if (HueComponents.Any())
+{
+   <MudTable Items="@HueComponents"
+             FixedHeader="true"
+             HorizontalScrollbar="true"
+             Height="1040px"
+             Striped="true"
+             Dense="true"
+             Hover="true">
+      <ColGroup>
+         <col style="width:110px;" /> <!-- Id -->
+         <col /> <!-- Name-->
+         <col style="width:110px;" /> <!-- IsOn Switch-->
+         <col style="width:330px;" /> <!-- Brightness Slider-->
+      </ColGroup>
+      <HeaderContent>
+         <MudTh>
+            <MudTableSortLabel SortBy="new Func<HueComponent, object>(x => x.IdNumeric)"
+                               InitialDirection="SortDirection.Ascending">
+               Id
+            </MudTableSortLabel>
+         </MudTh>
+         <MudTh><MudTableSortLabel SortBy="new Func<HueComponent, object?>(x => x.ComponentTypeString)">Type</MudTableSortLabel></MudTh>
+         <MudTh><MudTableSortLabel SortBy="new Func<HueComponent, object?>(x => x.Light.Metadata?.Name)">Name</MudTableSortLabel></MudTh>
+         <MudTh><MudTableSortLabel SortBy="new Func<HueComponent, object?>(x => x.Light.On.IsOn)">Is On?</MudTableSortLabel></MudTh>
+         <MudTh><MudTableSortLabel SortBy="new Func<HueComponent, object?>(x => x.Light.Dimming?.Brightness)">Brightness</MudTableSortLabel></MudTh>
+         <MudTh><MudTableSortLabel SortBy="new Func<HueComponent, object?>(x => x.Topic)">Topic</MudTableSortLabel></MudTh>
+      </HeaderContent>
+      <RowTemplate>
+         <MudTd DataLabel="Id">@context.IdNumeric</MudTd>
+         <MudTd DataLabel="ComponentType">@context.ComponentTypeString</MudTd>
+         <MudTd DataLabel="Description">@context.Light.Metadata?.Name</MudTd>
+
+         <MudTd DataLabel="IsOn">
+            <MudSwitch @bind-Value="@context.IsLightOn"></MudSwitch>
+         </MudTd>
+
+         <MudTd DataLabel="">
+            <MudStack Row="true">
+               @if (context.Light.Dimming != null)
+               {
+                  <div style="position: relative; top: 14px; width:200px;">
+                     <MudSlider @bind-Value="@context.Brightness"
+                                TickMarks="true"
+                                Step="12.5">
+                     </MudSlider>
+                  </div>
+               }
+               @*  <MudIconButton Icon="@Icons.Material.Filled.Edit"
+            aria-label="Edit"
+            Title="Edit"
+            OnClick="() => EditLight(context)">
+            </MudIconButton> *@
+            </MudStack>
+         </MudTd>
+         <MudTd DataLabel="Topic">@context.Topic</MudTd>
+      </RowTemplate>
+   </MudTable>
+}
+else
+{
+   <MudAlert Severity="Severity.Error">
+      <MudLink Href="Settings">Preconditions: Set up your HUE Bridge under Settings.</MudLink>
+   </MudAlert>
+}
+<style>
+
+   /* hide scrollbar but allow scrolling */
+   body {
+      -ms-overflow-style: none; /* for Internet Explorer, Edge */
+      scrollbar-width: none; /* for Firefox */
+      overflow-y: hidden;
+   }
+</style>

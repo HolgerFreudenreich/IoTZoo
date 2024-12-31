@@ -1,0 +1,50 @@
+﻿@inherits ProjectCronJobsEditorBase
+
+@using Domain.Pocos
+@using IotZoo.Components
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         Cron Jobs
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudButton OnClick="AddCronJobAsync"
+                 Style="height: 40px"
+                 StartIcon="@Icons.Material.Filled.Timer"
+                 Variant="Variant.Filled"
+                 Color="Color.Primary">
+         Add Cronjob
+      </MudButton>
+      <br />
+      <MudTable Items="@CronJobs"
+                FixedHeader="true"
+                HorizontalScrollbar="true"
+                Height="700px"
+                Striped="true"
+                Dense="true"
+                Hover="true">
+
+         <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<CronJob, object>(x => x.CronId)">Id</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<CronJob, object>(x => x.ToString())">Expression</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<CronJob, object>(x => x.Topic)">Topic</MudTableSortLabel></MudTh>
+         </HeaderContent>
+         <RowTemplate>
+            <MudTd DataLabel="Id">@context.CronId</MudTd>
+            <MudTd DataLabel="Mac Address">@context.ToString()</MudTd>
+            <MudTd DataLabel="Mac Address">@context.Topic</MudTd>
+         </RowTemplate>
+      </MudTable>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Variant="Variant.Filled"
+                 Color="Color.Success"
+                 OnClick="Save">Save</MudButton>
+   </DialogActions>
+</MudDialog>

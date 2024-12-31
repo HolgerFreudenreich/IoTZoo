@@ -1,0 +1,65 @@
+﻿@inherits ExampleProjects02PageBase
+
+@page "/ExampleProjects02"
+
+<MudText Typo="Typo.h3">Temperature on a TM1637 6 digits display</MudText>
+<br />
+<br />
+<MudImage Src="./projects/0002/WiringOverview.png" Width="1800" Class="rounded-lg"> </MudImage>
+<br />
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 1 Prepare the Microcontroller</MudText>
+<br />
+<MudLink OnClick="@(() => OpenBrowserTab("FlashFirmware"))">Flash the IoTZoo firmware to the ES32 Microcontroller.</MudLink>
+<br />
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 2 Prepare IotZoo</MudText>
+<br />
+<MudText>- Open IotZoo in Webbrowser</MudText>
+<MudText>- Reboot ESP32, so that it registers into IotZoo.</MudText>
+<MudText>- Navigate to &quot;Known Microcontrollers&quot;, order by BootDateTime desc.</MudText>
+<MudText>- Click Symbol &quot;Configure connected Devices&quot;.</MudText>
+<MudText>- Click Button &quot;DS18B20 TEMPERATURE SENSOR MANAGER&QUOT;.</MudText>
+<MudText>- Click Button &quot;ADD TM1637 6 DIGIT DISPLAY&quot;.</MudText>
+<MudText>- Edit the associated pins or take the default settings.</MudText>
+<br />
+<p><MudImage Src="./projects/0002/Wiring.png" Class="rounded-lg" Width="1100" /></p>
+<br />
+<br />
+<pre class="mermaid">
+%%{init:{'theme': 'base','themeVariables': {'fontSize': '16px'}}}%%
+mindmap
+)MQTT Broker(
+  (IoT Zoo)
+  ESP㉜
+    DS18B20
+      DAT → PIN 23 
+    TM1637_6
+      CLK → PIN 14 DIO → PIN 27 
+</pre>
+<MermaidRender Selector=".mermaid" />
+<br />
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 3 Connect the cables between ESP32 and the display</MudText>
+<br />
+<p>Power off the ESP32 and connect the cables as specified.</p>
+<br />
+<div style="width:300px">
+   <MudAlert Severity="Severity.Warning">Never swap VCC with GND!</MudAlert>
+</div>
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 4 Configure Rule</MudText>
+<br />
+<MudText>Navigate to &quot;Rules&quot; in IotZoo</MudText>
+<MudText>Click button &quot;ADD RULE&quot;</MudText>
+<MudText>Choose as Source Topic <b>&lt;ProjectName&gt;/esp32/&lt;MAC from your ESP32&gt;/temperature/ds18b20/0/celsius</b></MudText>
+<MudText>Target Topic: <b>&lt;ProjectName&gt;/esp32/&lt;MAC from your ESP32&gt;/tm1637_6/0/temperature</b></MudText>
+<MudText>Target Payload: <b>input</b>. input means, that the payload of the message of the source topic will be sent without any modifications.</MudText>
+<br />
+<MudImage Src="./projects/0002/Rule1.png" Elevation="25" Class="rounded-lg" Width="1050" />
+<br />
+

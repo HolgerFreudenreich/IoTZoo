@@ -1,0 +1,30 @@
+﻿
+---------------------------------------------------------------------------------------------------
+--  table 001 settings.setting
+---------------------------------------------------------------------------------------------------
+create table setting
+(
+  setting_id integer primary key autoincrement,
+  category haracter varying(50) not null,
+  setting_key character varying(50) not null,
+  setting_value character varying(1000) null,
+    constraint uk_setting unique (category, setting_key)
+);
+
+insert into setting(category, setting_key, setting_value) values ('MqttBrokerSettings', 'MqttBrokerSettings', '{"UseInternalMqttBroker":true,"Ip":"","Port":1883,"User":null,"Password":null}');
+
+insert into setting(category, setting_key, setting_value) values ('General', 'DateAndTimeFormat', 'dd.MM.yyyy HH:mm:ss');
+
+insert into setting(category, setting_key, setting_value) values ('Location', 'Latitude', '52.6');
+insert into setting(category, setting_key, setting_value) values ('Location', 'Longitude', '9.6');
+
+insert into setting(category, setting_key, setting_value) values ('PhilipsHue', 'Ip', '');
+insert into setting(category, setting_key, setting_value) values ('PhilipsHue', 'AppKey', '');
+
+insert into setting(category, setting_key, setting_value) values ('UiSettings', 'IsDarkMode', 'false');
+
+insert into setting(category, setting_key, setting_value) values ('MqttPublishTestMessage', 'MqttData', '');
+
+---------------------------------------------------------------------------------------------------
+-- End settings
+---------------------------------------------------------------------------------------------------

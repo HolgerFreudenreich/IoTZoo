@@ -1,0 +1,154 @@
+﻿@page "/KnownTopics"
+
+@using Domain.Pocos
+
+@inherits KnownTopicsPageBase
+
+<MudStack Row="true">
+   <div style="width:250px">
+      <MudSelect T="Project"
+                 Margin="Margin.Dense"
+                 Label="Project"
+                 @bind-Value="SelectedProject"
+                 AnchorOrigin="Origin.BottomCenter"
+                 Variant="Variant.Text"
+                 Clearable="true">
+         @foreach (var project in this.ProjectsCatalog)
+         {
+            <MudSelectItem Value="@project">@project?.ProjectName</MudSelectItem>
+         }
+      </MudSelect>
+   </div>
+   @if (DataTransferService.SelectedProject == null)
+   {
+      <MudAlert Severity="Severity.Info">Please select a project to add a known topic.</MudAlert>
+   }
+   else
+   {
+      <MudButton OnClick="OpenKnowTopicEditor"
+                 Style="height: 40px"
+                 StartIcon="@Icons.Material.Filled.Add"
+                 Variant="Variant.Filled"
+                 Color="Color.Primary">
+         Add Known Topic
+      </MudButton>
+   }
+   <MudSpacer></MudSpacer>
+   <MudTooltip Color="Color.Tertiary">
+      <ChildContent>
+         <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                        OnClick="RefreshData">
+         </MudIconButton>
+      </ChildContent>
+      <TooltipContent>
+         <MudText Typo="Typo.h6">Refresh</MudText>
+      </TooltipContent>
+   </MudTooltip>
+</MudStack>
+<br />
+<br />
+<br />
+<MudTable Items="@KnownTopics"
+          Filter="new Func<KnownTopic, bool>(SearchHelper.Search)"
+          FixedHeader="true"
+          HorizontalScrollbar="true"
+          Height="1010px"
+          Striped="true"
+          Dense="true"
+          Hover="true">
+      <ColGroup>
+      <col style="width:100px;" />
+      <col style="width:50px;" />
+      <col style="width:50px;" />
+      <col style="width:300px;" />
+      <col style="min-width:500px;" />
+      <col />" />
+      <col style="width:50px;" />
+   </ColGroup>
+   <ToolBarContent>
+      <MudText Typo="Typo.h6">Known Topics</MudText>
+      <MudSpacer />
+      <MudTextField @bind-Value="SearchHelper.SearchString"
+                    Placeholder="Search..."
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    IconSize="Size.Medium"
+                    Class="mt-0">
+      </MudTextField>
+   </ToolBarContent>
+   <HeaderContent>
+      <MudTh></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownTopic, object>(x => x.KnownTopicId)">Id</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<TopicEntry, object>(x => x.MessageDirection)">Message Direction</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownTopic, object>(x => x.Topic)">Topic</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownTopic, object>(x => x.Description!)">Description</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownTopic, object>(x => x.LastPayload!)">Last Payload</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownTopic, object>(x => x.PayloadUpdatedAt!)">Last Payload Date Time</MudTableSortLabel></MudTh>
+      <MudTh><MudTableSortLabel SortBy="new Func<KnownTopic, object>(x => x.KeepHistory!)">Keep History</MudTableSortLabel></MudTh>
+   </HeaderContent>
+   <RowTemplate>
+      <MudTd DataLabel="">
+         <div style="width: 160px;">
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => EditKnownTopic(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.Edit"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Edit</MudText>
+               </TooltipContent>
+            </MudTooltip>
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => DeleteKnownTopic(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Error"
+                          StartIcon="@Icons.Material.Filled.Delete"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Delete</MudText>
+               </TooltipContent>
+            </MudTooltip>
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => CloneTopic(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.CopyAll"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Clone</MudText>
+               </TooltipContent>
+            </MudTooltip>
+            @* <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => ShowTopicHistory(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Default"
+                          StartIcon="@Icons.Material.Filled.History"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Show Topic History</MudText>
+               </TooltipContent>
+            </MudTooltip> *@
+         </div>
+      </MudTd>
+      <MudTd DataLabel="Id">@context.KnownTopicId</MudTd>
+      <MudTd DataLabel="MessageDirection">@context.MessageDirection</MudTd>
+      <MudTd DataLabel="Topic">@context.FullQualifiedTopic</MudTd>
+      <MudTd DataLabel="Description">@context.Description</MudTd>
+      <MudTd DataLabel="LastPayload">@context.LastPayload</MudTd>
+      <MudTd DataLabel="LastPayloadDateTime">@(context.PayloadUpdatedAt == null ? "never" : context.PayloadUpdatedAt?.ToLocalTime())</MudTd>
+      <MudTd DataLabel="LastPayload">@context.KeepHistory</MudTd>
+   </RowTemplate>
+</MudTable>

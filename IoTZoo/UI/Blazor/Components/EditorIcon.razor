@@ -1,0 +1,13 @@
+﻿@inherits EditorIconBase
+
+@if (IsNewRecord)
+{
+  <MudIcon Icon="@Icons.Material.Filled.Add"
+           Class="mr-3 mb-n1" />
+}
+else
+{
+  <MudIcon Icon="@Icons.Material.Filled.Edit"
+           Class="mr-3 mb-n1" />
+}
+

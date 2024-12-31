@@ -1,0 +1,28 @@
+﻿@inherits KnownTopicComponentBase
+
+<MudPaper Elevation="2">
+   <br />
+   <MudStack Row="true">
+      @if (MessageDirection == Domain.Pocos.MessageDirection.Inbound)
+      {
+         <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary" Style="margin:15px;">Inbound</MudChip>
+      }
+      else
+      {
+         <MudChip T="string" Variant="Variant.Outlined" Color="Color.Info" Style="margin:15px;">Outbound</MudChip>
+      }
+      <MudStack>
+         <MudText><b>Topic</b> @Topic</MudText>
+         @if (!string.IsNullOrEmpty(Description))
+         {
+            <MudText><b>Description</b> @Description</MudText>
+         }
+         @if (!string.IsNullOrEmpty(ExamplePayload))
+         {
+            <MudText><b>ExamplePayload</b> @ExamplePayload</MudText>
+         }
+      </MudStack>
+   </MudStack>
+   <br />
+</MudPaper>
+<br />

@@ -1,0 +1,66 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31717.71
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IotZoo", "UI\Blazor\IotZoo.csproj", "{ACA92C4C-456C-4708-9DC3-E84247212D94}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csproj", "{C608260A-2290-49A2-B7DC-773DA730407E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{5630930A-65B0-4F3D-819E-1AFE741FC283}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeveloperTests", "Tests\DeveloperTests\DeveloperTests.csproj", "{2CFEC1A6-C26B-40AC-B8C3-665D8E1CCCA2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{78FE4291-36A4-4F5F-91A3-7C6EA84C914B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SunriseAndSunset", "SunriseCalculator\SunriseAndSunset.csproj", "{9E12FE29-9261-49F9-A6D0-93D07B250A2A}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{ECD965EA-8838-4162-913B-3C6B8C7FA2C1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "Tests\UnitTests\UnitTests.csproj", "{6C147179-7D34-442E-B8D0-497767AEE09C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ACA92C4C-456C-4708-9DC3-E84247212D94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACA92C4C-456C-4708-9DC3-E84247212D94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACA92C4C-456C-4708-9DC3-E84247212D94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACA92C4C-456C-4708-9DC3-E84247212D94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C608260A-2290-49A2-B7DC-773DA730407E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C608260A-2290-49A2-B7DC-773DA730407E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C608260A-2290-49A2-B7DC-773DA730407E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C608260A-2290-49A2-B7DC-773DA730407E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CFEC1A6-C26B-40AC-B8C3-665D8E1CCCA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CFEC1A6-C26B-40AC-B8C3-665D8E1CCCA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CFEC1A6-C26B-40AC-B8C3-665D8E1CCCA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CFEC1A6-C26B-40AC-B8C3-665D8E1CCCA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78FE4291-36A4-4F5F-91A3-7C6EA84C914B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78FE4291-36A4-4F5F-91A3-7C6EA84C914B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78FE4291-36A4-4F5F-91A3-7C6EA84C914B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78FE4291-36A4-4F5F-91A3-7C6EA84C914B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E12FE29-9261-49F9-A6D0-93D07B250A2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E12FE29-9261-49F9-A6D0-93D07B250A2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E12FE29-9261-49F9-A6D0-93D07B250A2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E12FE29-9261-49F9-A6D0-93D07B250A2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECD965EA-8838-4162-913B-3C6B8C7FA2C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECD965EA-8838-4162-913B-3C6B8C7FA2C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECD965EA-8838-4162-913B-3C6B8C7FA2C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECD965EA-8838-4162-913B-3C6B8C7FA2C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C147179-7D34-442E-B8D0-497767AEE09C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C147179-7D34-442E-B8D0-497767AEE09C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C147179-7D34-442E-B8D0-497767AEE09C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C147179-7D34-442E-B8D0-497767AEE09C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2CFEC1A6-C26B-40AC-B8C3-665D8E1CCCA2} = {5630930A-65B0-4F3D-819E-1AFE741FC283}
+		{6C147179-7D34-442E-B8D0-497767AEE09C} = {5630930A-65B0-4F3D-819E-1AFE741FC283}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {05DE8FA4-F722-47CD-B3A6-96327B9CD3FC}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,58 @@
+﻿@page "/SetLocation"
+
+@inherits DefaultLocationPageBase
+
+<MudText Typo="Typo.h3">Set your location to determine the position of the sun</MudText>
+<br />
+<br />
+<MudStack Row="true">
+  <div style="width:100px;">
+    <MudNumericField T="double" @bind-Value="Latitude"
+                     Format="N2"
+                     Min="-90"
+                     Max="90"
+                     Label="Latitude"
+                     Variant="Variant.Outlined" />
+  </div>
+  <div style="width:100px;">
+    <MudNumericField T="double" Format="N2" @bind-Value="Longitude"
+                     Min="-180"
+                     Max="180"
+                     Label="Longitude"
+                     Variant="Variant.Outlined" />
+  </div>
+  <div style="position: relative; top: 13px;">
+    <MudButton Variant="Variant.Filled"
+             Style="width:100px; height: 40px;"
+             Color="Color.Success"
+             OnClick="Save">Save</MudButton>
+  </div>
+</MudStack>
+<br />
+<br />
+<MudText>@DateTime.Now.ToLongDateString()</MudText>
+<MudText>Sunrise: @Sunrise</MudText>
+<MudText>Sunset: @Sunset</MudText>
+<MudText>Daylength [hours]: @DayLengthHours.ToString("N1")</MudText> 
+<br />
+<br />
+
+<br />
+<MudPaper Elevation="3" Style="background: gray;">
+  <MudChart ChartType="ChartType.Line"
+            ChartOptions="@ChartOptions"
+            ChartSeries="@Series"
+            XAxisLabels="@XAxisLabels"
+            Width="100%"
+            Height="600px">
+  </MudChart>
+</MudPaper>
+
+<style>
+   /* hide scrollbar but allow scrolling */
+   body {
+      -ms-overflow-style: none; /* for Internet Explorer, Edge */
+      scrollbar-width: none; /* for Firefox */
+      overflow-y: hidden;
+   }
+</style>

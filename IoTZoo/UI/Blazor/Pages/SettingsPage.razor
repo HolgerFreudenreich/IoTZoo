@@ -1,0 +1,137 @@
+﻿@page "/Settings"
+
+@using Domain.Pocos
+
+@inherits SettingsPageBase
+
+<MudCardContent>
+   <MudFocusTrap Disabled="false"
+                 DefaultFocus=DefaultFocus.FirstChild>
+      <MudText Typo="Typo.h5">MQTT</MudText>
+      <MudPaper Class="pa-6" Height="250px" Width="1200px" Elevation="2">
+         <MudSwitch T="bool"
+                    Value="@MqttBrokerSettings.UseInternalMqttBroker"
+                    ValueChanged="UseInternalMqttBrokerChanged"
+                    Label="Use internal MQTT Broker"
+                    Color="Color.Primary" />
+         <br />
+         <MudStack Row=true>
+            <MudTextField ReadOnly="@MqttBrokerSettings.UseInternalMqttBroker"
+                          Label="MQTT Broker IPv4 Address"
+                          @bind-Value="MqttBrokerSettings.Ip"
+                          Variant="@Variant.Text" Clearable>
+            </MudTextField>
+            <MudTextField ReadOnly="@MqttBrokerSettings.UseInternalMqttBroker"
+                          Label="MQTT Broker Port"
+                          Format="D"
+                          HelperText="Example: 1883"
+                          @bind-Value="MqttBrokerSettings.Port"
+                          Variant="@Variant.Text" Clearable>
+            </MudTextField>
+         </MudStack>
+
+         <MudTextField Label="Namespace Name"
+                       @bind-Value="MqttNamespaceName"
+                       Variant="@Variant.Text" Clearable="false">
+         </MudTextField>
+      </MudPaper>
+      <br />
+      <br />
+      <MudDivider DividerType="DividerType.FullWidth" />
+      <br />
+      <br />
+      <MudText Typo="Typo.h5">Philips HUE Bridge</MudText>
+      <MudPaper Height="250px" Width="1200px" Elevation="1">
+         <MudStack Row=true>
+            <MudStack>
+               <MudPaper Elevation="0" Class="pa-6" Width="600px" Height="250px">
+                  <MudTextField Mask="@RegexMask.IPv4(false)"
+                                Label="Philips Hue Bridge IP Address"
+                                HelperText="Example: 192.168.178.34"
+                                @bind-Value="HueBridgeIp"
+                                Variant="@Variant.Text" Clearable>
+                  </MudTextField>
+                  <br />
+                  <MudAlert Severity="Severity.Info">
+                     You can get the ip address of your Hue bridge from your Router or the Philips Hue App on your phone, see settings.
+                  </MudAlert>
+               </MudPaper>
+            </MudStack>
+            <MudStack Row=true>
+               <MudStack>
+                  <MudPaper Elevation="0" Class="pa-6" Width="600px" Height="250px">
+                     <MudTextField Label="Philips Hue Bridge Application Key"
+                                   HelperText="Example: RnQXJ6v4mC5SuLLtBrflBzSJc43KvBXYp-aY6uaG"
+                                   @bind-Value="HueBridgeAppKey"
+                                   Variant="@Variant.Text" Clearable>
+                     </MudTextField>
+                     <br />
+                     <MudAlert Severity="Severity.Info">
+                        Press the Link-Button on the HUE-Bridge and then this Button to receive the Key:
+                        <MudIconButton Icon="@Icons.Material.Outlined.AppRegistration"
+                                       Color="Color.Success"
+                                       OnClick="RegisterAtPhilipsHueBridgeAsync"
+                                       aria-label="register">
+                        </MudIconButton>
+                     </MudAlert>
+                  </MudPaper>
+               </MudStack>
+            </MudStack>
+         </MudStack>
+      </MudPaper>
+      <br />
+      <br />
+      <MudDivider DividerType="DividerType.FullWidth" />
+      <br />
+      <br />
+      <MudText Typo="Typo.h5">Date and Time format</MudText>
+      <MudPaper Class="pa-6" Width="1200px" Height="250px">
+         <MudText>
+            Local time zone: @TimeZoneInfo.Local.DisplayName
+         </MudText>
+         <MudText>
+            Daylight changes:
+         </MudText>
+         <MudStack Row=true>
+            <MudText>
+               Summertime Start: @TimeZone.CurrentTimeZone.GetDaylightChanges(DateTime.Today.Year).Start
+            </MudText>
+            <MudText>
+               Wintertime Start: @TimeZone.CurrentTimeZone.GetDaylightChanges(DateTime.Today.Year).End
+            </MudText>
+         </MudStack>
+         <br />
+         <MudStack Row=true>
+            <div style="width: 350px;">
+               <MudSelect T="string"
+                          Label="Date and Time format"
+                          @bind-Value="DataTransferService.DateTimeFormat"
+                          AnchorOrigin="Origin.BottomCenter">
+                  <MudSelectItem Value="@("dd.MM.yyyy HH:mm:ss")" />
+                  <MudSelectItem Value="@("yyyy-MM-dd HH:mm:ss")" />
+               </MudSelect>
+            </div>
+         </MudStack>
+      </MudPaper>
+      <br />
+      <br />
+      <MudDivider DividerType="DividerType.FullWidth" />
+      <br />
+      <br />
+      <MudText Typo="Typo.h5">User Interface</MudText>
+      <MudPaper Class="pa-6" Height="110px" Width="600px" Elevation="1">
+         <MudSwitch Value="@DataTransferService.IsDarkMode"
+                    ValueChanged="DarkModeChanged"
+                    Color="Color.Primary"
+                    T="bool"
+                    Label="Dark Mode" />
+      </MudPaper>
+   </MudFocusTrap>
+   <br />
+   <div style="position: relative; top: 13px;">
+      <MudButton Variant="Variant.Filled"
+                 Style="width:100px; height: 40px;"
+                 Color="Color.Success"
+                 OnClick="Save">Save</MudButton>
+   </div>
+</MudCardContent>

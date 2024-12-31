@@ -1,0 +1,82 @@
+﻿@inherits KnownTopicEditorBase
+
+@using IotZoo.Components
+@using Domain.Pocos
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+         @DialogTitle
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.FirstChild>
+                  <MudStack Row="true">
+                     <MudTextField @bind-Value="@KnownTopic.NamespaceName"
+                                   MaxLength="40"
+                                   Required="true"
+                                   Immediate="true"
+                                   ReadOnly="true"
+                                   Adornment="Adornment.Start"
+                                   AdornmentIcon="@Icons.Material.Filled.Lock"
+                                   Label="Namespace"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                     </MudTextField>
+                     <MudTextField @bind-Value="@KnownTopic.ProjectName"
+                                   MaxLength="40"
+                                   Required="true"
+                                   Immediate="true"
+                                   ReadOnly="true"
+                                   Adornment="Adornment.Start"
+                                   AdornmentIcon="@Icons.Material.Filled.Lock"
+                                   Label="Project"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                     </MudTextField>
+                  </MudStack>
+                  <MudTextField @bind-Value="@KnownTopic.Topic"
+                                MaxLength="500"
+                                Required="true"
+                                Immediate="true"
+                                ReadOnly="@(!IsNewRecord)"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Key"
+                                Label="Topic"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+
+                  <MudTextField @bind-Value="@KnownTopic.Description"
+                                MaxLength="1000"
+                                Required="false"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Key"
+                                Label="Description"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal"
+                                Lines="3">
+                  </MudTextField>
+                  <MudSwitch @bind-Value="@KnownTopic.KeepHistory" Label="Keep history" />
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Class="MudButtonText"
+                 Color="Color.Success"
+                 OnClick="Save">Save</MudButton>
+   </DialogActions>
+</MudDialog>

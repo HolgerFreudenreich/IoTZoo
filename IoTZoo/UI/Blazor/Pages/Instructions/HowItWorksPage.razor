@@ -1,0 +1,61 @@
+﻿@page "/CoreConcept"
+
+@inherits HowItWorksPageBase
+
+<MudText Typo="Typo.h5">Core concept</MudText>
+<br />
+<MudText><b>IOTZOO</b> works through the interaction of</MudText>
+<MudText Style="text-indent: 1em;">1. The IOTZOO firmware for ESP32 microcontrollers, which is installed on 1..n microcontrollers.</MudText>
+<MudText Style="text-indent: 1em;">2. The IOTZOO service, which can process rules. This service runs on a web server. A Raspberry PI running a Docker container can serve as hardware.</MudText>
+<MudText Style="text-indent: 1em;">3. An MQTT broker that is installed on a web server. The IOTZOO Service includes its own MQTT broker, but an external broker such as Mosquitto can also be used.</MudText>
+<br />
+<pre class="mermaid">
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'fontSize': '16px'
+    }
+  }
+}%%
+mindmap
+    )MQTT Broker(
+        ESP32 a with IOTZOO firmware
+           TM1637 4 digit display
+        ESP32 b with IOTZOO firmware
+           DS1820 Temperature Sensor
+           TM1637 6 digit display
+        ESP32 n with IOTZOO firmware
+           HC-SR 501 Motion detector
+           WS2812 NEO Pixel
+        ((**IoT Zoo Client**))
+</pre>
+
+<MermaidRender Selector=".mermaid" />
+
+<br />
+<MudText Typo="Typo.h6">Main Tasks of the IOTZOO firmware</MudText>
+<MudText>- Enable the connected hardware to be used.</MudText>
+<MudText>- Sending a message via MQTT when the status of the hardware changes. Example: A motion detector has detected a movement.</MudText>
+<MudText>- Receiving messages via MQTT to control the hardware. Example: The time is to be shown on a display.</MudText>
+<br />
+<br />
+<MudText Typo="Typo.h6">Main Tasks of the IOTZOO service</MudText>
+<MudText>- Provision of a web interface for entering rules</MudText>
+<MudText>- Receiving off all MQTT messages</MudText>
+<MudText>- Processing of all MQTT messages: Check whether a rule needs to be applied, execute the rule and then send a response message. This message could trigger another rule.</MudText>
+<br />
+<br />
+<MudText Typo="Typo.h6">Main Tasks of the MQTT broker</MudText>
+<MudText>The broker acts as intermediate between senders (publishers) and receivers (subscribers). It is responsible for receiving all messages, filtering them, and sending them to subscribed clients.</MudText>
+<br />
+<MudText>Clients publish messages to the broker. Other clients subscribe to specific topics to receive messages. Each MQTT message includes a topic, and clients subscribe to topics of their interest.</MudText>
+<MudText>Topics are strings that messages are published to and subscribed to. Topics are hierarchical and can contain multiple levels separated by slashes, like a file path or URL.</MudText>
+<br />
+<MudText>Example:</MudText>
+<MudText>Topic: iotzoo/project1/timer/every_10_seconds</MudText>
+<MudText> Message/Payload: { "DateTime": "03.01.2025 15:13:45", "Time": "15:13:45", "TimeShort": "15:13" }</MudText>
+<br />
+<MudText>The publish/subcribe model decouples the publisher of the message from the subscribers. The publisher and subscriber are unaware that the other exists. The broker handles the connection between them.</MudText>
+<br />
+<MudLink Href="HowDoRulesWork">Rules</MudLink>

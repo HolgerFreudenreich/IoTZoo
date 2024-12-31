@@ -1,0 +1,50 @@
+﻿@inherits NavMenuBase
+
+<MudNavMenu>
+   <MudTreeView T="string"
+                Hover="true"
+                Dense="false"
+                ExpandOnClick="true"
+                @bind-SelectedValue="SelectedMenuItem">
+      <MudTreeViewItem Value="@("Message Explorer")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Message" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudDivider></MudDivider>
+      <MudTreeViewItem Value="@("Known Microcontrollers")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Devices" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudDivider></MudDivider>
+      <MudTreeViewItem Value="@("Projects")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Topic" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudTreeViewItem Value="@("Known Topics")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Topic" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudTreeViewItem Value="@("Topics History")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.History" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudDivider></MudDivider>
+      <MudTreeViewItem Value="@("Rules")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Rule" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudDivider></MudDivider>
+      <MudTreeViewItem Value="@("Scripts")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Code" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudDivider></MudDivider>
+      <MudTreeViewItem Value="@("Publish Topic")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Publish" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudDivider></MudDivider>
+      <MudTreeViewItem Value="@("Settings")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Settings" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudTreeViewItem Value="@("Set Location")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.AddLocation" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudDivider></MudDivider>
+      <MudTreeViewItem Value="@("Philips Hue")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Light" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudDivider></MudDivider>
+      <MudTreeViewItem Expanded="false" Value="@("Component management")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Article" IconColor="Color.Primary">
+         <MudTreeViewItem Value="@("Components")" TextTypo="Typo.body2" Icon="@Icons.Material.Outlined.List" IconColor="Color.Primary" />
+         <MudTreeViewItem Value="@("Boxes")" TextTypo="Typo.body2" Icon="@Icons.Material.Outlined.List" IconColor="Color.Primary" />
+         <MudTreeViewItem Value="@("StockAllocation")" TextTypo="Typo.body2" Icon="@Icons.Material.Outlined.List" IconColor="Color.Primary" />
+      </MudTreeViewItem>
+      <MudDivider></MudDivider>
+      <MudTreeViewItem Expanded="false" Value="@("Instructions")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Help" IconColor="Color.Primary">
+         <MudTreeViewItem Value="@("Core Concept")" Icon="@Icons.Material.Filled.MonitorHeart" TextTypo="Typo.body2" IconColor="Color.Primary"></MudTreeViewItem>
+         <MudTreeViewItem Value="@("How do Rules work")" Icon="@Icons.Material.Filled.MonitorHeart" TextTypo="Typo.body2" IconColor="Color.Primary"></MudTreeViewItem>
+         <MudTreeViewItem Value="@("What is a Topic?")" Icon="@Icons.Material.Filled.Topic" TextTypo="Typo.body2" IconColor="Color.Primary"></MudTreeViewItem>
+         <MudTreeViewItem Value="@("Flash Firmware")" Icon="@Icons.Material.Filled.FlashOn" TextTypo="Typo.body2" IconColor="Color.Primary"></MudTreeViewItem>
+         <MudTreeViewItem Value="@("Run on Docker")" TextTypo="Typo.body2"></MudTreeViewItem>
+         <MudTreeViewItem Expanded="false" Value="@("Example Projects")" TextTypo="Typo.body2" IconColor="Color.Primary">
+            <MudTreeViewItem Expanded="false" Value="@("Time on a TM1637 4 digits display")" TextTypo="Typo.body2" />
+            <MudTreeViewItem Expanded="false" Value="@("Temperature on a TM1637 6 digits display")" TextTypo="Typo.body2" />
+            <MudTreeViewItem Expanded="false" Value="@("Control a Philips HUE lamp with a rotary encoder")" TextTypo="Typo.body2" />
+         </MudTreeViewItem>
+         <MudTreeViewItem Value="@("Things to connect")" TextTypo="Typo.body2" IconColor="Color.Primary" />
+      </MudTreeViewItem>
+      <MudDivider></MudDivider>
+      <MudTreeViewItem Value="@("TestPage")" Icon="@Icons.Material.Filled.BugReport" TextTypo="Typo.body2" IconColor="Color.Primary"></MudTreeViewItem>
+   </MudTreeView>
+</MudNavMenu>

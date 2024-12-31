@@ -1,0 +1,26 @@
+﻿<br />
+<MudPaper Style="padding: 2px 10px 2px 10px; height: 230px;">
+  <MudStack Row="true">
+    <MudTextField @bind-Value="TopicEntry.Topic"
+                  Label="Topic"
+                  Immediate="true"
+                  Variant="Variant.Text">
+    </MudTextField>
+  </MudStack>
+
+  <MudTextField @bind-Value="TopicEntry.Payload"
+                Label="Payload"
+                Immediate="true"
+                Variant="Variant.Text">
+  </MudTextField>
+   <MudSwitch @bind-Value="TopicEntry.Retain" Label="Retain Message" />
+  <br />
+  <br />
+  <MudButton OnClick="PublishAsync"
+             Variant="Variant.Filled"
+             EndIcon="@Icons.Material.Filled.Send"
+             Color="Color.Primary">
+    Publish
+  </MudButton>
+</MudPaper>
+<br />

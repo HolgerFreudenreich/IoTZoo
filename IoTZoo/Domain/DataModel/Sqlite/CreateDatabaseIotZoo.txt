@@ -1,0 +1,187 @@
+---------------------------------------------------------------------------------------------------
+-- Datamodell for SQlite
+---------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------
+-- table 001 topic_prefix
+---------------------------------------------------------------------------------------------------
+create table if not exists known_topic_prefix
+(
+  -- primary key
+  known_topic_prefix_id integer primary key,
+  -- prefix of every known_topic.
+  topic_prefix character varying(30) default 'iotzoo',
+  constraint uk_known_topic_prefix unique (topic_prefix)
+);
+
+insert into known_topic_prefix (known_topic_prefix_id, topic_prefix) values (1, 'iotzoo');
+
+---------------------------------------------------------------------------------------------------
+-- table 002 project
+---------------------------------------------------------------------------------------------------
+create table if not exists project
+(
+  -- primary key
+  project_id integer primary key AUTOINCREMENT,
+  --topic_prefix character varying(30) not null,
+  project_name character varying(40) not null,
+  description character varying(1000) null,
+  constraint uk_project unique (project_name)
+  --constraint fk_project foreign key (topic_prefix) references known_topic_prefix(topic_prefix) on delete cascade on update cascade
+);
+
+---------------------------------------------------------------------------------------------------
+-- table 003 cron
+-- Trigger messages for your project. For example determine stock prices every hour.
+---------------------------------------------------------------------------------------------------
+create table if not exists cron
+(
+  -- primary key
+  cron_id integer primary key AUTOINCREMENT,
+  namespace_name character varying(40) null,
+  -- To automatically delete all project related KnownTopics after a project is deleted. We do not have the project_id on the ESP32 microcrontroller.
+  project_name character varying(40) null,
+  second_expression character varying(10) not null default '*',
+  minute_expression character varying(10) not null default '*',
+  hour_expression character varying(10) not null default '*',
+  day_of_month_expression character varying(10) not null default '*',
+  month_of_year_expression character varying(10) not null default '*',
+  day_of_week_expression  character varying(10) not null default '*',
+  -- prevent default cron jobs to be modified.
+  edit_allowed boolean,
+  topic character varying(200) not null,
+  enabled boolean not null default true,
+  constraint fk_cron_project_name foreign key (project_name) references project(project_name) on delete cascade on update cascade,
+  constraint fk_cron_namespace_name foreign key (namespace_name) references known_topic_prefix(topic_prefix) on delete cascade on update cascade
+);
+
+---------------------------------------------------------------------------------------------------
+-- table 004 microcontroller
+---------------------------------------------------------------------------------------------------
+
+create table if not exists microcontroller
+(
+  -- primary key
+  microcontroller_id integer primary key AUTOINCREMENT,
+  namespace_name character varying(40) null,
+  -- To automatically delete all project related KnownTopics after a project is deleted. We do not have the project_id on the ESP32 microcrontroller.
+  project_name character varying(40) null,
+  board_type character varying(20) not null default 'unknown',
+  mac_address character varying(30) not null,
+  ip_address character varying(30) null,
+  ip_mqtt_broker character varying(30) null,
+  firmware_version character varying(20) null,
+  boot_datetime datetime null,
+  description character varying(1000) null,
+  constraint uk_microcontroller unique (mac_address),
+  constraint fk_microcontroller_project_name foreign key (project_name) references project(project_name) on delete cascade on update cascade,
+  constraint fk_microcontroller_namespace_name foreign key (namespace_name) references known_topic_prefix(topic_prefix) on delete cascade on update cascade
+);
+
+---------------------------------------------------------------------------------------------------
+-- table 005 known_topic
+-- known_topics can have additional properties
+---------------------------------------------------------------------------------------------------
+
+create table if not exists known_topic
+(
+  -- primary key
+  known_topic_id integer primary key autoincrement,
+  -- When deleting the parent record, all sub-records should be automatically deleted.
+  parent_known_topic_id integer null,
+  allow_delete boolean null,
+  allow_edit boolean null,
+  namespace_name character varying(30) not null,
+  -- To automatically delete all project related KnownTopics after a project is deleted. We do not have the project_id on the ESP32 microcrontroller.
+  project_name character varying(40) null,
+  topic character varying(1000) not null, 
+  description character varying(1000) null,
+  -- true: Insert the record in table topic_history.
+  keep_history boolean,
+  -- true, if the message is retained on the broker
+  retained boolean,
+  -- Direction of the message from the perspective of the IotZooClient (0 = Inbound, 1 = Outbound)
+  message_direction integer default 1 null,
+  -- the last payload of this topid
+  last_payload character varying(1000) null,
+  -- device which sends this topic
+  sender character varying(30) null,
+  -- the change date time of the last payload.
+  payload_updated_at datetime null,
+  constraint uk_known_topic unique (topic),
+  constraint fk_known_topic_parent_known_topic_id foreign key (parent_known_topic_id) references known_topic(known_topic_id) on delete cascade on update cascade,
+  constraint fk_known_topic_project_name foreign key (project_name) references project(project_name) on delete cascade on update cascade,
+  constraint fk_project foreign key (namespace_name) references known_topic_prefix(topic_prefix) on delete cascade on update cascade
+);
+
+---------------------------------------------------------------------------------------------------
+-- fill with internal known topics.
+---------------------------------------------------------------------------------------------------
+
+-- delete from known_topic;
+
+-- insert into known_topic (topic, description, last_payload) values ('IOTZOO/COLORS', 'Array of all known colors', '[{"Red":"#F44336"}, {"Pink": "#E91E63"}, {"Purple": "#9C27B0"}, {"DeepPurple": "#673AB7"},
+-- {"Indigo": "#3F51B5"}, {"Blue": "#2196F3"}, {"LightBlue": "#03A9F4"}, {"Cyan": "#00BCD4"}, {"Teal": "#009688"}, {"Green": "#009688"}, {"LightGreen": "#8BC34A"},
+-- {"Lime": "#CDDC39"}, {"Yellow": "#FFEB3B"}, {"Amber": "#FFC107"}, {"Orange": "#FF9800"}, {"DeepOrange": "#FF5722"}, {"Brown": "#795548"}, {"BlueGray": "#607D8B"}, {"Gray": "#9E9E9E"}]');
+-- 
+
+---------------------------------------------------------------------------------------------------
+-- table 006 rule_trigger_condition
+---------------------------------------------------------------------------------------------------
+create table if not exists rule_trigger_condition
+(
+  -- primary key
+  rule_trigger_condition_id integer,
+  description character varying(100) not null,
+  constraint pk_rule_trigger_condition primary key (rule_trigger_condition_id)
+);
+
+DELETE from rule_trigger_condition;
+
+insert into rule_trigger_condition(rule_trigger_condition_id, description) values (0, 'always');
+insert into rule_trigger_condition(rule_trigger_condition_id, description) values (1, 'only on source payload changed');
+insert into rule_trigger_condition(rule_trigger_condition_id, description) values (2, 'after timer [ms] elapsed');
+
+
+---------------------------------------------------------------------------------------------------
+-- table 007 rule
+---------------------------------------------------------------------------------------------------
+create table if not exists rule
+(
+  -- primary key
+  rule_id integer primary key autoincrement,
+  namespace_name character varying(40) null,
+  -- To automatically delete all project related KnownTopics after a project is deleted.
+  project_name   character varying(40) null,
+  -- topic which triggers the rule.
+  source_topic   character varying(200) not null,
+  -- the expression to be validated. This is the condition under which the action is executed.
+  expression     character varying(1000) null,
+  expression_evaluation_result boolean null, 
+  -- topic which depends on the rule result. if the expression is validated to true, than the topic will be published.
+  target_topic   character varying(200) not null,
+  target_payload character varying(200) null,
+  -- true, if the expression can be interpreted/is logical.
+  is_valid       boolean null,
+  -- 0 = most important
+  priority       integer default 100 null,
+  -- 
+  trigger_condition integer,
+  delay_ms integer null, -- on trigger_condition 'after timer [ms] elapsed (2)'.
+  --
+  enabled boolean not null default true,
+  constraint fk_rule_trigger_condition foreign key (trigger_condition) references rule_trigger_condition (rule_trigger_condition_id),
+  constraint uk_rule unique (target_topic, expression, target_payload),
+  constraint fk_rule_project foreign key (project_name) references project(project_name) on delete cascade on update cascade,
+  constraint fk_rule_namespace_name foreign key (namespace_name) references known_topic_prefix(topic_prefix) on delete cascade on update cascade
+);
+
+---------------------------------------------------------------------------------------------------
+-- table 008 Metadata to a hue_light
+---------------------------------------------------------------------------------------------------
+
+create table if not exists hue_light
+(
+  hue_light_id integer primary key not null,
+  description character varying(1000)
+);

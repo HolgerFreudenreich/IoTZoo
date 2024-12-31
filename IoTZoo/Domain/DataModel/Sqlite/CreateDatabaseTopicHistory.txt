@@ -1,0 +1,13 @@
+﻿---------------------------------------------------------------------------------------------------
+--  table 001 th.topic_history
+---------------------------------------------------------------------------------------------------
+create table topic_history
+(
+  topic_history_id integer primary key autoincrement,
+  topic text not null,
+  payload text null,
+  project_name text null,
+  date_received integer default now
+);
+
+create index index_topic_name on topic_history (project_name);

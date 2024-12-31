@@ -1,0 +1,88 @@
+﻿@using MudBlazor
+
+@* https://confluence.lobaro.com/display/PUB/CRON+Expressions *@
+<MudStack Row="true">
+   <MudTextField @bind-Value="Cron.SecondExpression"
+                 Label="Second (0-59), Allowed special chars , - * /"
+                 Immediate="true"
+                 Variant="Variant.Text">
+   </MudTextField>
+   <MudTextField @bind-Value="Cron.MinuteExpression"
+                 Label="Minute (0-59), Allowed special chars , - * /"
+                 Immediate="true"
+                 Variant="Variant.Text">
+   </MudTextField>
+   <MudTextField @bind-Value="Cron.HourExpression"
+                 Label="Hour (0-23), Allowed special chars , - * /"
+                 Immediate="true"
+                 Variant="Variant.Text">
+   </MudTextField>
+   <MudTextField @bind-Value="Cron.DayOfMonthExpression"
+                 Label="Day (1-31), Allowed special chars , - * / ?"
+                 Immediate="true"
+                 Variant="Variant.Text">
+   </MudTextField>
+   <MudTextField @bind-Value="Cron.MonthOfYearExpression"
+                 Label="Month (1-12) or (JAN-DEC), Allowed special chars , - * /"
+                 Immediate="true"
+                 Variant="Variant.Text">
+   </MudTextField>
+   <MudTextField @bind-Value="Cron.DayOfWeekExpression"
+                 Label="Day of Week (1-7) or (MON-SUN), Allowed special chars , - * / ?"
+                 Immediate="true"
+                 Variant="Variant.Text">
+   </MudTextField>
+   <MudButton OnClick="Parse">Parse</MudButton>
+</MudStack>
+<br>
+<MudText>Special Characters:</MudText>
+<br />
+<b>star, asterisk (*)</b>
+<br />
+Used to select all values within a field. For example, "*" in the minute field means "every minute".
+<br>
+<br>
+<b>question mark (?)</b>
+<br />
+Useful when you need to specify something in one of the two fields in which the character is allowed, but not the other. For example, if I want my trigger to fire on a particular day of the month (say, the 10th), but don’t care what day of the week that happens to be, I would put “10” in the day-of-month field, and “?” in the day-of-week field.
+<br>
+<br>
+<b>dash, minus (-)</b>
+<br />
+Used to specify ranges. For example, “10-12” in the hour field means “the hours 10, 11 and 12”.
+<br>
+<br>
+<b>comma (,)</b>
+<br />
+Used to specify multiple explicit values. For example, “MON,WED,FRI” in the day-of-week field means “the days Monday, Wednesday, and Friday”, "1,15" in the day-of-month field means "on the first and 15th of the month".
+<br>
+<br>
+<b>slash (/)</b>
+<br />
+Used to specify increments. For example, "0/15" in the seconds field means "0 and then every 15", that is "the seconds 0, 15, 30, and 45". And "5/15" in the seconds field means "the seconds 5, 20, 35, and 50". You can also use "/" for other fields. "1/3" in the day-of-month field means "fire every 3 days starting on the first day of the month".
+<br>
+<br>
+<br>
+<MudText>Next 100 occurences:</MudText>
+<br />
+<br />
+<MudTable Items="@Occurences"
+          FixedHeader="true"
+          HorizontalScrollbar="true"
+          Height="700px"
+          Striped="true"
+          Dense="true"
+          Hover="true">
+   <HeaderContent>
+      <MudTh>Trigger time</MudTh>
+   </HeaderContent>
+   <RowTemplate>
+      <MudTd DataLabel="Occurence">@context</MudTd>
+   </RowTemplate>
+
+</MudTable>
+
+
+
+
+
