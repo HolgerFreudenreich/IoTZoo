@@ -589,9 +589,8 @@ void publishAliveMessage()
   lastAliveTime = millis();
 }
 
-
 /// @brief IotZoo acknowledged the alive message.
-/// @param rawData 
+/// @param rawData
 void onAliveAck(const String &rawData)
 {
   if (rawData.length() > 0)
@@ -643,154 +642,6 @@ void onStatusRequested2(char *topic, byte *payload, unsigned int length)
 
 #endif
 
-#ifdef USE_WS2818
-/// @brief Example: esp32/08:D1:F9:E0:31:78/neo/0/setPixelColorRGB
-/// @param json
-void setPixelColorRGB(const String &json)
-{
-  Serial.println("setPixelColorRGB rawData: " + String(json)); // {"r": 0, "g": 125, "b": 0, "index": 15, "length": 1, "brightness": 33}
-  u_int8_t r;
-  u_int8_t g;
-  u_int8_t b;
-  u_int16_t startIndex;
-  u32_t length = 1;
-  u_int8_t brightness;
-
-  StaticJsonDocument<200> jsonDocument;
-
-  DeserializationError error = deserializeJson(jsonDocument, json);
-  if (error)
-  {
-    publishError("deserializeJson() of '" + String(json) + "' failed: " + String(error.f_str()));
-  }
-
-  r = jsonDocument["r"].as<u_int8_t>();
-  g = jsonDocument["g"].as<u_int8_t>();
-  b = jsonDocument["b"].as<u_int8_t>();
-  startIndex = jsonDocument["index"].as<u_int16_t>();
-  brightness = jsonDocument["brightness"].as<u32_t>();
-
-  length = jsonDocument["length"].as<u32_t>();
-  if (length < 1)
-  {
-    length = 1;
-  }
-
-  Serial.println("setPixelColor r: " + String(r) + ", g: " + String(g) + ", b, " + String(b) + ", startIndex: " + String(startIndex) + ", brightness: " + brightness + ", length: " + String(length));
-
-  if (NULL != ws2812)
-  {
-    for (u_int16_t index = startIndex; index < startIndex + length; index++)
-    {
-      ws2812->setPixelColorRGB(r, g, b, index, brightness);
-    }
-  }
-}
-
-/// @brief Example: esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
-/// @param json
-void setPixelColor(const String &json)
-{
-  Serial.println("setPixelColor rawData: " + String(json)); // {"color": 1106052, "index": 15, "length": 1, "brightness": 33}
-  u_int32_t color;
-
-  u_int16_t startIndex;
-  u_int16_t length = 1;
-  u_int8_t brightness;
-
-  StaticJsonDocument<200> jsonDocument;
-
-  DeserializationError error = deserializeJson(jsonDocument, json);
-  if (error)
-  {
-    publishError("deserializeJson() of '" + String(json) + "' failed: " + String(error.f_str()));
-  }
-
-  color = jsonDocument["color"].as<u_int32_t>();
-
-  startIndex = jsonDocument["index"].as<u_int16_t>();
-  brightness = jsonDocument["brightness"].as<u32_t>();
-
-  length = jsonDocument["length"].as<u_int16_t>();
-  if (length < 1)
-  {
-    length = 1;
-  }
-
-  Serial.println("setPixelColor color: " + String(color) + ", startIndex: " + String(startIndex) + ", brightness: " + brightness + ", length: " + String(length));
-
-  if (NULL != ws2812)
-  {
-    for (u_int16_t index = startIndex; index < startIndex + length; index++)
-    {
-      ws2812->setPixelColor(color, index, brightness);
-    }
-  }
-}
-
-/// @brief Example: esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
-/// @param json
-void setPixelColorHex(const String &json)
-{
-  Serial.println("setPixelColorHex rawData: " + String(json)); // {"color": "0x10E084", "index": 15, "length": 1, "brightness": 33}
-  String colorHex;
-
-  u_int16_t startIndex;
-  u_int16_t length = 1;
-  u_int8_t brightness;
-
-  StaticJsonDocument<200> jsonDocument;
-
-  DeserializationError error = deserializeJson(jsonDocument, json);
-  if (error)
-  {
-    publishError("deserializeJson() of '" + String(json) + "' failed: " + String(error.f_str()));
-  }
-
-  colorHex = jsonDocument["color"].as<String>();
-  if (colorHex.startsWith("#"))
-  {
-    colorHex = colorHex.substring(1);
-  }
-
-  startIndex = jsonDocument["index"].as<u_int16_t>();
-  brightness = jsonDocument["brightness"].as<u32_t>();
-
-  length = jsonDocument["length"].as<u_int16_t>();
-  if (length < 1)
-  {
-    length = 1;
-  }
-
-  u_int32_t color = stoi(colorHex.c_str(), 0, 16);
-
-  Serial.println("setPixelColor colorHex: " + String(colorHex) + ", color: " + String(color) + ", startIndex: " + String(startIndex) + ", brightness: " + brightness + ", length: " + String(length));
-
-  if (NULL != ws2812)
-  {
-    for (u_int16_t index = startIndex; index < startIndex + length; index++)
-    {
-      ws2812->setPixelColor(color, index, brightness);
-    }
-  }
-}
-
-void subscribeNeoPixel(int index)
-{
-  String topic = getBaseTopic() + "/neo/" + String(index) + "/setPixelColorRGB";
-  mqttClient->subscribe(topic, setPixelColorRGB);
-  Serial.println("LED strip subscribed to topic " + topic);
-
-  topic = getBaseTopic() + "/neo/" + String(index) + "/setPixelColor";
-  mqttClient->subscribe(topic, setPixelColor);
-  Serial.println("LED strip subscribed to topic " + topic);
-
-  topic = getBaseTopic() + "/neo/" + String(index) + "/setPixelColorHex";
-  mqttClient->subscribe(topic, setPixelColorHex);
-  Serial.println("LED strip subscribed to topic " + topic);
-}
-#endif
-
 // ------------------------------------------------------------------------------------------------
 // Is called when MQTT connection is established.
 // ------------------------------------------------------------------------------------------------
@@ -816,8 +667,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
   // It seems that the library only supports one light strip!
   if (NULL != ws2812)
   {
-    ws2812->setup();
-    subscribeNeoPixel(0);
+    ws2812->onMqttConnectionEstablished();
   }
   else
   {
@@ -1189,9 +1039,7 @@ void makeInstanceConfiguredDevices()
               numberOfLeds = std::stoi(propertyValue.c_str());
             }
           }
-
-          ws2812 = new WS2818(dioPin, numberOfLeds);
-
+          ws2812 = new WS2818(deviceIndex, mqttClient, getBaseTopic(), dioPin, numberOfLeds);
           Serial.println("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
         }
 #endif
@@ -1899,17 +1747,7 @@ void registerTopics()
 #endif
 
 #ifdef USE_WS2818
-  topics.push_back(*new Topic(getBaseTopic() + "/neo/0/setPixelColorRgb",
-                              "{\"r\": 0, \"g\": 125, \"b\": 0, \"index\": 15, \"length\": 1, \"brightness\": 35}",
-                              MessageDirection::IotZooClientOutbound));
-
-  topics.push_back(*new Topic(getBaseTopic() + "/neo/0/setPixelColorHex",
-                              "{\"color\": \"#10E084\" \"index\": 0, \"length\": 10, \"brightness\": 10}",
-                              MessageDirection::IotZooClientOutbound));
-
-  topics.push_back(*new Topic(getBaseTopic() + "/neo/0/setPixelColor",
-                              "{\"color\": \"1106052\" \"index\": 0, \"length\": 10, \"brightness\": 10}",
-                              MessageDirection::IotZooClientOutbound));
+  ws2812->addMqttTopicsToRegister(&topics);
 #endif
 
 #ifdef USE_TRAFFIC_LIGHT_LEDS
@@ -2065,9 +1903,8 @@ void loop()
 #endif
 
 #if defined(USE_MQTT) || defined(USE_MQTT2)
-
   mqttClient->loop();
-  if (millis() - lastLoopStartTime > 2000)
+  if (millis() - lastLoopStartTime > 10000)
   {
     Serial.print("BROKEN MQTT");
     restart();

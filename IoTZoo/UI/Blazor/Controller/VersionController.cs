@@ -18,11 +18,11 @@ namespace IotZoo.Controller;
 [Route("api/[controller]")]
 public class VersionController : ControllerBase
 {
-  [HttpGet]
-  public string Get()
-  {
-    return Version;
-  }
+   [HttpGet]
+   public string Get()
+   {
+      return Version;
+   }
 
    public static string Version { get; set; } = "0.1.4";
 }

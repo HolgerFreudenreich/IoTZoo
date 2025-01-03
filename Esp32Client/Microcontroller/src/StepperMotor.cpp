@@ -95,12 +95,12 @@ namespace IotZoo
         }
         String topicStepperActions = getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/actions";
 
-        mqttClient->subscribe(topicStepperActions, [=](const String &json)
+        mqttClient->subscribe(topicStepperActions, [&](const String &json)
                               { onReceivedActionsForStepper(json); });
 
         String topicStepperActionsAbort = getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/abort";
 
-        mqttClient->subscribe(topicStepperActionsAbort, [=](const String &json)
+        mqttClient->subscribe(topicStepperActionsAbort, [&](const String &json)
                               { stop(); });
     }
 
