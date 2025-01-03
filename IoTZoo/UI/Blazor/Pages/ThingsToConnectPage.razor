@@ -143,7 +143,6 @@
                      Description="text. Send clear to clear the display."
                      ExamplePayload="-HI-">
 </KnownTopicComponent>
-<MudText>You can connect up to 10 devices.</MudText>
 <br />
 <br />
 <MudDivider />
@@ -174,12 +173,41 @@
 <MudText Typo="Typo.h6">SD1306 oled display</MudText>
 <br />
 <br />
-<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine1 | Payload: text</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine2 | Payload: text</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine3 | Payload: text</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine4 | Payload: text</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine5 | Payload: text</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/tm1637_6/&lt;display index&gt;/textLine6 | Payload: text</MudText>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/oled/<display index>/line/0/text"
+                     Description="Text for the first line."
+                     ExamplePayload="Text 1">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/oled/<display index>/line/1/text"
+                     Description="Text for the second line."
+                     ExamplePayload="Text 2">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/oled/<display index>/line/2/text"
+                     Description="Text for the third line."
+                     ExamplePayload="Text 3">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/oled/<display index>/line/3/text"
+                     Description="Text for the fourth line."
+                     ExamplePayload="Text 4">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/oled/<display index>/line/4/text"
+                     Description="Text for the fifth line."
+                     ExamplePayload="Text 5">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/oled/<display index>/line/5/text"
+                     Description="Text for the sixth line."
+                     ExamplePayload="Text 6">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/oled/<display index>/invert"
+                     Description="Inverts the display"
+                     ExamplePayload="1: invert; 0: normal/invert back">
+</KnownTopicComponent>
 <br />
 <br />
 <MudDivider />
@@ -188,8 +216,15 @@
 <MudText Typo="Typo.h6">LCD1602, LCD1604, LCD2002, LCD2004 display</MudText>
 <br />
 <br />
-<MudText>Topic: esp32/&lt;MacAddress&gt;/lcd160x/&lt;display index&gt; | Payload: {"text": "IoT Zoo", "clear": true, "x":1, "y": 0}</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/lcd160x/&lt;display index&gt;/backlight | Payload: 0 (off); 1 (on)</MudText>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/lcd160x/<display index>"
+                     Description="Payload: {'text': 'IoT Zoo', 'clear': true, 'x':1, 'y': 0}">
+</KnownTopicComponent>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/lcd160x/<display index>/backlight"
+                     Description="Payload: 0 (off); 1 (on)">
+</KnownTopicComponent>
 <br />
 <br />
 <MudDivider />
@@ -198,9 +233,18 @@
 <MudText Typo="Typo.h6">LEDS (RED, YELLOW, GREEN)</MudText>
 <br />
 <br />
-<MudText>Topic: esp32/&lt;MacAddress&gt;/traffic_light/&lt;index&gt; | Payload: To turn green led on (and yellow and red off): g, 0, green</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/traffic_light/&lt;index&gt; | Payload: To turn yellow led on (and green and red off): y, 1, yellow</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/traffic_light/&lt;index&gt; | Payload: To turn red led on (and green and yellow off): r, 2, red</MudText>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/traffic_light/<index>"
+                     Description="Payload: To turn green led on (and yellow and red off): g, 0, green.">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/traffic_light/<index>"
+                     Description="Payload: To turn yellow led on (and green and red off): y, 1, yellow.">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/traffic_light/<index>"
+                     Description="Payload: Payload: To turn red led on (and green and yellow off): r, 2, red.">
+</KnownTopicComponent>
 <br />
 <br />
 <MudDivider />
@@ -209,11 +253,27 @@
 <MudText Typo="Typo.h6">NEO Pixel WS2818</MudText>
 <br />
 <br />
-<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt;/setPixelColor | Payload: {"color": 1106052, "index": 15, "length": 1, "brightness": 50}</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt;/setPixelColorRgb | Payload: {"r": 0, "g": 125, "b": 0, "index": 15, "length": 1, "brightness": 35}</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt;/setPixelColorHex | Payload Example 1: {"color": "#10E084" "index": 0, "length": 10, "brightness": 10}</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt;/setPixelColorHex | Payload Example 2: {"color": "0x10E084" "index": 0, "length": 10, "brightness": 10}</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt;/setPixelColorHex | Payload Example 3: {"color": "10E084" "index": 0, "length": 10, "brightness": 10}</MudText>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/neo/<display index>/setPixelColor"
+                     ExamplePayload="{'color': 1106052, 'index': 15, 'length': 1, 'brightness': 50}">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/neo/<display index>/setPixelColorRgb"
+                     ExamplePayload="{'r'': 0, 'g': 125, 'b': 0, 'index': 15, 'length': 1, 'brightness': 35}">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/neo/<display index>/setPixelColorHex"
+                     ExamplePayload="{'color': '#10E084','index': 0, 'length': 10, 'brightness': 10}">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/neo/<display index>/setPixelColorHex"
+                     ExamplePayload="{'color': '0x10E084','index': 0, 'length': 10, 'brightness': 10}">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/neo/<display index>/setPixelColorHex"
+                     ExamplePayload="{'color': '10E084','index': 0, 'length': 10, 'brightness': 10}">
+</KnownTopicComponent>
+<MudText>"brightness": 0 clears the entire display.</MudText>
 <br />
 <br />
 <MudDivider />
@@ -231,8 +291,20 @@
 <MudText Typo="Typo.h6">28BYJ-48 Stepper Motor</MudText>
 <br />
 <br />
-<MudText>Topic: esp32/&lt;MacAddress&gt;/stepper/&lt;index&gt;/action | Payload: {"degrees": 5, "rpm":2}</MudText>
-<MudText>Topic: esp32/&lt;MacAddress&gt;/stepper/&lt;index&gt;/actionEnded | Payload: none</MudText>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/stepper/<index>/actions"
+                     ExamplePayload="[{'degrees': 5, 'rpm':2}, {'degrees': -15, 'rpm':2, 'start_delay': 200}]">
+</KnownTopicComponent>
+<MudText>start_delay is in ms.</MudText>
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/stepper/<index>/action_done"
+                     Description="Sends the action_id of completed action.">
+</KnownTopicComponent>
+<MudText>This topic is published for each action.</MudText>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/stepper/<index>/abort"
+                     Description="Abort all actions.">
+</KnownTopicComponent>
 <br />
 <br />
 <MudDivider />

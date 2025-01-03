@@ -31,7 +31,7 @@ namespace IotZoo
     /// @param topics
     void OledSsd1306Display::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
     {
-        for (int line = 1; line < 7; line++)
+        for (int line = 0; line < 6; line++)
         {
             String topicLine = getBaseTopic() + "/oled/" + String(getDeviceIndex()) + "/line/" + String(line) + "/text";
             topics->push_back(*new Topic(topicLine,

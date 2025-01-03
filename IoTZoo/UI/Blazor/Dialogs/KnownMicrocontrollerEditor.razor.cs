@@ -18,7 +18,6 @@ using Domain.Pocos;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using System.Reflection;
-using static MudBlazor.Colors;
 
 public class KnownMicrocontrollerEditorBase : EditorBase
 {
@@ -109,7 +108,8 @@ public class KnownMicrocontrollerEditorBase : EditorBase
          bool isSuccess = await MicrocontrollerService.PushMicrocontrollerConfigToMicrocontroller(Microcontroller);
          if (!isSuccess)
          {
-            Snackbar.Add("Unable to transmit the configuration changes to the microcontroller! The changes will not be saved!", Severity.Error);
+            Snackbar.Add("Unable to transmit the configuration changes to the microcontroller! The changes will not be saved!",
+                         Severity.Error);
             // try it with the REST interface
             isSuccess = await MicrocontrollerService.PostMicrocontrollerConfigToMicrocontroller(Microcontroller);
          }
@@ -119,7 +119,8 @@ public class KnownMicrocontrollerEditorBase : EditorBase
          }
          else
          {
-            Snackbar.Add("Unable to transmit the configuration changes to the microcontroller! The changes will not be saved!", Severity.Error);
+            Snackbar.Add("Unable to transmit the configuration changes to the microcontroller! The changes will not be saved!",
+                         Severity.Error);
          }
          MudDialog.Close(DialogResult.Ok(Microcontroller));
       }
@@ -128,6 +129,7 @@ public class KnownMicrocontrollerEditorBase : EditorBase
          Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
          Snackbar.Add("Unable to save known microcontroller!", Severity.Error);
       }
+      Snackbar.Add("Microcontroller saved!", Severity.Success);
    }
 
    private async Task<bool> ValidateFields()
