@@ -18,6 +18,7 @@ namespace IotZoo
   HeartRateSensor::HeartRateSensor(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
                                    uint8_t advertisingTimeOut) : DeviceBase(deviceIndex, mqttClient, baseTopic)
   {
+    Serial.println("Constructor HeartRateSensor. advertisingTimeOut: " + String(advertisingTimeOut) + " s");
     charUUID = (NimBLEUUID((uint16_t)0x2A37));
   }
 

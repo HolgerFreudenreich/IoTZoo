@@ -52,6 +52,7 @@ IotZoo::WS2818 *ws2812 = NULL;
 #ifdef USE_BLE_HEART_RATE_SENSOR
 #include "BLEHeartRateSensor.hpp"
 IotZoo::HeartRateSensor *heartRateSensor;
+void connectToHeartRateSensor(int advertisingTimeout = 30);
 #endif
 
 #ifdef USE_HC_SR501
@@ -1259,6 +1260,7 @@ void makeInstanceConfiguredDevices()
 
           heartRateSensor = new HeartRateSensor(deviceIndex, mqttClient, getBaseTopic(),
                                                 advertisingTimeoutSeconds);
+          connectToHeartRateSensor(advertisingTimeoutSeconds);
         }
 #endif // USE_BLE_HEART_RATE_SENSOR
       }
@@ -1497,7 +1499,7 @@ void IRAM_ATTR isr()
 #endif
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
-void connectToHeartRateSensor(int advertisingTimeout = 30)
+void connectToHeartRateSensor(int advertisingTimeout)
 {
   String topic = getBaseTopic() + "/pulse/0/scan_started";
 #ifdef USE_MQTT2
@@ -1584,11 +1586,7 @@ void setup()
 #endif
 
 #endif
-
   makeInstanceConfiguredDevices();
-
-
-
   lastAliveTime = millis() - settings->getAliveIntervalMillis();
 
 #ifdef USE_KY025
@@ -1655,7 +1653,6 @@ void registerTopics()
 
   // so now the IOTZOO client knows this microcontroller.
   // ... let's tell it more about the connected devices and what you can do with it...
-
   std::vector<Topic> topics{};
 
   topics.push_back(*new Topic(getBaseTopic() + "/register_microcontroller",
