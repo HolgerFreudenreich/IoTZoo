@@ -100,12 +100,28 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase
       }
    }
 
-   protected async Task Add28BYJ48StepperMoter()
+   protected async Task Add28BYJ48StepperMotor()
    {
       try
       {
          Snackbar.Add("Adding 28BYJ-48 Stepper Motor configuration to the microcontroller...", Severity.Info);
          MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.From28BYJ48StepperMotor());
+         Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
+         await InvokeAsync(StateHasChanged);
+      }
+      catch (Exception ex)
+      {
+         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+         Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
+      }
+   }
+
+   protected async Task AddBleHeartRateMonitor()
+   {
+      try
+      {
+         Snackbar.Add("Adding BLE Heart Rate Monitor configuration to the microcontroller...", Severity.Info);
+         MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.BleHeartRateMonitor());
          Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
          await InvokeAsync(StateHasChanged);
       }
