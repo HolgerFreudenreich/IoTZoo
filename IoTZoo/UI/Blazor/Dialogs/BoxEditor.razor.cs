@@ -23,7 +23,6 @@ using System.Reflection;
 public class BoxEditorBase : EditorBase
 {
    [Parameter]
-
    public StorageBin Box { get; set; } = null!;
 
    protected override async Task OnInitializedAsync()
@@ -42,7 +41,6 @@ public class BoxEditorBase : EditorBase
       HashCode = GetHashCodeBase64(Box);
       await base.OnInitializedAsync();
    }
-
 
    [Inject]
    private IStorageBinCrudService BoxService

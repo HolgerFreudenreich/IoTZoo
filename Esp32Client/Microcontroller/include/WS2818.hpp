@@ -25,9 +25,6 @@ namespace IotZoo
   {
   protected:
     Adafruit_NeoPixel *pixels = NULL;
-
-    int index = 0;
-
     int dioPin;
     int numberOfLeds;
 

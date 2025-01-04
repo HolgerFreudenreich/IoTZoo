@@ -46,24 +46,17 @@
                         </MudButton>
                      </ChildContent>
                      <TooltipContent>
-                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/temperature/0 | Payload: Temperature °C</MudText>
+                        <MudText Typo="Typo.h6">You can connect up to 64 temperature sensors.</MudText>
                      </TooltipContent>
                   </MudTooltip>
 
-                  <MudTooltip>
-                     <ChildContent>
-                        <MudButton OnClick="AddHCSR501MotionDetector"
-                                   Style="height: 70px; width: 280px; margin: 5px;"
-                                   StartIcon="@Icons.Material.Filled.Add"
-                                   Variant="Variant.Filled"
-                                   Color="Color.Primary">
-                           HC-SR 501 Motion detector
-                        </MudButton>
-                     </ChildContent>
-                     <TooltipContent>
-                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/motion_detector/0/triggered</MudText>
-                     </TooltipContent>
-                  </MudTooltip>
+                  <MudButton OnClick="AddHCSR501MotionDetector"
+                             Style="height: 70px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     HC-SR 501 Motion detector
+                  </MudButton>
 
                   <MudButton OnClick="AddHW040RotaryEncoder"
                              Style="height: 65px; width: 280px; margin: 5px;"
@@ -122,22 +115,13 @@
                      Add Liquid Cristal Display (LCD1602, LCD1604, LCD2002, LCD2004)
                   </MudButton>
 
-                  <MudTooltip>
-                     <ChildContent>
-                        <MudButton OnClick="AddLedsTrafficLight"
-                                   Style="height: 70px; width: 280px; margin: 5px;"
-                                   StartIcon="@Icons.Material.Filled.Add"
-                                   Variant="Variant.Filled"
-                                   Color="Color.Primary">
-                           Add LEDs [Red, Yellow, Green]
-                        </MudButton>
-                     </ChildContent>
-                     <TooltipContent>
-                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/traffic_light/0/r | Payload: 0/1</MudText>
-                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/traffic_light/0/g | Payload: 0/1</MudText>
-                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/traffic_light/0/b | Payload: 0/1</MudText>
-                     </TooltipContent>
-                  </MudTooltip>
+                  <MudButton OnClick="AddLedsTrafficLight"
+                             Style="height: 70px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Add LEDs [Red, Yellow, Green]
+                  </MudButton>
 
                   <MudTooltip>
                      <ChildContent>
@@ -155,35 +139,29 @@
                   </MudTooltip>
 
                   <!-- Actuators -->
-                  <MudTooltip>
-                     <ChildContent>
-                        <MudButton OnClick="AddRemoteGpio"
-                                   Style="height: 65px; width: 280px; margin: 5px;"
-                                   StartIcon="@Icons.Material.Filled.Add"
-                                   Variant="Variant.Filled"
-                                   Color="Color.Primary">
-                           Add remote GPIO
-                        </MudButton>
-                     </ChildContent>
-                     <TooltipContent>
-                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/gpio/</MudText>
-                     </TooltipContent>
-                  </MudTooltip>
+                  <MudButton OnClick="AddRemoteGpio"
+                             Style="height: 65px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Add remote GPIO
+                  </MudButton>
 
-                  <MudTooltip>
-                     <ChildContent>
-                        <MudButton OnClick="Add28BYJ48StepperMoter"
-                                   Style="height: 65px; width: 280px; margin: 5px;"
-                                   StartIcon="@Icons.Material.Filled.Add"
-                                   Variant="Variant.Filled"
-                                   Color="Color.Primary">
-                           Add 28BYJ-48 Stepper Motor
-                        </MudButton>
-                     </ChildContent>
-                     <TooltipContent>
-                        <MudText Typo="Typo.h6">Topic: esp32/@Microcontroller.MacAddress/gpio/</MudText>
-                     </TooltipContent>
-                  </MudTooltip>
+                  <MudButton OnClick="Add28BYJ48StepperMotor"
+                             Style="height: 65px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Add 28BYJ-48 Stepper Motor
+                  </MudButton>
+
+                  <MudButton OnClick="AddBleHeartRateMonitor"
+                             Style="height: 65px; width: 280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     BLE Heart Rate Monitor
+                  </MudButton>
                   <br />
                   <br />
                   <MudTable Items="@MicrocontrollerService.ConnectedDevicesList"

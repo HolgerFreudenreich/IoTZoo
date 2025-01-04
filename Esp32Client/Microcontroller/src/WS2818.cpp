@@ -37,14 +37,13 @@ namespace IotZoo
     {
         Serial.println("WS2818 setup. DIN Pin is " + String(dioPin));
         pixels->begin();
-        setPixelColorRGB(150, 0, 0, 0, 5);
-        delay(100);
-        setPixelColorRGB(0, 150, 0, 0, 5);
-        delay(100);
-        setPixelColorRGB(0, 0, 150, 0, 5);
-        delay(100);
-        setPixelColorRGB(0, 0, 0, 0, 5);
-        delay(100);
+        setPixelColorRGB(255, 0, 0, 0, 25);
+        delay(125);
+        setPixelColorRGB(0, 255, 0, 1, 25);
+        delay(125);
+        setPixelColorRGB(0, 0, 255, 2, 25);
+        delay(125);
+        setPixelColorRGB(0, 0, 0, 0, 0);
     }
 
     /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColorRGB
@@ -96,7 +95,7 @@ namespace IotZoo
 
         u_int16_t startIndex;
         u_int16_t length = 1;
-        u_int8_t brightness;
+        u_int8_t brightness = 2; // < 2 means off
 
         StaticJsonDocument<200> jsonDocument;
 
@@ -116,6 +115,10 @@ namespace IotZoo
         {
             length = 1;
         }
+        if (brightness > 0 and brightness < 2)
+        {
+            brightness = 2;
+        }
 
         Serial.println("setPixelColor color: " + String(color) + ", startIndex: " + String(startIndex) + ", brightness: " + brightness + ", length: " + String(length));
 
@@ -134,7 +137,7 @@ namespace IotZoo
 
         u_int16_t startIndex;
         u_int16_t length = 1;
-        u_int8_t brightness;
+        u_int8_t brightness = 2; // 0 means off
 
         StaticJsonDocument<200> jsonDocument;
 
@@ -152,6 +155,11 @@ namespace IotZoo
 
         startIndex = jsonDocument["index"].as<u_int16_t>();
         brightness = jsonDocument["brightness"].as<u32_t>();
+
+        if (brightness > 0 and brightness < 2)
+        {
+            brightness = 2;
+        }
 
         length = jsonDocument["length"].as<u_int16_t>();
         if (length < 1)
@@ -191,21 +199,21 @@ namespace IotZoo
     /// @param baseTopic
     void WS2818::onMqttConnectionEstablished()
     {
-        String topic = getBaseTopic() + "/neo/" + String(index) + "/setPixelColorRGB";
+        String topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColorRGB";
 
         mqttClient->subscribe(topic, [&](const String &json)
                               { setPixelColorRGB(json); });
 
         Serial.println("LED strip subscribed to topic " + topic);
 
-        topic = getBaseTopic() + "/neo/" + String(index) + "/setPixelColor";
+        topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColor";
 
         mqttClient->subscribe(topic, [&](const String &json)
                               { setPixelColor(json); });
 
         Serial.println("LED strip subscribed to topic " + topic);
 
-        topic = getBaseTopic() + "/neo/" + String(index) + "/setPixelColorHex";
+        topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColorHex";
 
         mqttClient->subscribe(topic, [&](const String &json)
                               { setPixelColorHex(json); });
@@ -227,6 +235,5 @@ namespace IotZoo
         pixels->setPixelColor(index, color);
         pixels->show();
     }
-
 }
 #endif // USE_WS2818

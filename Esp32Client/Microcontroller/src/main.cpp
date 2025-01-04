@@ -50,8 +50,8 @@ IotZoo::WS2818 *ws2812 = NULL;
 #endif
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
-#include "BLEHeartRateReceiver.hpp"
-IotZoo::HeartRateMonitor heartRateMonitor;
+#include "BLEHeartRateSensor.hpp"
+IotZoo::HeartRateSensor *heartRateSensor;
 #endif
 
 #ifdef USE_HC_SR501
@@ -781,7 +781,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 
   String topicReboot = getBaseTopic() + "/system";
 
-  mqttClient->subscribe(topicReboot, [=](const String &payload)
+  mqttClient->subscribe(topicReboot, [&](const String &payload)
                         {
   if (payload == "reboot")
   {
@@ -789,14 +789,14 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
   } });
 
   String topicIntervalAlive = getBaseTopic() + "/alive_interval_ms";
-  mqttClient->subscribe(topicIntervalAlive, [=](const String &payload)
+  mqttClient->subscribe(topicIntervalAlive, [&](const String &payload)
                         {
     settings->setAliveIntervalMillis(std::stol(payload.c_str()));
     Serial.println("alive interval is changed to " + String(settings->getAliveIntervalMillis())); });
 
   // Save the device configurations.
   String topicSetDeviceConfiguration = getBaseTopic() + "/save_device_config";
-  mqttClient->subscribe(topicSetDeviceConfiguration, [=](const String &payload)
+  mqttClient->subscribe(topicSetDeviceConfiguration, [&](const String &payload)
                         {
     Serial.println("Received device configurations -> Save it."); 
     onReceivedConnectedDevicesConfiguration(payload);
@@ -804,7 +804,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 
   // Save the project configurations.
   String topicSetMicrocontrollerConfiguration = macAddress + "/save_microcontroller_config"; // macAddress instead of getBaseTopic()!
-  mqttClient->subscribe(topicSetMicrocontrollerConfiguration, [=](const String &payload)
+  mqttClient->subscribe(topicSetMicrocontrollerConfiguration, [&](const String &payload)
                         {
                           if (payload.length())
                           {
@@ -1016,7 +1016,6 @@ void makeInstanceConfiguredDevices()
               resolution = 11;
             }
           }
-
           ds18B20SensorManager->setup(datPin, resolution, transmissionInterval);
 
           Serial.println("DS18B20 sensors configuration loaded! Dat Pin is " + String(datPin) + ", Resolution: " +
@@ -1242,7 +1241,26 @@ void makeInstanceConfiguredDevices()
                          ", circleValues is " + String(circleValues) +
                          ", encoderSteps is " + String(encoderSteps));
         }
-#endif
+#endif // USE_HW040
+
+#ifdef USE_BLE_HEART_RATE_SENSOR
+        if (deviceType == "BleHeartRateSensor")
+        {
+          uint8_t advertisingTimeoutSeconds = 30;
+          for (JsonVariant property : arrProperties)
+          {
+            String propertyName = property["Name"];
+
+            if (propertyName == "AdvertisingTimeoutSeconds")
+            {
+              advertisingTimeoutSeconds = property["Value"].as<uint8_t>();
+            }
+          }
+
+          heartRateSensor = new HeartRateSensor(deviceIndex, mqttClient, getBaseTopic(),
+                                                advertisingTimeoutSeconds);
+        }
+#endif // USE_BLE_HEART_RATE_SENSOR
       }
     }
   }
@@ -1460,7 +1478,7 @@ void notifyCallbackHeartRate(NimBLERemoteCharacteristic *pBLERemoteCharacteristi
   mqttClient->publish(topic.c_str(), String(data[1]).c_str()); // Pulse
 #endif
 }
-#endif
+#endif // USE_BLE_HEART_RATE_SENSOR
 
 #ifdef USE_KY025
 void IRAM_ATTR isr()
@@ -1479,18 +1497,19 @@ void IRAM_ATTR isr()
 #endif
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
-void connectToHeartRateSensor()
+void connectToHeartRateSensor(int advertisingTimeout = 30)
 {
-  int timeOut = 90;
   String topic = getBaseTopic() + "/pulse/0/scan_started";
 #ifdef USE_MQTT2
   mqttClient->publish(topic, "BLE scan started to find advertising heart rate sensor. Timeout is set to " + String(timeOut) + " s.");
 #endif
-  heartRateMonitor.setup(notifyCallbackHeartRate, // Callback method, called on heart rate received
-                         timeOut);                // Scan duration
+  if (NULL != heartRateSensor)
+  {
+    heartRateSensor->setup(notifyCallbackHeartRate, // Callback method, called on heart rate received
+                           advertisingTimeout);     // Scan duration
+  }
 }
-
-#endif
+#endif // USE_BLE_HEART_RATE_SENSOR
 
 // ------------------------------------------------------------------------------------------------
 void setup()
@@ -1568,9 +1587,7 @@ void setup()
 
   makeInstanceConfiguredDevices();
 
-#ifdef USE_BLE_HEART_RATE_SENSOR
-  connectToHeartRateSensor();
-#endif
+
 
   lastAliveTime = millis() - settings->getAliveIntervalMillis();
 
@@ -1665,9 +1682,10 @@ void registerTopics()
                               MessageDirection::IotZooClientInbound));
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
-  topics.push_back(*new Topic(getBaseTopic() + "/pulse/0",
-                              "heart rate of heart rate monitor 0.",
-                              MessageDirection::IotZooClientInbound));
+if (NULL != heartRateSensor)
+{
+  heartRateSensor->addMqttTopicsToRegister(&topics);
+}
 #endif
 
 #ifdef USE_STEPPER_MOTOR
@@ -1819,11 +1837,12 @@ void loop()
     restart();
   }
 
-  // Serial.println("LOOP " + String(loopCounter) + ", millis: " + millis());
-
 #ifdef USE_BLE_HEART_RATE_SENSOR
-  heartRateMonitor.loop();
-#endif
+  if (NULL != heartRateSensor)
+  {
+    heartRateSensor->loop();
+  }
+#endif // USE_BLE_HEART_RATE_SENSOR
 
 #ifdef USE_BUTTON
   buttonHandling.loop();
