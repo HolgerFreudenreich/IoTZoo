@@ -59,6 +59,10 @@ public class NavMenuBase : ComponentBase
                NavigationManager.NavigateTo("ExampleProjects02");
                break;
 
+            case "Heart rate on a TM1637 4 digits display":
+               NavigationManager.NavigateTo("ExampleProjects03");
+               break;
+
             case "Control a Philips HUE lamp with a rotary encoder":
                NavigationManager.NavigateTo("ExampleProjects04");
                break;
@@ -71,7 +75,7 @@ public class NavMenuBase : ComponentBase
                NavigationManager.NavigateTo("InstructionsKnownTopics");
                break;
             case "Publish Topic":
-                JsRuntime.InvokeVoidAsync("openNewTab", "PublishTopic");
+               JsRuntime.InvokeVoidAsync("openNewTab", "PublishTopic");
                break;
 
             default:

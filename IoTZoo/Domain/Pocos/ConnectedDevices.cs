@@ -10,6 +10,7 @@
 // (c) 2025 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
+
 namespace Domain.Pocos;
 
 public static class ConnectedDevices
@@ -405,6 +406,20 @@ public static class ConnectedDevices
             new PropertyValue("Columns", "20"),
             new PropertyValue("Rows", "4"),
             new PropertyValue("I2CAddress", "0x27")
+         }
+      };
+   }
+
+   public static ConnectedDevice BleHeartRateMonitor()
+   {
+      return new ConnectedDevice
+      {
+         IsEnabled = true,
+         DeviceType = "BleHeartRateSensor", // do not change this name, the same name must be used in main.cpp of the client.
+         PropertyValues = new List<PropertyValue>
+         {
+            new PropertyValue("AdvertisingTimeoutSeconds", "60"),
+
          }
       };
    }
