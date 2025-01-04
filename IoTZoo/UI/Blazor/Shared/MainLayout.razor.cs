@@ -108,6 +108,9 @@ namespace IotZoo.Shared
             case ScreenMode.ExampleProject02:
                Title = "Example Project 2: Temperature on a TM1637 6 digits display";
                break;
+            case ScreenMode.ExampleProject03:
+               Title = "Example Project 1: Heart rate on a TM1637 4 digits display";
+               break;
             case ScreenMode.ExampleProject04:
                Title = "Example Project 4: Control a Philips HUE lamp with a rotary encoder";
                break;
