@@ -67,8 +67,14 @@ namespace IotZoo
     /// @param baseTopic
     void RotaryEncoder::onMqttConnectionEstablished()
     {
+        Serial.println("RotaryEncoder::onMqttConnectionEstablished");
+        if (mqttCallbacksAreRegistered)
+        {
+            Serial.println("Reconnection -> nothing to do.");
+            return;
+        }
         String topic = baseTopic + "/rotary_encoder/" + String(getDeviceIndex()) + "/set_value";
-        if (mqttClient->subscribe(topic, [=](const String &payload)
+        if (mqttClient->subscribe(topic, [&](const String &payload)
                                   { onReceivedRotaryEncoderValue(payload); }))
         {
             Serial.println("Subscribed topic: " + topic);

@@ -13,18 +13,29 @@
 #define __REMOTE_GPIO_HPP__
 
 #include <Arduino.h>
+#include "DeviceBase.hpp"
 
 namespace IotZoo
 {
-  class RemoteGpio
+  class RemoteGpio : DeviceBase
   {
   protected:
     int pinGpio = -1;
 
   public:
-    RemoteGpio(int pin);
+    RemoteGpio(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
+               int pin);
 
     virtual ~RemoteGpio();
+
+    /// @brief Let the user know what the device can do.
+    /// @param topics
+    virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+
+    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+    /// @param mqttClient
+    /// @param baseTopic
+    virtual void onMqttConnectionEstablished() override;
 
     int getGpioPin() const;
 

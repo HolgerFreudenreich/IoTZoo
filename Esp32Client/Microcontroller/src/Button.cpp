@@ -61,7 +61,7 @@ namespace IotZoo
             return;
         }
 
-        mqttClient->subscribe(topicButtonSetCounter, [=](const String &json)
+        mqttClient->subscribe(topicButtonSetCounter, [&](const String &json)
                               { Serial.println("set counter"); counter = counterOld = atoi(json.c_str()); });
     }
 

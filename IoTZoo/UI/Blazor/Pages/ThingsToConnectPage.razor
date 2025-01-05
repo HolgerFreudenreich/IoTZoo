@@ -282,7 +282,10 @@
 <MudText Typo="Typo.h6">Remote GPIO</MudText>
 <br />
 <br />
-<MudText>Topic: esp32/&lt;MacAddress&gt;/neo/&lt;index&gt; | Payload: 0, LOW, OFF or 1, HIGH, ON or TOGGLE for toggling state</MudText>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/gpio/<index>"
+                     ExamplePayload="0, LOW, OFF or 1, HIGH, ON or TOGGLE for toggling state">
+</KnownTopicComponent>
 <br />
 <br />
 <MudDivider />
