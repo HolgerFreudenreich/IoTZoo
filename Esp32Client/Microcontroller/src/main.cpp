@@ -240,44 +240,6 @@ void publishError(const String &errMsg)
 
 #endif
 
-#ifdef USE_REMOTE_GPIOS
-void onReceivedDataRemoteGpio(const String &rawData, int index)
-{
-  auto remoteGpio = remoteGpios.begin();
-  std::advance(remoteGpio, index);
-  Serial.println("Remote Gpio index " + String(index) + ", GPIO Pin: " + remoteGpio->getGpioPin());
-
-  remoteGpio->handlePayload(rawData);
-}
-
-void onReceivedDataRemoteGpio0(const String &rawData)
-{
-  Serial.println("onReceivedDataRemoteGpio0: " + rawData);
-  onReceivedDataRemoteGpio(rawData, 0);
-}
-
-void onReceivedDataRemoteGpio1(const String &rawData)
-{
-  onReceivedDataRemoteGpio(rawData, 1);
-}
-
-void onReceivedDataRemoteGpio2(const String &rawData)
-{
-  onReceivedDataRemoteGpio(rawData, 2);
-}
-
-void onReceivedDataRemoteGpio3(const String &rawData)
-{
-  onReceivedDataRemoteGpio(rawData, 3);
-}
-
-void onReceivedDataRemoteGpio4(const String &rawData)
-{
-  onReceivedDataRemoteGpio(rawData, 4);
-}
-
-#endif
-
 void onReceivedConnectedDevicesConfiguration(const String &json)
 {
   Serial.println("*** onReceivedConfiguration ***");
@@ -688,58 +650,6 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
   }
 #endif
 
-#ifdef USE_REMOTE_GPIOS
-  int indexRemoteGpio = 0;
-  Serial.println("REMOTE GPIO's ");
-
-  if (0 == remoteGpios.size())
-  {
-    Serial.println("no remote GPIO's!");
-  }
-
-  Serial.println("Count of configured remote gpio's: " + String(remoteGpios.size()));
-
-  for (auto &remoteGpio : remoteGpios)
-  {
-    String topicRemoteGpio = getBaseTopic() + "/gpio/" + indexRemoteGpio;
-
-    Serial.println("Subscribe Topic " + topicRemoteGpio + " Remote Gpio Pin: " + remoteGpio.getGpioPin());
-
-    if (0 == indexRemoteGpio)
-    {
-      mqttClient->subscribe(topicRemoteGpio,
-                            onReceivedDataRemoteGpio0,
-                            1); // QoS
-    }
-    else if (1 == indexRemoteGpio)
-    {
-      mqttClient->subscribe(topicRemoteGpio,
-                            onReceivedDataRemoteGpio1,
-                            1); // QoS
-    }
-    else if (2 == indexRemoteGpio)
-    {
-      mqttClient->subscribe(topicRemoteGpio,
-                            onReceivedDataRemoteGpio2,
-                            1); // QoS
-    }
-    else if (3 == indexRemoteGpio)
-    {
-      mqttClient->subscribe(topicRemoteGpio,
-                            onReceivedDataRemoteGpio3,
-                            1); // QoS
-    }
-    else if (4 == indexRemoteGpio)
-    {
-      mqttClient->subscribe(topicRemoteGpio,
-                            onReceivedDataRemoteGpio4,
-                            1); // QoS
-    }
-    indexRemoteGpio++;
-  }
-
-#endif
-
 #ifdef USE_OLED_SSD1306
   if (NULL != oled1306)
   {
@@ -772,6 +682,13 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     tm1638->onMqttConnectionEstablished();
   }
 #endif
+
+#ifdef USE_REMOTE_GPIOS
+  for (auto &remoteGpio : remoteGpios)
+  {
+    remoteGpio.onMqttConnectionEstablished();
+  }
+#endif // USE_REMOTE_GPIOS
 
 #ifdef USE_TRAFFIC_LIGHT_LEDS
   for (auto &trafficLight : trafficLightLeds)
@@ -1133,13 +1050,11 @@ void makeInstanceConfiguredDevices()
 
           int gpioPin = arrPins[0]["MicrocontrollerGpoPin"];
 
-          RemoteGpio *remoteGpio = new RemoteGpio(gpioPin);
+          RemoteGpio *remoteGpio = new RemoteGpio(deviceIndex, mqttClient, getBaseTopic(), gpioPin);
           remoteGpios.push_back(*remoteGpio);
-
-          Serial.println("Remote GPIO PIN configuration loaded! Pin is " + String(gpioPin));
+          Serial.println("Remote GPIO PIN configuration loaded! Pin is " + String(gpioPin) + ". Size remoteGpios: " + remoteGpios.size());
         }
-
-#endif
+#endif // USE_REMOTE_GPIOS
 
 #ifdef USE_TRAFFIC_LIGHT_LEDS
         if (deviceType == "LEDS Traffic Light")
@@ -1679,10 +1594,10 @@ void registerTopics()
                               MessageDirection::IotZooClientInbound));
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
-if (NULL != heartRateSensor)
-{
-  heartRateSensor->addMqttTopicsToRegister(&topics);
-}
+  if (NULL != heartRateSensor)
+  {
+    heartRateSensor->addMqttTopicsToRegister(&topics);
+  }
 #endif
 
 #ifdef USE_STEPPER_MOTOR
@@ -1700,6 +1615,13 @@ if (NULL != heartRateSensor)
   for (auto &buttonSwitch : switches)
   {
     buttonSwitch.addMqttTopicsToRegister(&topics);
+  }
+#endif
+
+#ifdef USE_REMOTE_GPIOS
+  for (auto &remoteGpio : remoteGpios)
+  {
+    remoteGpio.addMqttTopicsToRegister(&topics);
   }
 #endif
 

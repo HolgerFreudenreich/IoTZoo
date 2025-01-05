@@ -67,6 +67,12 @@ namespace IotZoo
     /// @param baseTopic
     void TM1638::onMqttConnectionEstablished()
     {
+        Serial.println("TM1638::onMqttConnectionEstablished");
+        if (mqttCallbacksAreRegistered)
+        {
+            Serial.println("Reconnection -> nothing to do.");
+            return;
+        }
         for (int ledNumber = 0; ledNumber < 8; ledNumber++)
         {
             String topicLed = getBaseTopic() + "/ledAndKey/0/led/" + String(ledNumber);
