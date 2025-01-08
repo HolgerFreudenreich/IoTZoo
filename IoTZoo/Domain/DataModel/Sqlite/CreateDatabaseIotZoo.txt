@@ -108,7 +108,7 @@ create table if not exists known_topic
   sender character varying(30) null,
   -- the change date time of the last payload.
   payload_updated_at datetime null,
-  constraint uk_known_topic unique (topic),
+  constraint uk_known_topic unique (project_name, topic),
   constraint fk_known_topic_parent_known_topic_id foreign key (parent_known_topic_id) references known_topic(known_topic_id) on delete cascade on update cascade,
   constraint fk_known_topic_project_name foreign key (project_name) references project(project_name) on delete cascade on update cascade,
   constraint fk_project foreign key (namespace_name) references known_topic_prefix(topic_prefix) on delete cascade on update cascade
