@@ -11,7 +11,6 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 using DataAccess.Interfaces;
-using DataAccess.Services;
 using Domain.Interfaces.Crud;
 using Domain.Interfaces.MQTT;
 using Domain.Pocos;
@@ -92,8 +91,8 @@ public class SettingsPageBase : MqttPageBase
 
       await SettingsService.Update(SettingCategory.General, SettingKey.DateAndTimeFormat, DataTransferService.DateTimeFormat);
       if (1 == await SettingsService.Update(SettingCategory.MqttBrokerSettings,
-                                      SettingKey.MqttBrokerSettings,
-                                      MqttBrokerSettings))
+                                            SettingKey.MqttBrokerSettings,
+                                            MqttBrokerSettings))
       {
          DataTransferService.MqttBrokerSettings = MqttBrokerSettings;
       }
@@ -168,7 +167,7 @@ public class SettingsPageBase : MqttPageBase
    {
       try
       {
-         HueBridgeAppKey = await HueBridgeService.RegisterAppAtHueBridgeAsync(DataTransferService.PhilipsHueBridgeSettings.Ip,
+         HueBridgeAppKey = await HueBridgeService.RegisterAppAtHueBridgeAsync(HueBridgeIp,
                                                                               "IotZoo",
                                                                               "IotZoo");
          if (!string.IsNullOrEmpty(HueBridgeAppKey))

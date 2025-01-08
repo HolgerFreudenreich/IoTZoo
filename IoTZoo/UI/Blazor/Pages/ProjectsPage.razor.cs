@@ -142,8 +142,15 @@ public class ProjectsPageBase : PageBase
 
    protected async Task RegisterProjectTopics(Project project)
    {
-      await this.KnownTopicsService.RegisterProjectDefaultKnownTopics(project);
-      Snackbar.Add("Done");
+      try
+      {
+         await this.KnownTopicsService.RegisterProjectDefaultKnownTopics(project);
+         Snackbar.Add("Done");
+      }
+      catch (Exception exception)
+      {
+         Snackbar.Add(exception.GetBaseException().Message, Severity.Error);
+      }
    }
 
    protected async Task EditProjectCronJobs(Project project)
