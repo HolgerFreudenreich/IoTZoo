@@ -16,7 +16,6 @@ using Domain.Interfaces.Crud;
 using Domain.Pocos;
 using Json.Path;
 using Microsoft.Extensions.Logging;
-using MQTTnet.Client;
 using System.Reflection;
 using System.Text.Json.Nodes;
 

@@ -349,17 +349,84 @@
 <MudText Typo="Typo.h6">Interaction with Philips HUE</MudText>
 <br />
 <br />
-<MudText>Topic: HUE_LIGHT_ON | Payload: lightId</MudText>
-<MudText>Topic: HUE_LIGHT_OFF | Payload: lightId</MudText>
-<MudText>Topic: HUE_LIGHT_COLOR | Payload: {"LightId": 9, "Color": {"X": 0.2465, "Y": 0.6425}} | green</MudText>
-<MudText>To determine the Y and Y value for the color set the color of a lightId with an app and look at the topic hue_bridge/lights/&lt;lightId&gt; or use the following predefined colors:</MudText>
-<MudText>Topic: HUE_LIGHT_COLOR_BLUE | Payload: LightId</MudText>
-<MudText>Topic: HUE_LIGHT_COLOR_YELLOW | Payload: LightId</MudText>
-<MudText>Topic: HUE_LIGHT_COLOR_ORANGE | Payload: LightId</MudText>
-<MudText>Topic: HUE_LIGHT_COLOR_GREEN | Payload: LightId</MudText>
-<MudText>Topic: HUE_LIGHT_COLOR_RED | Payload: LightId</MudText>
-<MudText>Topic: HUE_LIGHT_COLOR_WHITE_COLD | Payload: LightId</MudText>
-<MudText>Topic: HUE_LIGHT_COLOR_WHITE_WARM | Payload: LightId</MudText>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/off"
+                     Description="Turns the light off."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/on"
+                     Description="Turns the light on."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/brighter"
+                     Description="Increases the light level."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/brightness"
+                     Description="Adjusts the light level."
+                     Payload="{ 'LightId': <LightId>, 'Brightness': 'input' }"
+                     ExamplePayload="{ 'LightId': 9, 'Brightness': 75 }">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/color"
+                     Description="Color change."
+                     Payload="{'LightId': <LightId>, 'Color': {'X': 0.2465, 'Y': 0.6425}"
+                     ExamplePayload="{'LightId': 9, 'Color': {'X': 0.2465, 'Y': 0.6425} }">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/color/blue"
+                     Description="Color change to blue."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/color/gold"
+                     Description="Color change to gold."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/color/green"
+                     Description="Color change to green."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/color/orange"
+                     Description="Color change to orange."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/color/purple"
+                     Description="Color change to purple."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/color/red"
+                     Description="Color change to red."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/color/white_cold"
+                     Description="Color change to cold white."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/color/white_warm"
+                     Description="Color change to warm white."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
 <br />
 <br />
 <MudDivider />
@@ -368,27 +435,82 @@
 <MudText Typo="Typo.h6">Internal Topics</MudText>
 <br />
 <br />
-<MudText Typo="Typo.h6">Time based topics</MudText>
-<br />
-<br />
 <MudText>Topic: IOTZOO/SYSTEM/STARTED | Payload: none</MudText>
-<MudText>Topic: IOTZOO/@TopicConstants.EVERY_SECOND | Payload Example: { "DateTime": "17.11.2025 17:23:00", "Time": "17:23:00", "TimeShort": "17:23" }</MudText>
-<MudText>Topic: IOTZOO/@TopicConstants.EVERY_05_SECONDS | Payload Example: { "DateTime": "17.11.2025 17:23:05", "Time": "17:23:05", "TimeShort": "17:23" }</MudText>
-<MudText>Topic: IOTZOO/@TopicConstants.EVERY_10_SECONDS | Payload Example: { "DateTime": "17.11.2025 17:23:10", "Time": "17:23:10", "TimeShort": "17:23" }</MudText>
-<MudText>Topic: IOTZOO/@TopicConstants.EVERY_15_SECONDS | Payload Example: { "DateTime": "17.11.2025 17:23:15", "Time": "17:23:15", "TimeShort": "17:23" }</MudText>
-<MudText>Topic: IOTZOO/@TopicConstants.EVERY_30_SECONDS | Payload Example: { "DateTime": "17.11.2025 17:23:30", "Time": "17:23:15", "TimeShort": "17:23" }</MudText>
-<MudText>Topic: IOTZOO/@TopicConstants.EVERY_MINUTE | Payload Example: { "DateTime": "17.11.2025 17:23:00", "Time": "17:23:00", "TimeShort": "17:23" }</MudText>
-<MudText>Topic: IOTZOO/@TopicConstants.EVERY_05_MINUTES | Payload Example: { "DateTime": "17.11.2025 17:30:00", "Time": "17:30:00", "TimeShort": "17:30" }</MudText>
-<MudText>Topic: IOTZOO/@TopicConstants.EVERY_15_MINUTES | Payload Example: { "DateTime": "17.11.2025 17:30:00", "Time": "17:30:00", "TimeShort": "17:30" }</MudText>
-<MudText>Topic: IOTZOO/@TopicConstants.EVERY_30_MINUTES | Payload Example: { "DateTime": "17.11.2025 17:30:00", "Time": "17:30:00", "TimeShort": "17:30" }</MudText>
-<MudText>Topic: IOTZOO/@TopicConstants.EVERY_HOUR   | Payload Example: { "DateTime": "17.11.2025 18:00:00", "Time": "18:00:00", "TimeShort": "18:00" }</MudText>
-<MudText>Topic: IOTZOO/EVERY_HOUR | Payload: DateTime.Now</MudText>
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="started"
+                     Description="Microcontroller started">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic=@TopicConstants.REGISTER_MICROCONTROLLER
+                     Description="Registers all the known topics of the microcontroller.">
+</KnownTopicComponent>
+<br />
+<br />
+<MudText Typo="Typo.h5">Time based topics</MudText>
+<br />
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.EVERY_SECOND}")
+                     Description="Fires every second."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 18:36:29","Date":"11.01.2025","Time":"18:36:29","TimeShort":"18:36"}""")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.EVERY_05_SECONDS}")
+                     Description="Fires every 5 seconds."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 18:36:25","Date":"11.01.2025","Time":"18:36:25","TimeShort":"18:36"}""")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.EVERY_10_SECONDS}")
+                     Description="Fires every 10 seconds."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 18:36:30","Date":"11.01.2025","Time":"18:36:30","TimeShort":"18:36"}""")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.EVERY_15_SECONDS}")
+                     Description="Fires every 15 seconds."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 18:36:30","Date":"11.01.2025","Time":"18:36:30","TimeShort":"18:36"}""")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.EVERY_30_SECONDS}")
+                     Description="Fires every 30 seconds."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 18:36:30","Date":"11.01.2025","Time":"18:36:30","TimeShort":"18:36"}""")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.EVERY_MINUTE}")
+                     Description="Fires every minute."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 18:36:00","Date":"11.01.2025","Time":"18:36:00","TimeShort":"18:36"}""")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.EVERY_05_MINUTES}")
+                     Description="Fires every 5 minutes."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 18:40:00","Date":"11.01.2025","Time":"18:40:00","TimeShort":"18:40"}""")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.EVERY_15_MINUTES}")
+                     Description="Fires every 15 minutes."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 18:45:00","Date":"11.01.2025","Time":"18:45:00","TimeShort":"18:45"}""")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.EVERY_30_MINUTES}")
+                     Description="Fires every 30 minutes."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 19:00:00","Date":"11.01.2025","Time":"19:00:00","TimeShort":"19:00"}""")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.EVERY_HOUR}")
+                     Description="Fires every hour."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 19:00:00","Date":"11.01.2025","Time":"19:00:00","TimeShort":"19:00"}""")>
+</KnownTopicComponent>
 <br />
 <br />
 <MudText Typo="Typo.h6">Sunrise and Sunset</MudText>
 <br />
-<MudText>Topic: IOTZOO/SUNRISE_NOW | Payload: DateTime.Now</MudText>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.SUNRISE_NOW}")
+                     Description="Fires when the sun rises."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 08:28:52","Date":"11.01.2025","Time":"08:28:52","TimeShort":"08:52"}""")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.SUNSET_NOW}")
+                     Description="Fires when the sun goes down."
+                     ExamplePayload=@("""{"DateTime":"11.01.2025 16:29:33","Date":"11.01.2025","Time":"16:29:33","TimeShort":"16:29"}""")>
+</KnownTopicComponent>
 <br />
-<MudText>Topic: IOTZOO/SUNSET_NOW | Payload: DateTime.Now</MudText>
-<br />
-

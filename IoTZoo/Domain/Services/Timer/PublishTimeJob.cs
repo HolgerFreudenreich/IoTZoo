@@ -13,7 +13,6 @@
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
-using MQTTnet.Client;
 using MQTTnet.Protocol;
 using Quartz;
 using System.Reflection;
@@ -48,7 +47,7 @@ public class PublishTimeJob : IJob
 
    private void InitMqttClient()
    {
-      var factory = new MqttFactory();
+      var factory = new MqttClientFactory();
       MqttClient = factory.CreateMqttClient();
 
       var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,

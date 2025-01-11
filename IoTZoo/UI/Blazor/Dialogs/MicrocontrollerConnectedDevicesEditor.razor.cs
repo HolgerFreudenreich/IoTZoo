@@ -14,6 +14,7 @@ using Domain.Interfaces;
 using Domain.Pocos;
 using Domain.Services;
 using Microsoft.AspNetCore.Components;
+using MQTTnet;
 using MudBlazor;
 using System.Reflection;
 
@@ -34,12 +35,13 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase
       DialogTitle = "Connected Devices";
       BaseTopic = MicrocontrollerService.GetBaseTopic(Microcontroller);
       HashCode = GetHashCodeBase64(Microcontroller);
+      MicrocontrollerService.ConnectedAsync -= MicrocontrollerService_ConnectedAsync;
       MicrocontrollerService.ConnectedAsync += MicrocontrollerService_ConnectedAsync;
 
       await base.OnInitializedAsync();
    }
 
-   private Task MicrocontrollerService_ConnectedAsync(MQTTnet.Client.MqttClientConnectedEventArgs arg)
+   private Task MicrocontrollerService_ConnectedAsync(MqttClientConnectedEventArgs arg)
    {
       MicrocontrollerService.OnReceivedDeviceConfig += MicrocontrollerService_OnReceivedDeviceConfig;
 

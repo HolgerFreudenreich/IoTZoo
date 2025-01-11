@@ -16,7 +16,7 @@ using Domain.Pocos;
 using Domain.Services.Timer;
 using IotZoo.Dialogs;
 using Microsoft.AspNetCore.Components;
-using MQTTnet.Client;
+using MQTTnet;
 using MudBlazor;
 using System.Reflection;
 
@@ -76,9 +76,9 @@ public class KnownMicrocontrollersPageBase : PageBase, IDisposable
    /// <summary>
    /// The MQTT Client has established a connected to the broker.
    /// </summary>
-   /// <param name="arg"></param>
+   /// <param name="args"></param>
    /// <returns></returns>
-   private async Task MqttClient_ConnectedAsync(MqttClientConnectedEventArgs arg)
+   private async Task MqttClient_ConnectedAsync(MqttClientConnectedEventArgs args)
    {
       foreach (var microcontroller in Microcontrollers)
       {

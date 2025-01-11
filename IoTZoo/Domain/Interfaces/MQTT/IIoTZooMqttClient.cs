@@ -14,13 +14,14 @@ using Domain.Interfaces.Crud;
 using Domain.Pocos;
 using Domain.Services.RuleEngine;
 using Microsoft.Extensions.Logging;
+using MQTTnet;
 using MQTTnet.Protocol;
 
 namespace Domain.Interfaces.MQTT;
 
 public interface IIoTZooMqttClient
 {
-   MQTTnet.Client.IMqttClient Client { get; }
+   IMqttClient Client { get; }
    IExpressionEvaluationService ExpressionEvaluationService { get; set; }
    ILogger<IIoTZooMqttClient> Logger { get; set; }
    ISettingsCrudService SettingsService { get; set; }

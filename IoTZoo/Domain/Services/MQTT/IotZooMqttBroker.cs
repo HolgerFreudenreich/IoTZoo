@@ -53,7 +53,7 @@ public class IotZooMqttBroker : IIotZooMqttBroker
 
       if (null == MqttServer)
       {
-         var mqttFactory = new MqttFactory();
+         var mqttFactory = new MqttServerFactory();
 
          //IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
          //IPAddress? ipAddress = host.AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
