@@ -17,9 +17,13 @@
          {
             <MudText><b>Description</b> @Description</MudText>
          }
+         @if (!string.IsNullOrEmpty(Payload))
+         {
+            <MudText><b>Payload</b> @Payload</MudText>
+         }
          @if (!string.IsNullOrEmpty(ExamplePayload))
          {
-            <MudText><b>ExamplePayload</b> @ExamplePayload</MudText>
+            <MudText><b>Example Payload</b> @ExamplePayload</MudText>
          }
       </MudStack>
    </MudStack>

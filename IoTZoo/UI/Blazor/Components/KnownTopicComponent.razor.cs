@@ -42,6 +42,9 @@ public class KnownTopicComponentBase : ComponentBase
    public string Description { get; set; } = string.Empty;
 
    [Parameter]
+   public string Payload { get; set; } = string.Empty;
+
+   [Parameter]
    public string ExamplePayload { get; set; } = string.Empty;
 
    [Parameter]

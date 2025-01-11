@@ -23,13 +23,13 @@ using Domain.Services.Timer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MQTTnet;
-using MQTTnet.Client;
 using MQTTnet.Protocol;
 using MudBlazor;
 using Quartz.Spi;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Timers;
 
 namespace Domain.Services.MQTT;
 
@@ -125,7 +125,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
          return;
       }
 
-      var factory = new MqttFactory();
+      var factory = new MqttClientFactory();
       Client = factory.CreateMqttClient();
       var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(brokerIp, port).Build();
 
@@ -320,26 +320,18 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
             return;
          }
 
-         if (null == mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Array)
-         {
-            return;
-         }
+
 
          TopicEntry topicEntry = new TopicEntry();
 
          var splitted = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Topic.Split('/');
          topicEntry.NamespaceName = splitted[0];
 
-         if (mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Any())
-         {
-            topicEntry.Payload = Encoding.UTF8.GetString(mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Array,
-                                                         mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Offset,
-                                                         mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Count).Trim();
-            topicEntry.QualityOfServiceLevel =
-                (int)mqttApplicationMessageReceivedEventArgs.ApplicationMessage.QualityOfServiceLevel;
-            topicEntry.Retain = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Retain;
-            topicEntry.DateOfReceipt = DateTime.UtcNow;
-         }
+         topicEntry.Payload = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.ConvertPayloadToString().Trim();
+         topicEntry.QualityOfServiceLevel =
+             (int)mqttApplicationMessageReceivedEventArgs.ApplicationMessage.QualityOfServiceLevel;
+         topicEntry.Retain = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Retain;
+         topicEntry.DateOfReceipt = DateTime.UtcNow;
 
          if (splitted.Length < 3)
          {
@@ -465,7 +457,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
          var payload = targetPayload;
          existingTimerService = (from data in delayedMessages
                                  where data.ApplicationMessage.Topic == rule.TargetTopic &&
-                                       Encoding.UTF8.GetString(data.ApplicationMessage.PayloadSegment) == payload
+                                       data.ApplicationMessage.ConvertPayloadToString() == payload
                                  select data).FirstOrDefault();
 
          if (null != existingTimerService)
@@ -576,6 +568,10 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
          {
             jsonCmd = "{\"LightId\": " + topicEntry.Payload + " , \"Color\": {\"X\": 0.4672, \"Y\": 0.412}}";
          }
+         else
+         {
+            jsonCmd = topicEntry.Payload!;
+         }
 
          HueColorCommand? colorCommand = null;
 
@@ -589,6 +585,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
          catch (Exception exception)
          {
             Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
+            return false;
          }
          if (null != colorCommand)
          {
@@ -751,7 +748,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
             return;
          }
 
-         string payload = Encoding.UTF8.GetString(elapsedEventArgs.ApplicationMessage.PayloadSegment);
+         string payload = elapsedEventArgs.ApplicationMessage.ConvertPayloadToString();
 
          if (string.IsNullOrEmpty(payload))
          {
@@ -764,7 +761,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
          {
             var existingTimerService = (from data in delayedMessages
                                         where data.ApplicationMessage.Topic == elapsedEventArgs.ApplicationMessage.Topic
-                                              && Encoding.UTF8.GetString(data.ApplicationMessage.PayloadSegment) == payload
+                                              && data.ApplicationMessage.ConvertPayloadToString() == payload
                                         select data).FirstOrDefault();
 
             if (null != existingTimerService)

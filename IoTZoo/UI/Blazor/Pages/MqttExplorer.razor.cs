@@ -17,10 +17,9 @@ using Domain.Pocos;
 using Domain.Services.Timer;
 using IotZoo.Dialogs;
 using Microsoft.AspNetCore.Components;
-using MQTTnet.Client;
+using MQTTnet;
 using MudBlazor;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -70,7 +69,7 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
       Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
    };
 
-   protected override async Task Client_ConnectedAsync(MqttClientConnectedEventArgs arg)
+   protected override async Task Client_ConnectedAsync(MqttClientConnectedEventArgs args)
    {
       Snackbar.Add("MQTT connected!", Severity.Info);
       await SubscribeToProjectTopics();
@@ -140,10 +139,6 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
          {
             return;
          }
-         if (null == mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Array)
-         {
-            return;
-         }
 
          TopicEntry topicEntry = new TopicEntry();
          var splitted = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Topic.Split('/');
@@ -158,9 +153,7 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
             return;
          }
 
-         topicEntry.Payload = JsonPrettify(Encoding.UTF8.GetString(mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Array,
-                                                                   mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Offset,
-                                                                   mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Count));
+         topicEntry.Payload = JsonPrettify(mqttApplicationMessageReceivedEventArgs.ApplicationMessage.ConvertPayloadToString());
          topicEntry.Retain = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Retain;
 
          // Is it a known Topic?

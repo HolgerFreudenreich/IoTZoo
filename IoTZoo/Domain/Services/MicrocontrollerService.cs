@@ -18,7 +18,6 @@ using Domain.Pocos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MQTTnet;
-using MQTTnet.Client;
 using MQTTnet.Protocol;
 using System.Reflection;
 using System.Text;
@@ -29,7 +28,7 @@ namespace Domain.Services;
 public class MicrocontrollerService : DataServiceBase,
                                       IMicrocontrollerService, IDisposable
 {
-   protected MQTTnet.Client.IMqttClient MqttClient
+   protected IMqttClient MqttClient
    {
       get;
       set;
@@ -350,7 +349,7 @@ public class MicrocontrollerService : DataServiceBase,
       {
          if (null != DataTransferService.MqttBrokerSettings)
          {
-            var factory = new MqttFactory();
+            var factory = new MqttClientFactory();
             MqttClient = factory.CreateMqttClient();
 
             var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
@@ -378,10 +377,7 @@ public class MicrocontrollerService : DataServiceBase,
       {
          return;
       }
-      if (null == mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Array)
-      {
-         return;
-      }
+
 
       TopicEntry topicEntry = new TopicEntry();
 
@@ -392,25 +388,22 @@ public class MicrocontrollerService : DataServiceBase,
       }
       if (topicEntry.Topic.EndsWith(TopicConstants.ALIVE, StringComparison.OrdinalIgnoreCase))
       {
-         if (mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Any())
+         string payload = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.ConvertPayloadToString();
+
+         AliveMessage? aliveMessage = null;
+         try
          {
-            string payload = GetPayload(mqttApplicationMessageReceivedEventArgs);
+            aliveMessage = JsonSerializer.Deserialize<AliveMessage>(payload);
+         }
+         catch (Exception ex)
+         {
+            Logger.LogError(ex, ex.GetBaseException().Message);
+         }
+         if (aliveMessage != null)
+         {
+            AliveMessageAsync?.Invoke(aliveMessage);
 
-            AliveMessage? aliveMessage = null;
-            try
-            {
-               aliveMessage = JsonSerializer.Deserialize<AliveMessage>(payload);
-            }
-            catch (Exception ex)
-            {
-               Logger.LogError(ex, ex.GetBaseException().Message);
-            }
-            if (aliveMessage != null)
-            {
-               AliveMessageAsync?.Invoke(aliveMessage);
-
-               await AcknowledgeAliveMessageFromMicrocontroller(aliveMessage.Microcontroller);
-            }
+            await AcknowledgeAliveMessageFromMicrocontroller(aliveMessage.Microcontroller);
          }
       }
       else if (topicEntry.Topic.EndsWith(TopicConstants.DEVICE_CONFIG))
@@ -436,10 +429,7 @@ public class MicrocontrollerService : DataServiceBase,
 
    private string GetPayload(MqttApplicationMessageReceivedEventArgs mqttApplicationMessageReceivedEventArgs)
    {
-      string payload = Encoding.UTF8.GetString(mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Array!,
-                                               mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Offset,
-                                               mqttApplicationMessageReceivedEventArgs.ApplicationMessage.PayloadSegment.Count);
-      payload = payload.Trim();
+      string payload = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.ConvertPayloadToString().Trim();
       return payload;
    }
 

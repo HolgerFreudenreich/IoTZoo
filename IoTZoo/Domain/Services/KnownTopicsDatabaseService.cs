@@ -314,7 +314,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.GREEN}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Color change to green. Turns the light on. Payload: <LightId>"
+         Description = "Color change to green. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -323,7 +323,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.YELLOW}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Color change to yellow. Turns the light on. Payload: <LightId>"
+         Description = "Color change to yellow. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -332,7 +332,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.ORANGE}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Color change to orange. Turns the light on. Payload: <LightId>"
+         Description = "Color change to orange. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -341,7 +341,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.RED}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Color change to red. Turns the light on. Payload: <LightId>"
+         Description = "Color change to red. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -350,7 +350,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.BLUE}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Color change to blue. Turns the light on. Payload: <LightId>"
+         Description = "Color change to blue. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -359,7 +359,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.PURPLE}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Color change to purple. Turns the light on. Payload: <LightId>"
+         Description = "Color change to purple. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -368,7 +368,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.GOLD}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Color change to gold. Turns the light on if. Payload: <LightId>"
+         Description = "Color change to gold. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -377,7 +377,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.WHITE_COLD}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Color change to cold white. Turns the light on if off. Payload: <LightId>"
+         Description = "Color change to cold white. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -386,7 +386,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.WHITE_WARM}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Color change to warm white. Turns the light on if off. Payload: <LightId>"
+         Description = "Color change to warm white. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -395,7 +395,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.ON}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Turns the light on. Payload: <LightId>"
+         Description = "Turns the light on. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -404,7 +404,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.OFF}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Turns the light off. Payload: <LightId>"
+         Description = "Turns the light off. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -414,7 +414,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.TOGGLE}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Turns the light off if on and on if off. Payload: <LightId>"
+         Description = "Turns the light off if on and on if off. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -423,7 +423,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.DARKER}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Dims the light. Payload: <LightId>"
+         Description = "Dims the light. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {
@@ -432,7 +432,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
          ProjectName = project.ProjectName,
          Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.BRIGHTER}",
          MessageDirection = MessageDirection.Outbound,
-         Description = "Increases the light level. Payload: <LightId>"
+         Description = "Increases the light level. Payload: <LightId>."
       }, allowUpdate: false);
       await Save(new KnownTopic
       {

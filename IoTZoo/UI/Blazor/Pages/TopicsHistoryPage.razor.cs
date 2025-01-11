@@ -3,11 +3,11 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/ 
+//  /___/\____/_/       /____|____/\____/   P L A Y G R O U N D
 // --------------------------------------------------------------------------------------------------------------------
-// Connect «Things» with microcontrollers without programming knowledge.
+// Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Interfaces.Crud;
@@ -56,7 +56,6 @@ public class TopicsHistoryPageBase : PageBase
          _ = LoadData();
       }
    }
-
 
    protected override void OnInitialized()
    {

@@ -1571,7 +1571,7 @@ void registerTopics()
   std::vector<Topic> topics{};
 
   topics.push_back(*new Topic(getBaseTopic() + "/register_microcontroller",
-                              "Registers all the known topics of the microcontroller. Microcontroller started.",
+                              "Registers all the known topics of the microcontroller.",
                               MessageDirection::IotZooClientInbound));
 
   // necessary? register_microcontroller should be enough.

@@ -12,7 +12,7 @@
 
 using Domain.Interfaces.Crud;
 using Domain.Pocos;
-using MQTTnet.Client;
+using MQTTnet;
 
 namespace Domain.Interfaces;
 

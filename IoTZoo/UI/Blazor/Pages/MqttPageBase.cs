@@ -3,17 +3,16 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/ 
+//  /___/\____/_/       /____|____/\____/   P L A Y G R O U N D
 // --------------------------------------------------------------------------------------------------------------------
-// Connect «Things» with microcontrollers without programming knowledge.
+// Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace IotZoo.Pages;
 
 using MQTTnet;
-using MQTTnet.Client;
 using MudBlazor;
 using System.Reflection;
 
@@ -62,16 +61,15 @@ public class MqttPageBase : PageBase, IDisposable
    {
       try
       {
-         var factory = new MqttFactory();
+         var factory = new MqttClientFactory();
          MqttClient = factory.CreateMqttClient();
 
          mqttClient.ApplicationMessageReceivedAsync += Client_ApplicationMessageReceivedAsync;
          mqttClient.ConnectedAsync += Client_ConnectedAsync;
          mqttClient.DisconnectedAsync += Client_DisconnectedAsync;
 
-         var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(
-             DataTransferService.MqttBrokerSettings.Ip,
-             DataTransferService.MqttBrokerSettings.Port).Build();
+         var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
+                                                                              DataTransferService.MqttBrokerSettings.Port).Build();
 
          mqttClient.DisconnectedAsync += async e =>
          {

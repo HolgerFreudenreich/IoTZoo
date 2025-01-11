@@ -20,7 +20,6 @@ using HueApi.Models.Requests;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MQTTnet;
-using MQTTnet.Client;
 using MQTTnet.Protocol;
 using System.Reflection;
 using System.Text.Json;
@@ -96,7 +95,7 @@ public class HueBridgeService : IHueBridgeService
 
    private void InitMqttClient()
    {
-      var factory = new MqttFactory();
+      var factory = new MqttClientFactory();
       MqttClient = factory.CreateMqttClient();
 
       var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
