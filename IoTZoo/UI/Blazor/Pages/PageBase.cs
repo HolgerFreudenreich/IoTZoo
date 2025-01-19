@@ -83,7 +83,7 @@ public class PageBase : ComponentBase
    {
    }
 
-   protected async override Task OnAfterRenderAsync(bool firstRender)
+   protected override async Task OnAfterRenderAsync(bool firstRender)
    {
       await base.OnAfterRenderAsync(firstRender);
       if (firstRender)
@@ -137,7 +137,7 @@ public class PageBase : ComponentBase
          CloseOnEscapeKey = false,
       };
 #if DEBUG
-      options.BackdropClick = true; // from version 7.0
+      options.BackdropClick = true;
 #endif
       return options;
    }
@@ -145,11 +145,5 @@ public class PageBase : ComponentBase
    protected async Task OpenBrowserTab(string url)
    {
       await JsRuntime.InvokeVoidAsync("openNewTab", url);
-   }
-
-
-   protected void NavigateToKnownMicrocontrollersPage()
-   {
-      NavigationManager.NavigateTo("KnownMicrocontrollers");
    }
 }

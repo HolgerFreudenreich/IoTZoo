@@ -150,6 +150,22 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase
       }
    }
 
+   protected async Task AddRd03DPresenceDetector()
+   {
+      try
+      {
+         Snackbar.Add("Adding RD-03D presence detector configuration to the microcontroller...", Severity.Info);
+         MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromRd03DPresenseSensor());
+         Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
+         await InvokeAsync(StateHasChanged);
+      }
+      catch (Exception ex)
+      {
+         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+         Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
+      }
+   }
+
    protected async Task Add4x4ButtonMatrix()
    {
       try
