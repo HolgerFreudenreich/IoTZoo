@@ -70,6 +70,19 @@
 <MudDivider />
 <br />
 <br />
+<MudText Typo="Typo.h6">RD-03D Presence Sensor</MudText>
+<br />
+<MudText>Range: 8 meters.</MudText>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/rd03d/<device_index>/target/<target_index>/distance_cm"
+                     Description="Sensor <device_index> triggered. Payload: Distance in cm."
+                     ExamplePayload="68.8">
+</KnownTopicComponent>
+<br />
+<br />
+<MudDivider />
+<br />
 <MudText Typo="Typo.h6">HW-040 Rotary Encoder</MudText>
 <br />
 <br />
@@ -103,19 +116,16 @@
                      Description="Status of button <button_char> has changed. Payload: PRESSED | HOLD | RELEASED"
                      ExamplePayload="PRESSED">
 </KnownTopicComponent>
-
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
                      Topic="/button_matrix/<index>/toggle_button/<button_char>/pressed"
                      Description="Button <button_char> has been pressed. Payload: Millis() of the ESP32."
                      ExamplePayload="343231">
 </KnownTopicComponent>
-
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
                      Topic="/button_matrix/<index>/toggle_button/<button_char>/hold"
                      Description="Button <button_char> has been hold. Payload: Millis() of the ESP32."
                      ExamplePayload="344231">
 </KnownTopicComponent>
-
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
                      Topic="/button_matrix/<index>/toggle_button/<button_char>/released"
                      Description="Button <button_char> was released. Payload: Millis() of the ESP32."

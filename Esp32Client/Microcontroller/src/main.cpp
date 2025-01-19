@@ -60,6 +60,11 @@ void connectToHeartRateSensor(int advertisingTimeout = 30);
 IotZoo::HRSR501Handling motionDetectorsHrsc501Handling;
 #endif
 
+#ifdef USE_RD_03D
+#include "Rd03D.hpp"
+IotZoo::Rd03D *rd03d;
+#endif
+
 #ifdef ARDUINO_ESP32_DEV
 #include "Settings.hpp"
 using namespace IotZoo;
@@ -417,6 +422,11 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument *jsonDocument)
   jsonObjectSupportedDevices["HC-SR501"] = true;
 #else
   jsonObjectSupportedDevices["HC-SR501"] = false;
+#endif
+#ifdef USE_HC_SR501
+  jsonObjectSupportedDevices["RD-03D"] = true;
+#else
+  jsonObjectSupportedDevices["RD-03D"] = false;
 #endif
 #ifdef USE_REST_SERVER
   jsonObjectSupportedDevices["RestServer"] = true;
@@ -842,7 +852,41 @@ void makeInstanceConfiguredDevices()
           int pinMotionDetector = arrPins[0]["MicrocontrollerGpoPin"];
           motionDetectorsHrsc501Handling.addDevice(deviceIndex, mqttClient, getBaseTopic(), pinMotionDetector);
         }
-#endif
+#endif // USE_HC_SR501
+
+#ifdef USE_RD_03D
+        if (deviceType == "Rd-03D")
+        {
+          uint8_t pinRx = arrPins[0]["MicrocontrollerGpoPin"];
+          uint8_t pinTx = arrPins[1]["MicrocontrollerGpoPin"];
+
+          u_int16_t timeoutMillis = 30000;
+          u_int16_t maxDistanceMillimeters = 60000;
+          bool multiTargetMode = false;
+          for (JsonVariant property : arrProperties)
+          {
+            String propertyName = property["Name"];
+
+            if (propertyName == "TimeoutMillis")
+            {
+              timeoutMillis = property["Value"];
+            }
+            else if (propertyName == "MaxDistanceMillimeters")
+            {
+              maxDistanceMillimeters = property["Value"];
+            }
+             else if (propertyName == "MultiTargetMode")
+            {
+              multiTargetMode = property["Value"];
+            }
+          }
+
+          rd03d = new Rd03D(deviceIndex, mqttClient, getBaseTopic(),
+                            pinRx, pinTx, timeoutMillis, maxDistanceMillimeters, multiTargetMode);
+          Serial.print("Rd-03d configuration added! pinRx: " + String(pinRx) + ", pinTx: " + String(pinTx));
+          Serial.println(", TimeOutMillis: " + String(timeoutMillis) + ", MaxDistanceMillimeters: " + String(maxDistanceMillimeters));
+        }
+#endif // USE_RD_03D
 
 #ifdef USE_LCD_160X
         // Add USE_LCD_160X display.
@@ -1652,9 +1696,15 @@ void registerTopics()
 #endif
 
 #ifdef USE_HC_SR501
-
   motionDetectorsHrsc501Handling.addMqttTopicsToRegister(&topics);
 #endif
+
+#ifdef USE_RD_03D
+  if (NULL != rd03d)
+  {
+    rd03d->addMqttTopicsToRegister(&topics);
+  }
+#endif // USE_RD_03D
 
 #ifdef USE_LED_AND_KEY
   if (NULL != tm1638)
@@ -1916,6 +1966,14 @@ void loop()
 #ifdef USE_HC_SR501
   motionDetectorsHrsc501Handling.loop();
 #endif
+
+#ifdef USE_RD_03D
+  if (NULL != rd03d)
+  {
+    rd03d->loop();
+  }
+#endif // USE_RD_03D
+
 #if defined(USE_MQTT) || defined(USE_MQTT2) && !defined(USE_BLE_HEART_RATE_SENSOR)
   try
   {
@@ -1928,7 +1986,7 @@ void loop()
   {
     Serial.println(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
   }
-#endif
+#endif // USE_HC_SR501
 
   loopDurationMs = millis() - lastLoopStartTime;
 
