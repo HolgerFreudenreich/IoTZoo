@@ -312,7 +312,39 @@ public static class ConnectedDevices
                                     PinName               = "IN"
                                  }
                               }
+      };
+   }
 
+   /// <summary>
+   /// Motion detector
+   /// </summary>
+   /// <returns></returns>
+   public static ConnectedDevice FromRd03DPresenseSensor()
+   {
+      return new ConnectedDevice
+      {
+         IsEnabled = true,
+         DeviceType = "Rd-03D",
+         Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "16",
+                                    PinName               = "RX"
+                                 },
+                                  new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "17",
+                                    PinName               = "TX"
+                                 }
+                              }
+         ,
+         PropertyValues = new List<PropertyValue>()
+                          {
+                             new PropertyValue {Name = "MultiTargetMode", Value = "true"},
+                             new PropertyValue {Name = "TimeoutMillis", Value = "25000"},
+                             new PropertyValue {Name = "MaxDistanceMillimeters", Value = "5500"},
+                          }
       };
    }
 

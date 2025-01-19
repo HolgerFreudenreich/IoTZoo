@@ -30,7 +30,8 @@ namespace IotZoo
 #define USE_WS2818             // NeoPixel | Default Pins: DIN: 22
 #define USE_TRAFFIC_LIGHT_LEDS // Default Pins: R: 5, Y: 18, G: 19
 //#define USE_REMOTE_GPIOS       // Default Pins: 36
-#define USE_HC_SR501           // Motion detector, Default Pin: 21 (this is the pin in the middle of the motion detector).
+//#define USE_HC_SR501           // Motion detector, Default Pin: 21 (this is the pin in the middle of the motion detector).
+//#define USE_RD_03D              // Multi-Target Human Motion Detector
 //#define USE_STEPPER_MOTOR
 
 //#define USE_KY025              // Reed Contact, Default Pin: 19
@@ -41,7 +42,7 @@ namespace IotZoo
 #define USE_OLED_SSD1306 // OLED, Default Pins: SDA: 21, SCL: 22
 #define USE_LCD_160X           // 16 x 2, 16 x 4 LCD DISPLAY with I2C HW-061, Default Pins: SDA: 21, SCL: 22
 #define USE_TM1637_4           // 4 digits display. You can connect up to 10 items. Default Pins (Item 0): CLK: 27, DIO: 26
-#define USE_TM1637_6             // 6 digits display. You can connect up to 10 items. Default Pins: CLK: 14, DIO: 27
+//#define USE_TM1637_6             // 6 digits display. You can connect up to 10 items. Default Pins: CLK: 14, DIO: 27
 
 // #define USE_BLE_HEART_RATE_SENSOR // Bluetooth hearte rate sensor. Needs alot of the available RAM so do not use to many other defines!
 

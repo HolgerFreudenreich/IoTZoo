@@ -6,7 +6,7 @@
 //  /___/\____/_/       /____|____/\____/   (c) 2025 Holger Freudenreich under the MIT licence.
 //
 // --------------------------------------------------------------------------------------------------------------------
-// Connect up to three HC SR501 Motion detectors with microcontrollers in a simple way.
+// Connect HC SR501 Motion detectors with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
 #ifdef USE_HC_SR501

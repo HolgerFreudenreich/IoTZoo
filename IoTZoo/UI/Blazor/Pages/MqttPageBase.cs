@@ -20,13 +20,7 @@ public class MqttPageBase : PageBase, IDisposable
 {
    protected long MessageCounter { get; set; }
 
-   private IMqttClient mqttClient = null!;
-
-   protected IMqttClient MqttClient
-   {
-      get => mqttClient;
-      set { mqttClient = value; }
-   }
+   protected IMqttClient MqttClient { get; set; } = null!;
 
    protected override async Task OnAfterRenderAsync(bool firstRender)
    {
@@ -64,19 +58,19 @@ public class MqttPageBase : PageBase, IDisposable
          var factory = new MqttClientFactory();
          MqttClient = factory.CreateMqttClient();
 
-         mqttClient.ApplicationMessageReceivedAsync += Client_ApplicationMessageReceivedAsync;
-         mqttClient.ConnectedAsync += Client_ConnectedAsync;
-         mqttClient.DisconnectedAsync += Client_DisconnectedAsync;
+         MqttClient.ApplicationMessageReceivedAsync += Client_ApplicationMessageReceivedAsync;
+         MqttClient.ConnectedAsync += Client_ConnectedAsync;
+         MqttClient.DisconnectedAsync += Client_DisconnectedAsync;
 
          var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
                                                                               DataTransferService.MqttBrokerSettings.Port).Build();
 
-         mqttClient.DisconnectedAsync += async e =>
+         MqttClient.DisconnectedAsync += async e =>
          {
             await Task.Delay(TimeSpan.FromSeconds(1));
             try
             {
-               await mqttClient.ConnectAsync(mqttClientOptions);
+               await MqttClient.ConnectAsync(mqttClientOptions);
                Snackbar.Add("MQTT reconnected");
             }
             catch
