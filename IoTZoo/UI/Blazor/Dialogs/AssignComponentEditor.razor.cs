@@ -95,6 +95,7 @@ public class AssignComponentEditorBase : EditorBase
       if (firstRender)
       {
          await LoadData();
+         await InvokeAsync(StateHasChanged);
       }
    }
 

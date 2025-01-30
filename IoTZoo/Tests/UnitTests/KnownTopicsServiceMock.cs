@@ -77,9 +77,9 @@ public class KnownTopicsServiceMock : DataServiceBase, IKnownTopicsCrudService
       throw new NotImplementedException();
    }
 
-   public Task<KnownTopic>? GetKnownTopicByTopicName(string projectName, string topicName)
+   public Task<KnownTopic?> GetKnownTopicByTopicName(string projectName, string topicName)
    {
       KnownTopic? item = knownTopics.FirstOrDefault(x => x.Topic == topicName);
-      return Task.FromResult<KnownTopic>(item);
+      return Task.FromResult(item);
    }
 }

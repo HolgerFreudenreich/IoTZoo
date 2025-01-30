@@ -17,6 +17,7 @@ using HueApi;
 using HueApi.ColorConverters.Original.Extensions;
 using HueApi.Models;
 using HueApi.Models.Requests;
+using HueApi.Models.Responses;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MQTTnet;
@@ -26,9 +27,9 @@ using System.Text.Json;
 
 namespace DataAccess.Services;
 
-public class HueBridgeService : IHueBridgeService
+public class HueBridgeService : IHueBridgeService, IDisposable
 {
-   public event IHueBridgeService.LightChanged OnLightChanged = null!;
+   public event Action<EventStreamData>? OnLightChanged;
 
    private ILogger<HueBridgeService> Logger { get; set; }
 
@@ -73,17 +74,6 @@ public class HueBridgeService : IHueBridgeService
       };
 
       ApplySettings();
-      _ = RegisterKnownTopicsAsync();
-   }
-
-   private async Task RegisterKnownTopicsAsync()
-   {
-      //var response = await GetLights();
-      //foreach (var light in response.Data)
-      //{
-      //   // Inbound messages from the Philips Hue Bridge
-      //   // fixme Project is unknown. await KnownTopicsDatabaseService.Save(new KnownTopic { Topic = $"{this.DataTransferService.MqttNamespace}/{TopicConstants.HUE_BRIDGE}/0{light.IdV1}", MessageDirection = MessageDirection.Inbound });
-      //}
    }
 
    private async Task MqttClient_DisconnectedAsync(MqttClientDisconnectedEventArgs arg)
@@ -509,5 +499,11 @@ public class HueBridgeService : IHueBridgeService
       }
 
       return regResult.Username;
+   }
+
+   public void Dispose()
+   {
+      HueApi.OnEventStreamMessage -= HueApi_OnEventStreamMessage;
+      MqttClient.DisconnectedAsync -= MqttClient_DisconnectedAsync;
    }
 }

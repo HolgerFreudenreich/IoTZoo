@@ -21,7 +21,7 @@ namespace IotZoo.Dialogs;
 public class ProjectOverviewDialogBase : ComponentBase
 {
    [CascadingParameter]
-   protected MudDialogInstance MudDialog { get; set; } = null!;
+   protected IMudDialogInstance MudDialog { get; set; } = null!;
 
    [Parameter]
    public Project Project { get; set; } = null!;

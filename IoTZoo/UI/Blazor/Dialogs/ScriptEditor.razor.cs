@@ -80,7 +80,7 @@ public class ScriptEditorBase : EditorBase
       }
    }
 
-   protected async void Compile()
+   protected async Task Compile()
    {
       try
       {

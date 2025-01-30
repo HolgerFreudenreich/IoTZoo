@@ -136,9 +136,7 @@ public class PageBase : ComponentBase
          MaxWidth = MaxWidth.Large,
          CloseOnEscapeKey = false,
       };
-#if DEBUG
-      options.BackdropClick = true;
-#endif
+
       return options;
    }
 
