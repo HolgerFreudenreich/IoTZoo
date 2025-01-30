@@ -50,7 +50,7 @@ public class KnownTopicCatalogBase : ComponentBase
    } = new();
 
    [CascadingParameter]
-   protected MudDialogInstance MudDialog { get; set; } = null!;
+   protected IMudDialogInstance MudDialog { get; set; } = null!;
 
    protected bool IsEditorOpen
    {
@@ -70,7 +70,7 @@ public class KnownTopicCatalogBase : ComponentBase
       await InvokeAsync(StateHasChanged);
    }
 
-   public async void OpenKnowTopicEditor()
+   public async Task OpenKnowTopicEditor()
    {
       await OpenKnownTopicEditor(new KnownTopic());
    }
@@ -84,9 +84,7 @@ public class KnownTopicCatalogBase : ComponentBase
          MaxWidth = MaxWidth.Large,
          CloseOnEscapeKey = false,
       };
-#if DEBUG
-      options.BackdropClick = true;
-#endif
+
       return options;
    }
 

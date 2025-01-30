@@ -78,7 +78,7 @@ public class KnownTopicsPageBase : PageBase
       await InvokeAsync(StateHasChanged);
    }
 
-   public async void OpenKnowTopicEditor()
+   public async Task OpenKnowTopicEditor()
    {
       if (DataTransferService.SelectedProject == null)
       {
@@ -107,12 +107,12 @@ public class KnownTopicsPageBase : PageBase
       }
    }
 
-   protected async void EditKnownTopic(KnownTopic knownTopic)
+   protected async Task EditKnownTopic(KnownTopic knownTopic)
    {
       await OpenKnownTopicEditor(knownTopic);
    }
 
-   protected async void DeleteKnownTopic(KnownTopic knownTopic)
+   protected async Task DeleteKnownTopic(KnownTopic knownTopic)
    {
       bool? result = await DialogService.ShowMessageBox("Delete",
                                                         $"Do you want to delete the known topic with Id {knownTopic.KnownTopicId}?",

@@ -18,7 +18,7 @@ using System.Reflection;
 
 namespace IotZoo.Pages;
 
-public class HueComponentsPageBase : PageBase
+public class HueComponentsPageBase : PageBase, IDisposable
 {
    [Inject]
    public IHueBridgeService HueBridgeService
@@ -131,5 +131,10 @@ public class HueComponentsPageBase : PageBase
       {
          await InvokeAsync(StateHasChanged);
       }
+   }
+
+   public void Dispose()
+   {
+      HueBridgeService.OnLightChanged -= HueBridgeService_OnLightChanged;
    }
 }

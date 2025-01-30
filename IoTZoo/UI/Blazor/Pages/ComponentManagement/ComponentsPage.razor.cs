@@ -31,7 +31,7 @@ public class ComponentsPageBase : PageBase
 
    protected List<Component>? Components { get; set; } = new();
 
-   public async void OpenEditor()
+   public async Task OpenEditor()
    {
       await OpenEditor(new Component());
    }
@@ -68,7 +68,7 @@ public class ComponentsPageBase : PageBase
       await InvokeAsync(StateHasChanged);
    }
 
-   protected async void Edit(Component component)
+   protected async Task Edit(Component component)
    {
       await OpenEditor(component);
    }
@@ -86,7 +86,7 @@ public class ComponentsPageBase : PageBase
       await LoadData();
    }
 
-   protected async void Clone(Component component)
+   protected async Task Clone(Component component)
    {
       var cloned = Infrastructure.Tools.DeepCopyReflection(component);
       cloned.ComponentId = 0; // force new

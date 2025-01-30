@@ -12,7 +12,6 @@
 
 using Domain.Interfaces;
 using Domain.Pocos;
-using Domain.Services;
 using Microsoft.AspNetCore.Components;
 using MQTTnet;
 using MudBlazor;
@@ -20,7 +19,7 @@ using System.Reflection;
 
 namespace IotZoo.Dialogs;
 
-public class MicrocontrollerConnectedDevicesEditorBase : EditorBase
+public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
 {
    protected string BaseTopic { get; set; } = null!;
 
@@ -35,18 +34,18 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase
       DialogTitle = "Connected Devices";
       BaseTopic = MicrocontrollerService.GetBaseTopic(Microcontroller);
       HashCode = GetHashCodeBase64(Microcontroller);
-      MicrocontrollerService.ConnectedAsync -= MicrocontrollerService_ConnectedAsync;
-      MicrocontrollerService.ConnectedAsync += MicrocontrollerService_ConnectedAsync;
+      MicrocontrollerService.OnMqttConnected -= MicrocontrollerService_ConnectedAsync;
+      MicrocontrollerService.OnMqttConnected += MicrocontrollerService_ConnectedAsync;
 
       await base.OnInitializedAsync();
    }
 
-   private Task MicrocontrollerService_ConnectedAsync(MqttClientConnectedEventArgs arg)
+   private void MicrocontrollerService_ConnectedAsync(MqttClientConnectedEventArgs arg)
    {
+      MicrocontrollerService.OnReceivedDeviceConfig -= MicrocontrollerService_OnReceivedDeviceConfig;
       MicrocontrollerService.OnReceivedDeviceConfig += MicrocontrollerService_OnReceivedDeviceConfig;
 
       MicrocontrollerService.RequestDeviceConfiguration(Microcontroller);
-      return Task.CompletedTask;
    }
 
    private void MicrocontrollerService_OnReceivedDeviceConfig(List<ConnectedDevice> connectedDevices)
@@ -359,7 +358,7 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase
       }
    }
 
-   protected async void ManagePins(ConnectedDevice device)
+   protected async Task ManagePins(ConnectedDevice device)
    {
       await OpenManagePinsEditor(device);
    }
@@ -389,5 +388,11 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase
    {
       await MicrocontrollerService.Save(Microcontroller, pushToMicrocontroller: true);
       MudDialog.Close(DialogResult.Ok(Microcontroller));
+   }
+
+   public void Dispose()
+   {
+      MicrocontrollerService.OnMqttConnected -= MicrocontrollerService_ConnectedAsync;
+      MicrocontrollerService.OnReceivedDeviceConfig -= MicrocontrollerService_OnReceivedDeviceConfig;
    }
 }

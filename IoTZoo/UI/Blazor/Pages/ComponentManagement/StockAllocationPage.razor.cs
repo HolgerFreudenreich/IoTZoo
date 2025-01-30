@@ -50,7 +50,7 @@ namespace IotZoo.Pages.ComponentManagement
             }
         }
 
-        private async void OnComponentSelected(Component? component)
+        private async Task OnComponentSelected(Component? component)
         {
             if (component == null)
             {

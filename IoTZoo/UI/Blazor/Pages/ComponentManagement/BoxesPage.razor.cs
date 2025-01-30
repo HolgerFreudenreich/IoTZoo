@@ -31,7 +31,7 @@ public class BoxesPageBase : PageBase
 
     protected List<StorageBin>? Boxes { get; set; } = new();
 
-    public async void OpenEditor()
+    public async Task OpenEditor()
     {
         await OpenEditor(new StorageBin());
     }
@@ -82,7 +82,7 @@ public class BoxesPageBase : PageBase
         await OpenEditor(component);
     }
 
-    protected async void Delete(StorageBin storageBin)
+    protected async Task Delete(StorageBin storageBin)
     {
         bool? result = await DialogService.ShowMessageBox("Delete",
             $"Do you want to delete the box with Label {storageBin.BoxNr}?",
