@@ -20,7 +20,7 @@ namespace IotZoo.Dialogs;
 public class AboutDialogBase : DialogBase
 {
    [CascadingParameter]
-   protected MudDialogInstance MudDialog { get; set; } = null!;
+   protected IMudDialogInstance MudDialog { get; set; } = null!;
 
    [Inject]
    protected NavigationManager NavigationManager

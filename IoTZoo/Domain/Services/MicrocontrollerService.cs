@@ -36,8 +36,8 @@ public class MicrocontrollerService : DataServiceBase,
 
    private readonly HttpClient httpClient;
 
-   public event Func<MqttClientConnectedEventArgs, Task> ConnectedAsync = null!;
-   public event Func<AliveMessage, Task> AliveMessageAsync = null!;
+   public event Action<MqttClientConnectedEventArgs> OnMqttConnected = null!;
+   public event Action<AliveMessage> OnReceivedAliveMessage = null!;
    public event Action<List<ConnectedDevice>> OnReceivedDeviceConfig = null!;
 
    public List<ConnectedDevice> ConnectedDevicesList
@@ -401,7 +401,7 @@ public class MicrocontrollerService : DataServiceBase,
          }
          if (aliveMessage != null)
          {
-            AliveMessageAsync?.Invoke(aliveMessage);
+            OnReceivedAliveMessage?.Invoke(aliveMessage);
 
             await AcknowledgeAliveMessageFromMicrocontroller(aliveMessage.Microcontroller);
          }
@@ -440,7 +440,7 @@ public class MicrocontrollerService : DataServiceBase,
    /// <returns></returns>
    private Task MqttClient_ConnectedAsync(MqttClientConnectedEventArgs args)
    {
-      ConnectedAsync?.Invoke(args);
+      OnMqttConnected?.Invoke(args);
       return Task.CompletedTask;
    }
 
