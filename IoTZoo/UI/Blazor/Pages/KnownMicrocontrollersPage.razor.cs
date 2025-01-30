@@ -59,8 +59,8 @@ public class KnownMicrocontrollersPageBase : PageBase, IDisposable
       if (firstRender)
       {
          // Is called as soon as the client has established the connection to the broker.
-         MicrocontrollerService.ConnectedAsync += MqttClient_ConnectedAsync;
-         MicrocontrollerService.AliveMessageAsync += MicrocontrollerService_Alive;
+         MicrocontrollerService.OnMqttConnected += MqttClient_ConnectedAsync;
+         MicrocontrollerService.OnReceivedAliveMessage += MicrocontrollerService_Alive;
          InitTimerService();
       }
       ProjectsCatalog = await ProjectDatabaseService.LoadProjects();
@@ -78,15 +78,15 @@ public class KnownMicrocontrollersPageBase : PageBase, IDisposable
    /// </summary>
    /// <param name="args"></param>
    /// <returns></returns>
-   private async Task MqttClient_ConnectedAsync(MqttClientConnectedEventArgs args)
+   private  void MqttClient_ConnectedAsync(MqttClientConnectedEventArgs args)
    {
       foreach (var microcontroller in Microcontrollers)
       {
-         await MicrocontrollerService.RequestAliveMessageAsync(microcontroller);
+          MicrocontrollerService.RequestAliveMessageAsync(microcontroller);
       }
    }
 
-   private Task MicrocontrollerService_Alive(AliveMessage aliveMessage)
+   private void MicrocontrollerService_Alive(AliveMessage aliveMessage)
    {
       var microcontroller = (from data in Microcontrollers where data.MacAddress == aliveMessage.Microcontroller.MacAddress select data).FirstOrDefault();
 
@@ -102,8 +102,6 @@ public class KnownMicrocontrollersPageBase : PageBase, IDisposable
          }
          microcontroller.Online = true;
       }
-
-      return Task.CompletedTask;
    }
 
    /// <summary>

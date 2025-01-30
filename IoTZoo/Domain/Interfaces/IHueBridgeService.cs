@@ -16,8 +16,7 @@ namespace DataAccess.Interfaces;
 
 public interface IHueBridgeService
 {
-   public delegate void LightChanged(EventStreamData eventStreamData);
-   public event LightChanged OnLightChanged;
+   public event Action<EventStreamData> OnLightChanged;
 
    public void ApplySettings();
 

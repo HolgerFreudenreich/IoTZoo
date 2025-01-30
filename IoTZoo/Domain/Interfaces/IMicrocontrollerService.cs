@@ -20,9 +20,9 @@ namespace Domain.Interfaces;
 /// </summary>
 public interface IMicrocontrollerService : IKnownMicrocontrollerCrudService
 {
-   event Func<MqttClientConnectedEventArgs, Task> ConnectedAsync;
-   public event Func<AliveMessage, Task> AliveMessageAsync;
-   public event Action<List<ConnectedDevice>> OnReceivedDeviceConfig;
+   event Action<MqttClientConnectedEventArgs> OnMqttConnected;
+   event Action<AliveMessage> OnReceivedAliveMessage;
+   event Action<List<ConnectedDevice>> OnReceivedDeviceConfig;
 
    public void AddConnectedDevice(KnownMicrocontroller microcontroller, ConnectedDevice connectedDevice);
 
