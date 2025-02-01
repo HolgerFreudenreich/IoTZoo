@@ -69,7 +69,7 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
       Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
    };
 
-   protected override async Task Client_ConnectedAsync(MqttClientConnectedEventArgs args)
+   protected override async Task Client_Connected(MqttClientConnectedEventArgs args)
    {
       Snackbar.Add("MQTT connected!", Severity.Info);
       await SubscribeToProjectTopics();
@@ -140,7 +140,7 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
             return;
          }
 
-         TopicEntry topicEntry = new TopicEntry();
+         TopicEntry topicEntry = new();
          var splitted = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Topic.Split('/');
          if (splitted.Length > 2)
          {

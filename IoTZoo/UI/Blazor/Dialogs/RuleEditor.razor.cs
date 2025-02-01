@@ -295,18 +295,17 @@ public class RuleEditorBase : EditorBase
       return matching;
    }
 
-   protected async Task<IEnumerable<KnownTopic>> SearchTargetTopic(string value, CancellationToken token)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+   protected async Task<IEnumerable<KnownTopic>> SearchTargetTopic(string value, CancellationToken cancellationToken)
    {
-      if (string.IsNullOrEmpty(value))
+      return await Task.Run(() =>
       {
-         return this.knownOutboundTopics;
-      }
+         if (string.IsNullOrEmpty(value))
+         {
+            return this.knownOutboundTopics;
+         }
 
-      IEnumerable<KnownTopic> matching = from data in this.knownOutboundTopics
-                                         where
-                                         data.Topic.Contains(value, StringComparison.InvariantCultureIgnoreCase)
-                                         select data;
-      return matching;
+         return this.knownOutboundTopics.Where(data => data.Topic.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+      }, cancellationToken);
    }
+
 }

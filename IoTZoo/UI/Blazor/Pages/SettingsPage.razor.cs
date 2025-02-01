@@ -68,6 +68,76 @@ public class SettingsPageBase : MqttPageBase
       set;
    }
 
+   // Helper method to compute floating DST transition dates
+   static DateTime TransitionDate(int year, TimeZoneInfo.TransitionTime transition)
+   {
+      DateTime firstDayOfMonth = new(year, transition.Month, 1);
+      DayOfWeek firstDayOfWeek = firstDayOfMonth.DayOfWeek;
+
+      int daysOffset = (transition.Week - 1) * 7 + (7 + transition.DayOfWeek - firstDayOfWeek) % 7;
+
+      if (daysOffset >= DateTime.DaysInMonth(year, transition.Month)) // Handle cases where the transition is the "last" occurrence
+      {
+         daysOffset -= 7;
+      }
+
+      return firstDayOfMonth.AddDays(daysOffset).Add(transition.TimeOfDay.TimeOfDay);
+   }
+
+   protected DateTime? SummertimeStart
+   {
+      get
+      {
+         TimeZoneInfo.AdjustmentRule[] rules = TimeZoneInfo.Local.GetAdjustmentRules();
+         DateTime? summertimeStart = null;
+
+         foreach (var rule in rules)
+         {
+            if (DateTime.Today.Year >= rule.DateStart.Year && DateTime.Today.Year <= rule.DateEnd.Year)
+            {
+               summertimeStart = rule.DaylightTransitionStart.IsFixedDateRule
+                   ? new DateTime(DateTime.Today.Year, rule.DaylightTransitionStart.Month, rule.DaylightTransitionStart.Day)
+                   : TransitionDate(DateTime.Today.Year, rule.DaylightTransitionStart);
+
+               break;
+            }
+         }
+
+         if (summertimeStart == null)
+         {
+            return null;
+         }
+         return summertimeStart.Value;
+      }
+   }
+
+   protected DateTime? WintertimeStart
+   {
+      get
+      {
+         TimeZoneInfo.AdjustmentRule[] rules = TimeZoneInfo.Local.GetAdjustmentRules();
+         DateTime? wintertimeStart = null;
+
+         foreach (var rule in rules)
+         {
+            if (DateTime.Today.Year >= rule.DateStart.Year && DateTime.Today.Year <= rule.DateEnd.Year)
+            {
+               wintertimeStart = rule.DaylightTransitionEnd.IsFixedDateRule
+                   ? new DateTime(DateTime.Today.Year, rule.DaylightTransitionEnd.Month, rule.DaylightTransitionEnd.Day)
+                   : TransitionDate(DateTime.Today.Year, rule.DaylightTransitionEnd);
+
+               break;
+            }
+         }
+
+         if (wintertimeStart == null)
+         {
+            return null;
+         }
+         return wintertimeStart.Value;
+      }
+   }
+
    protected string MqttNamespaceName { get; set; } = string.Empty;
 
    protected override void OnInitialized()
