@@ -74,9 +74,10 @@ public class ProjectCronJobsEditorBase : EditorBase
       return true;
    }
 
-   public async Task AddCronJobAsync()
+   public void AddCronJob()
    {
       Snackbar.Add("Not yet implemented. You can modify table cron in database iotzoo.db", Severity.Info);
+ 
       //return;
       //var options = GetDialogOptions();
 

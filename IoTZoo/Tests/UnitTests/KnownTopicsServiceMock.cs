@@ -20,7 +20,7 @@ namespace UnitTests;
 
 public class KnownTopicsServiceMock : DataServiceBase, IKnownTopicsCrudService
 {
-   List<KnownTopic> knownTopics = new List<KnownTopic>();
+   List<KnownTopic> knownTopics = new();
 
    public KnownTopicsServiceMock(IOptions<AppSettings> options, ILogger<DataServiceBase> logger) : base(options, logger)
    {
@@ -66,10 +66,10 @@ public class KnownTopicsServiceMock : DataServiceBase, IKnownTopicsCrudService
       knownTopics.Add(knownTopic);
       return Task.FromResult(SaveResult.Inserted);
    }
-
-   async Task<bool> IKnownTopicsCrudService.ExistsByTopicName(string topicName)
+   Task<bool> IKnownTopicsCrudService.ExistsByTopicName(string topicName)
    {
-      return knownTopics.Select(x => x.Topic == topicName).Any();
+      bool result = knownTopics.Select(x => x.Topic == topicName).Any();
+      return Task.FromResult(result);
    }
 
    public Task<List<KnownTopic>> GetKnownTopicsByProjectName(string? projectName, List<MessageDirection>? messageDirections)
