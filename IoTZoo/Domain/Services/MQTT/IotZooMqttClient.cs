@@ -486,7 +486,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
 
       await Client.PublishAsync(applicationMessage);
 
-      publishedTopic.Topic = rule.TargetTopic;
+      publishedTopic.Topic = rule.TargetTopic ?? string.Empty;
       publishedTopic.Payload = targetPayload;
 
       return publishedTopic;

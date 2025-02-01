@@ -19,90 +19,90 @@ using MudBlazor;
 namespace IotZoo.Pages.ComponentManagement
 {
    public class StockAllocationPageBase : PageBase
-    {
-        [Inject]
-        private IStockingService StockingService
-        {
-            get;
-            set;
-        } = null!;
+   {
+      [Inject]
+      private IStockingService StockingService
+      {
+         get;
+         set;
+      } = null!;
 
-        protected List<StorageBin>? StorageBins { get; set; } = new();
+      protected List<StorageBin>? StorageBins { get; set; } = new();
 
-        protected IEnumerable<Component>? ComponentsCatalog
-        {
-            get;
-            set;
-        } = new List<Component>();
+      protected IEnumerable<Component>? ComponentsCatalog
+      {
+         get;
+         set;
+      } = new List<Component>();
 
 
-        private Component? selectedComponent;
-        protected Component? SelectedComponent
-        {
-            get => selectedComponent;
-            set
+      private Component? selectedComponent;
+      protected Component? SelectedComponent
+      {
+         get => selectedComponent;
+         set
+         {
+            if (selectedComponent != value)
             {
-                if (selectedComponent != value)
-                {
-                    selectedComponent = value;
-                    OnComponentSelected(value);
-                }
+               selectedComponent = value;
+               _ = OnComponentSelected(value);
             }
-        }
+         }
+      }
 
-        private async Task OnComponentSelected(Component? component)
-        {
-            if (component == null)
-            {
-                StorageBins = await StockingService.GetStorageBins();
-            }
-            else
-            {
-                StorageBins = await StockingService.GetStorageBins(component);
-            }
-        }
+      private async Task OnComponentSelected(Component? component)
+      {
+         if (component == null)
+         {
+            StorageBins = await StockingService.GetStorageBins();
+         }
+         else
+         {
+            StorageBins = await StockingService.GetStorageBins(component);
+         }
+      }
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            base.OnAfterRender(firstRender);
-            if (firstRender)
-            {
-                OnComponentSelected(SelectedComponent);
-                await LoadData();
-            }
-        }
+      protected override async Task OnAfterRenderAsync(bool firstRender)
+      {
+         base.OnAfterRender(firstRender);
+         if (firstRender)
+         {
+            await OnComponentSelected(SelectedComponent);
+            await LoadData();
+         }
+      }
 
-        protected override void OnInitialized()
-        {
-            DataTransferService.CurrentScreen = ScreenMode.StorageAllocation;
-            base.OnInitialized();
-        }
+      protected override void OnInitialized()
+      {
+         DataTransferService.CurrentScreen = ScreenMode.StorageAllocation;
+         base.OnInitialized();
+      }
 
-        protected override async Task LoadData()
-        {
-            ComponentsCatalog = await StockingService.GetComponents();
+      protected override async Task LoadData()
+      {
+         ComponentsCatalog = await StockingService.GetComponents();
 
-            await InvokeAsync(StateHasChanged);
-        }
+         await InvokeAsync(StateHasChanged);
+      }
 
-        protected async Task OpenAssignComponentEditor(StorageBin storageBin)
-        {
-            try
-            {
-                var options = GetDialogOptions();
+      protected async Task OpenAssignComponentEditor(StorageBin storageBin)
+      {
+         try
+         {
+            var options = GetDialogOptions();
 
-                var parameters = new DialogParameters { ["StorageBin"] = storageBin };
-                IsEditorOpen = true;
-                var dialog = await DialogService.ShowAsync<AssignComponentEditor>("Assign Component Editor",
-                                                                                       parameters,
-                                                                                       options);
-                var result = await dialog.Result;
-            }
-            finally
-            {
-                IsEditorOpen = false;
-                await LoadData();
-            }
-        }
-    }
+            var parameters = new DialogParameters { ["StorageBin"] = storageBin };
+            IsEditorOpen = true;
+            var dialog = await DialogService.ShowAsync<AssignComponentEditor>("Assign Component Editor",
+                                                                                   parameters,
+                                                                                   options);
+            var result = await dialog.Result;
+         }
+         finally
+         {
+            IsEditorOpen = false;
+            await LoadData();
+         }
+      }
+   }
 }

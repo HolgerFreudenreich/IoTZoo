@@ -61,7 +61,7 @@ public class AssignComponentEditorBase : EditorBase
 
       Stocking = new()
       {
-         StorageBin = this.StorageBin,
+         StorageBin = this.StorageBin ?? new(),
          Quantity = 1
       };
 
