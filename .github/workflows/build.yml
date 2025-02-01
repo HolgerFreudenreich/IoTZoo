@@ -21,7 +21,7 @@ jobs:
       with:
         dotnet-version: 9.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ../../IoTZoo/IotZoo.sln
     - name: Build
       run: dotnet build ../../IoTZoo/IotZoo.sln
     - name: Test
