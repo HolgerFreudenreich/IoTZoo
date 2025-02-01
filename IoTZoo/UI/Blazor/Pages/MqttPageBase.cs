@@ -31,13 +31,13 @@ public class MqttPageBase : PageBase, IDisposable
       }
    }
 
-   protected virtual async Task Client_ConnectedAsync(MqttClientConnectedEventArgs arg)
+   protected virtual Task Client_Connected(MqttClientConnectedEventArgs arg)
    {
       Snackbar.Add("MQTT connected!", Severity.Info);
-      //await MqttClient.SubscribeAsync("#");
+      return Task.CompletedTask;
    }
 
-   protected virtual Task Client_DisconnectedAsync(MqttClientDisconnectedEventArgs arg)
+   protected virtual Task Client_Disconnected(MqttClientDisconnectedEventArgs arg)
    {
       Snackbar.Add("MQTT disconnected!", Severity.Error);
       return Task.CompletedTask;
@@ -59,8 +59,8 @@ public class MqttPageBase : PageBase, IDisposable
          MqttClient = factory.CreateMqttClient();
 
          MqttClient.ApplicationMessageReceivedAsync += Client_ApplicationMessageReceivedAsync;
-         MqttClient.ConnectedAsync += Client_ConnectedAsync;
-         MqttClient.DisconnectedAsync += Client_DisconnectedAsync;
+         MqttClient.ConnectedAsync += Client_Connected;
+         MqttClient.DisconnectedAsync += Client_Disconnected;
 
          var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
                                                                               DataTransferService.MqttBrokerSettings.Port).Build();
