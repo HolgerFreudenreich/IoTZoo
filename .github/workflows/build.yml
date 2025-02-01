@@ -23,6 +23,6 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build ../../IoTZoo/IotZoo.sln -no-restore
+      run: dotnet build ../../IoTZoo/IotZoo.sln
     - name: Test
       run: dotnet test ../../IoTZoo/IotZoo.sln --no-build --verbosity normal
