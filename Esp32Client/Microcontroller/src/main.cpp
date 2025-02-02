@@ -20,7 +20,10 @@
 #include <list>
 #include "pocos/Microcontroller.hpp"
 #include "pocos/Topic.hpp"
+
+#ifdef ERASE_FLASH
 #include "nvs_flash.h"
+#endif
 
 #ifdef USE_REST_SERVER
 #include <HTTPClient.h>
@@ -63,6 +66,11 @@ IotZoo::HRSR501Handling motionDetectorsHrsc501Handling;
 #ifdef USE_RD_03D
 #include "Rd03D.hpp"
 IotZoo::Rd03D *rd03d;
+#endif
+
+#ifdef USE_BUZZER
+#include "Buzzer.hpp"
+IotZoo::Buzzer *buzzer;
 #endif
 
 #ifdef ARDUINO_ESP32_DEV
@@ -393,6 +401,11 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument *jsonDocument)
 #else
   jsonObjectSupportedDevices["BUTTON"] = false;
 #endif
+#ifdef USE_BUZZER
+  jsonObjectSupportedDevices["BUZZER"] = true;
+#else
+  jsonObjectSupportedDevices["BUZZER"] = false;
+#endif
 #ifdef USE_SWITCH
   jsonObjectSupportedDevices["SWITCH"] = true;
 #else
@@ -678,6 +691,13 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
   buttonHandling.onMqttConnectionEstablished();
 #endif
 
+#ifdef USE_BUZZER
+  if (NULL != buzzer)
+  {
+    buzzer->onMqttConnectionEstablished();
+  }
+#endif
+
 #ifdef USE_TM1637_4
   tm1637_4Handling.onMqttConnectionEstablished(mqttClient, getBaseTopic());
 #endif
@@ -796,7 +816,20 @@ void makeInstanceConfiguredDevices()
 
           Serial.println("Button initialized.");
         }
-#endif
+#endif // USE_BUTTON
+
+#ifdef USE_BUZZER
+        if (deviceType == "Buzzer")
+        {
+          uint8_t buzzerPin = arrPins[0]["MicrocontrollerGpoPin"];
+          uint8_t ledPin = arrPins[1]["MicrocontrollerGpoPin"];
+
+          buzzer = new IotZoo::Buzzer(deviceIndex, mqttClient, getBaseTopic(),
+                                      buzzerPin, ledPin);
+
+          Serial.println("Buzzer initialized.");
+        }
+#endif // USE_BUZZER
 
 #ifdef USE_SWITCH
         if (deviceType == "Switch")
@@ -807,7 +840,7 @@ void makeInstanceConfiguredDevices()
           switches.push_back(*switchBtn);
           Serial.println("Switch initialized.");
         }
-#endif
+#endif // USE_SWITCH
 
 #ifdef USE_KEYPAD
         if (deviceType == "Keypad 4x4")
@@ -829,7 +862,7 @@ void makeInstanceConfiguredDevices()
 
           Serial.println("Buttonmatrix initialized.");
         }
-#endif
+#endif // USE_KEYPAD
 
 #ifdef USE_STEPPER_MOTOR
         if (deviceType == "28BY48Stepper")
@@ -843,7 +876,7 @@ void makeInstanceConfiguredDevices()
 
           Serial.println("28BY48 Stepper initialized.");
         }
-#endif
+#endif // USE_STEPPER_MOTOR
 
 #ifdef USE_HC_SR501
         // Add 1..3 HC-SR501 motion detectors.
@@ -875,7 +908,7 @@ void makeInstanceConfiguredDevices()
             {
               maxDistanceMillimeters = property["Value"];
             }
-             else if (propertyName == "MultiTargetMode")
+            else if (propertyName == "MultiTargetMode")
             {
               multiTargetMode = property["Value"];
             }
@@ -983,7 +1016,8 @@ void makeInstanceConfiguredDevices()
           Serial.println("DS18B20 sensors configuration loaded! Dat Pin is " + String(datPin) + ", Resolution: " +
                          String(resolution) + ", Transmission interval: " + String(transmissionInterval));
         }
-#endif
+#endif // USE_DS18B20
+
 #ifdef USE_WS2818
         if (deviceType == "NEO" || deviceType == "Neo Pixel")
         {
@@ -1003,7 +1037,7 @@ void makeInstanceConfiguredDevices()
           ws2812 = new WS2818(deviceIndex, mqttClient, getBaseTopic(), dioPin, numberOfLeds);
           Serial.println("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
         }
-#endif
+#endif // USE_WS2818
 
 #ifdef USE_TM1637_4
         if (deviceType == "TM1637_4")
@@ -1036,7 +1070,7 @@ void makeInstanceConfiguredDevices()
                                      clkPin, dioPin, flipDisplay, serverDownText);
           Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
         }
-#endif
+#endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
         if (deviceType == "TM1637_6")
@@ -1070,7 +1104,7 @@ void makeInstanceConfiguredDevices()
 
           Serial.println("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin));
         }
-#endif
+#endif // USE_TM1637_6
 
 #ifdef USE_LED_AND_KEY
         if (deviceType == "TM1638")
@@ -1085,7 +1119,7 @@ void makeInstanceConfiguredDevices()
 
           Serial.println("TM1638 display initialized! Strobe Pin is " + String(strobePin) + ", CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin));
         }
-#endif
+#endif // USE_LED_AND_KEY
 
 #ifdef USE_REMOTE_GPIOS
         if (deviceType == "Remote GPIO")
@@ -1139,7 +1173,7 @@ void makeInstanceConfiguredDevices()
             trafficLightLeds.push_back(*trafficLight);
           }
         }
-#endif
+#endif // USE_TRAFFIC_LIGHT_LEDS
 
 #ifdef USE_HW040
         if (deviceType == "HW-040")
@@ -1478,18 +1512,23 @@ void setup()
   Serial.begin(115200);
   Serial.println("*** SETUP ***");
   pinMode(LED_BUILTIN, OUTPUT);
-  settings = new Settings();
+
   randomSeed(micros());
 
   macAddress = getMacAddress();
 
+#ifdef ERASE_FLASH
   // helps if the config is destroyed ...
-  /*
-    nvs_flash_erase(); // erase the NVS partition and...
-    nvs_flash_init(); // initialize the NVS partition.
-    Serial.println("Flash is now empty.");
-    while(true);
-  */
+  nvs_flash_erase(); // erase the NVS partition and...
+  nvs_flash_init();  // initialize the NVS partition.
+  Serial.println("Flash is now empty.");
+#endif
+  settings = new Settings();
+
+#ifdef ERASE_FLASH
+  while (true)
+    ;
+#endif
 
 #if defined(USE_REST_SERVER)
   connectToWiFi();
@@ -1655,6 +1694,13 @@ void registerTopics()
   buttonHandling.addMqttTopicsToRegister(&topics);
 #endif
 
+#ifdef USE_BUZZER
+  if (NULL != buzzer)
+  {
+    buzzer->addMqttTopicsToRegister(&topics);
+  }
+#endif
+
 #ifdef USE_SWITCH
   for (auto &buttonSwitch : switches)
   {
@@ -1800,11 +1846,35 @@ void onIotZooClientUnavailable()
 // ------------------------------------------------------------------------------------------------
 void loop()
 {
+  lastLoopStartTime = millis();
   loopCounter++;
+
   if (doRestart)
   {
     restart();
   }
+
+#if defined(USE_MQTT) || defined(USE_MQTT2)
+  mqttClient->loop();
+  if (millis() - lastLoopStartTime > 10000)
+  {
+    Serial.print("BROKEN MQTT");
+    restart();
+  }
+  if (!mqttClient->isConnected())
+  {
+    Serial.print(".");
+    delay(50);
+    return;
+  }
+
+  if (!topicsRegistered)
+  {
+    registerTopics();
+    String topic = getBaseTopic() + "/started";
+    mqttClient->publish(topic, "STARTED");
+  }
+#endif
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
   if (NULL != heartRateSensor)
@@ -1877,8 +1947,6 @@ void loop()
 
 #endif
 
-  lastLoopStartTime = millis();
-
 #ifdef USE_REST_SERVER
   webServer.handleClient();
 #endif
@@ -1889,20 +1957,6 @@ void loop()
     mqttClient->connectToBroker(macAddress);
   }
 #endif
-
-#if defined(USE_MQTT) || defined(USE_MQTT2)
-  mqttClient->loop();
-  if (millis() - lastLoopStartTime > 10000)
-  {
-    Serial.print("BROKEN MQTT");
-    restart();
-  }
-  if (!mqttClient->isConnected())
-  {
-    Serial.print(".");
-    delay(50);
-    return;
-  }
 
   // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   // The preconditions are fulfilled (MQTT connected).
@@ -1921,14 +1975,6 @@ void loop()
 #ifdef USE_DS18B20
   loopDS18B20();
 #endif // USE_DS18B20
-
-  if (!topicsRegistered)
-  {
-    registerTopics();
-    String topic = getBaseTopic() + "/started";
-    mqttClient->publish(topic, "STARTED");
-  }
-#endif
 
 #ifdef USE_HB0014
   digitalValueInfrared = digitalRead(digitalPinInfraredLed);

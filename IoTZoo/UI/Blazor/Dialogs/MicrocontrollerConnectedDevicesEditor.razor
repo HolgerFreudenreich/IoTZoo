@@ -170,6 +170,14 @@
                              Color="Color.Primary">
                      BLE Heart Rate Monitor
                   </MudButton>
+
+                  <MudButton OnClick="AddBuzzer"
+                             Style="height: 70px; width:280px; margin: 5px;"
+                             StartIcon="@Icons.Material.Filled.Add"
+                             Variant="Variant.Filled"
+                             Color="Color.Primary">
+                     Buzzer
+                  </MudButton>
                   <br />
                   <br />
                   <MudTable Items="@MicrocontrollerService.ConnectedDevicesList"
