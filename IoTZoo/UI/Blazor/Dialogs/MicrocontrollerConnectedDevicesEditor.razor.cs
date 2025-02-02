@@ -69,6 +69,22 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
       }
    }
 
+   protected async Task AddBuzzer()
+   {
+      try
+      {
+         Snackbar.Add("Adding Buzzer configuration to the microcontroller...", Severity.Info);
+         MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromBuzzer());
+         Snackbar.Add("Ensure that the buzzer is correctly wired! Optionally you can connect an LED.", Severity.Info);
+         await InvokeAsync(StateHasChanged);
+      }
+      catch (Exception ex)
+      {
+         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+         Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
+      }
+   }
+
    protected async Task AddSwitch()
    {
       try
