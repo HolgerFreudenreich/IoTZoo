@@ -24,7 +24,7 @@ namespace IotZoo
                            const short mqttServerPort,
                            int bufferSize)
     {
-        Serial.println("Constructor MqttClient");
+        Serial.println("Constructor MqttClient mqttServerIp: " + String(mqttServerIp) + ":" + String(mqttServerPort));
         mqttClient = new EspMQTTClient(wifiSsid,       // SSID
                                        wifiPassword,   // PWD SSID
                                        mqttServerIp,   // MQTT Broker server ip

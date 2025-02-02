@@ -23,7 +23,10 @@ namespace IotZoo
     {
         Serial.println("Constructor Settings");
 
-        preferences.begin(NamespaceNameConfig); // create namespace config if it does not exist yet.
+        if (!preferences.begin(NamespaceNameConfig)) // create namespace config if it does not exist yet.
+        {
+            Serial.println("Settings failure!");
+        }
         preferences.end();
     }
 
