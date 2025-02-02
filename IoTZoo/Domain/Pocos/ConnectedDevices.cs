@@ -365,6 +365,28 @@ public static class ConnectedDevices
       };
    }
 
+   public static ConnectedDevice FromBuzzer()
+   {
+      return new ConnectedDevice
+      {
+         IsEnabled = true,
+         DeviceType = "Buzzer",
+         Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "16",
+                                    PinName               = "BUZZER_PIN"
+                                 },
+                                  new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "-1",
+                                    PinName               = "LED_PIN"
+                                 }
+                              }
+      };
+   }
+
    public static ConnectedDevice FromSwitch()
    {
       return new ConnectedDevice
