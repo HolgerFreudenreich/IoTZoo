@@ -14,26 +14,26 @@
 #ifndef __BUTTONMATRIX_HANDLING_HPP__
 #define __BUTTONMATRIX_HANDLING_HPP__
 
-#include "DeviceHandlingBase.hpp"
 #include "ButtonMatrix.hpp"
+#include "DeviceHandlingBase.hpp"
 
 namespace IotZoo
 {
     class ButtonMatrixHandling : DeviceHandlingBase
     {
-    public:
+      public:
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
-        void AddDevice(ButtonMatrix *const buttonMatrix);
+        void AddDevice(ButtonMatrix* const buttonMatrix);
 
         void loop();
 
-    protected:
+      protected:
         vector<ButtonMatrix> buttonMatrixVector;
     };
-}
+} // namespace IotZoo
 
 #endif // __BUTTONMATRIX_HANDLING_HPP__
 #endif // USE_KEYPAD

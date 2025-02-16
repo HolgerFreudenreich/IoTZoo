@@ -15,8 +15,8 @@
 
 namespace IotZoo
 {
-    TM1638::TM1638(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
-                   uint8_t strobe, uint8_t clock, uint8_t data, bool highfreq) : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    TM1638::TM1638(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t strobe, uint8_t clock, uint8_t data, bool highfreq)
+        : DeviceBase(deviceIndex, mqttClient, baseTopic)
     {
         Serial.println("Constructor TM1638");
         tm1638plus = new TM1638plus(strobe, clock, data, highfreq);
@@ -29,40 +29,35 @@ namespace IotZoo
         tm1638plus = NULL;
     }
 
-    void TM1638::setServerDownText(const String &serverDownText)
+    void TM1638::setServerDownText(const String& serverDownText)
     {
         this->serverDownText = serverDownText;
     }
 
-    const String &TM1638::getServerDownText() const
+    const String& TM1638::getServerDownText() const
     {
         return serverDownText;
     }
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void TM1638::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void TM1638::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/ledAndKey/0/button_row/state",
-                                     "State of the 8 Buttons.",
-                                     MessageDirection::IotZooClientInbound));
+        topics->push_back(
+            *new Topic(getBaseTopic() + "/ledAndKey/0/button_row/state", "State of the 8 Buttons.", MessageDirection::IotZooClientInbound));
 
-        topics->push_back(*new Topic(getBaseTopic() + "/ledAndKey/0/text",
-                                     "Text to display.",
-                                     MessageDirection::IotZooClientOutbound));
+        topics->push_back(*new Topic(getBaseTopic() + "/ledAndKey/0/text", "Text to display.", MessageDirection::IotZooClientOutbound));
 
-        topics->push_back(*new Topic(getBaseTopic() + "/ledAndKey/0/humber",
-                                     "Number to display.",
-                                     MessageDirection::IotZooClientOutbound));
+        topics->push_back(*new Topic(getBaseTopic() + "/ledAndKey/0/humber", "Number to display.", MessageDirection::IotZooClientOutbound));
         for (int ledNumber = 0; ledNumber < 8; ledNumber++)
         {
-            topics->push_back(*new Topic(getBaseTopic() + "/ledAndKey/0/led/" + String(ledNumber),
-                                         "Payload: 0 = off, 1 = on",
+            topics->push_back(*new Topic(getBaseTopic() + "/ledAndKey/0/led/" + String(ledNumber), "Payload: 0 = off, 1 = on",
                                          MessageDirection::IotZooClientOutbound));
         }
     }
 
-    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite
+    /// for a subscription.
     /// @param mqttClient
     /// @param baseTopic
     void TM1638::onMqttConnectionEstablished()
@@ -76,24 +71,26 @@ namespace IotZoo
         for (int ledNumber = 0; ledNumber < 8; ledNumber++)
         {
             String topicLed = getBaseTopic() + "/ledAndKey/0/led/" + String(ledNumber);
-            mqttClient->subscribe(topicLed, [=](const String &text)
-                                  { tm1638plus->setLED(ledNumber,
-                                                       atoi(text.c_str() /* 0 = off, 1 = on*/)); });
+            mqttClient->subscribe(topicLed, [=](const String& text) { tm1638plus->setLED(ledNumber, atoi(text.c_str() /* 0 = off, 1 = on*/)); });
         }
 
         String topicLedAndKeyText = getBaseTopic() + "/ledAndKey/0/text";
-        mqttClient->subscribe(topicLedAndKeyText, [=](const String &text)
-                              { 
-                              Serial.println("topicLedAndKeyText: " + text);
-                            tm1638plus->reset();
-                            tm1638plus->displayText(text.c_str()); });
+        mqttClient->subscribe(topicLedAndKeyText,
+                              [=](const String& text)
+                              {
+                                  Serial.println("topicLedAndKeyText: " + text);
+                                  tm1638plus->reset();
+                                  tm1638plus->displayText(text.c_str());
+                              });
 
         String topicLedAndKeyNumber = getBaseTopic() + "/ledAndKey/0/number";
-        mqttClient->subscribe(topicLedAndKeyNumber, [=](const String &payload)
-                              { 
-                            Serial.println("topicLedAndKeyNumber: " + payload);
-                            tm1638plus->reset();
-                            tm1638plus->displayIntNum(atoi(payload.c_str()), false, AlignTextType_e::TMAlignTextRight); });
+        mqttClient->subscribe(topicLedAndKeyNumber,
+                              [=](const String& payload)
+                              {
+                                  Serial.println("topicLedAndKeyNumber: " + payload);
+                                  tm1638plus->reset();
+                                  tm1638plus->displayIntNum(atoi(payload.c_str()), false, AlignTextType_e::TMAlignTextRight);
+                              });
 
         for (int ledIndex = 0; ledIndex < 8; ledIndex++)
         {
@@ -101,19 +98,22 @@ namespace IotZoo
         }
 
         String topicLedAndKeyCommand = getBaseTopic() + "/ledAndKey/0/command";
-        mqttClient->subscribe(topicLedAndKeyCommand, [=](const String &text)
+        mqttClient->subscribe(topicLedAndKeyCommand,
+                              [=](const String& text)
                               {
-                          if (text == "reset")
-                          {
-                            tm1638plus->reset();
-                          }
-                          /*else if (text == "brightness")
-                          {
-                            tm1638plus.brightness(atoi(text.c_str()));
-                          }*/ });
+                                  if (text == "reset")
+                                  {
+                                      tm1638plus->reset();
+                                  }
+                                  /*else if (text == "brightness")
+                                  {
+                                    tm1638plus.brightness(atoi(text.c_str()));
+                                  }*/
+                              });
     }
 
-    /// @brief The IotZooMqtt client is not available, so tell this this user. Providing false information is worse than not providing any information.
+    /// @brief The IotZooMqtt client is not available, so tell this this user. Providing false information is worse than not
+    /// providing any information.
     ///        This method is a suitable point to erase a display or stop something.
     void TM1638::onIotZooClientUnavailable()
     {
@@ -157,5 +157,5 @@ namespace IotZoo
             value = value >> 1;
         }
     }
-}
+} // namespace IotZoo
 #endif // USE_LED_AND_KEY

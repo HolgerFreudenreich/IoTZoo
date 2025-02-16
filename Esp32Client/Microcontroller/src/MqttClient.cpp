@@ -15,14 +15,8 @@
 
 namespace IotZoo
 {
-    MqttClient::MqttClient(const char *mqttClientName,
-                           const char *wifiSsid,
-                           const char *wifiPassword,
-                           const char *mqttServerIp,
-                           const char *mqttUsername,
-                           const char *mqttPassword,
-                           const short mqttServerPort,
-                           int bufferSize)
+    MqttClient::MqttClient(const char* mqttClientName, const char* wifiSsid, const char* wifiPassword, const char* mqttServerIp,
+                           const char* mqttUsername, const char* mqttPassword, const short mqttServerPort, int bufferSize)
     {
         Serial.println("Constructor MqttClient mqttServerIp: " + String(mqttServerIp) + ":" + String(mqttServerPort));
         mqttClient = new EspMQTTClient(wifiSsid,       // SSID
@@ -30,7 +24,8 @@ namespace IotZoo
                                        mqttServerIp,   // MQTT Broker server ip
                                        mqttUsername,   // MQTT Broker User; Can be omitted if not needed
                                        mqttPassword,   // MQTT Broker Password; Can be omitted if not needed
-                                       mqttClientName, // Client name that UNIQUELY identifies your device. macAddress.c_str() does not work! The mqtt client name must be unique otherwise we get disconnects!
+                                       mqttClientName, // Client name that UNIQUELY identifies your device. macAddress.c_str() does
+                                                       // not work! The mqtt client name must be unique otherwise we get disconnects!
                                        mqttServerPort);
 
         mqttClient->setMaxPacketSize(bufferSize); // default is only 128 bytes! When exeeding the message will not be published!
@@ -50,15 +45,17 @@ namespace IotZoo
         Serial.println("Destructor MqttClient");
     }
 
-    void MqttClient::enableLastWillMessage(const String &topic, const String &message, const bool retain) // Must be set before the first loop() call.
+    void MqttClient::enableLastWillMessage(const String& topic, const String& message,
+                                           const bool retain) // Must be set before the first loop() call.
     {
         return mqttClient->enableLastWillMessage(topic.c_str(), message.c_str(), retain);
     }
 
-    bool MqttClient::publish(const String &topic, const String &payload, bool retain)
+    bool MqttClient::publish(const String& topic, const String& payload, bool retain)
     {
         Serial.println("─┐");
-        Serial.print(">>> Publishing topic:\r\n" + topic + "\r\n\r\npayload:\r\n" + payload + "\r\nretain: " + String(retain) + "\r\nMqttBrokerIp: " + this->mqttClient->getMqttServerIp());
+        Serial.print(">>> Publishing topic:\r\n" + topic + "\r\n\r\npayload:\r\n" + payload + "\r\nretain: " + String(retain) +
+                     "\r\nMqttBrokerIp: " + this->mqttClient->getMqttServerIp());
         return printSuccess(mqttClient->publish(topic, payload, retain));
     }
 
@@ -67,26 +64,27 @@ namespace IotZoo
     /// @param messageReceivedCallback
     /// @param qos // 0 or 1 only
     /// @return
-    bool MqttClient::subscribe(const String &topic, MessageReceivedCallback messageReceivedCallback, uint8_t qos)
+    bool MqttClient::subscribe(const String& topic, MessageReceivedCallback messageReceivedCallback, uint8_t qos)
     {
         Serial.print("Subscribing topic: " + topic + ", qos: " + String(qos));
         return printSuccess(mqttClient->subscribe(topic, messageReceivedCallback, qos));
     }
 
-    bool MqttClient::subscribe(const String &topic, MessageReceivedCallbackWithTopic messageReceivedCallback, uint8_t qos)
+    bool MqttClient::subscribe(const String& topic, MessageReceivedCallbackWithTopic messageReceivedCallback, uint8_t qos)
     {
         Serial.print("Subscribing (topic with topic): " + topic + ", qos: " + String(qos));
         return printSuccess(mqttClient->subscribe(topic, messageReceivedCallback, qos));
     }
 
-    bool MqttClient::unsubscribe(const String &topic)
+    bool MqttClient::unsubscribe(const String& topic)
     {
         return mqttClient->unsubscribe(topic);
     }
 
     unsigned int MqttClient::getConnectionEstablishedCount() const
     {
-        return mqttClient->getConnectionEstablishedCount(); // Return the number of time onConnectionEstablished has been called since the beginning.
+        return mqttClient->getConnectionEstablishedCount(); // Return the number of time onConnectionEstablished has been
+                                                            // called since the beginning.
     }
 
     bool MqttClient::isConnected() const
@@ -94,7 +92,7 @@ namespace IotZoo
         return (mqttClient->isWifiConnected() && mqttClient->isMqttConnected());
     }
 
-    void MqttClient::removeRetainedMessageFromBroker(const String &topic)
+    void MqttClient::removeRetainedMessageFromBroker(const String& topic)
     {
         Serial.println("*** Removing topic " + topic);
         mqttClient->publish(topic, "", true);
@@ -120,5 +118,5 @@ namespace IotZoo
         Serial.println("─┘");
         return ok;
     }
-}
+} // namespace IotZoo
 #endif

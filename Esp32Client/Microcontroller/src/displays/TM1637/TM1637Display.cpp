@@ -22,11 +22,12 @@
 
 namespace IotZoo
 {
-    /// @brief We have 2 diplay types: 4 digits and 6 digits. Unfortunately, these are derived from different classes that do not inherit from each other.
-    /// This class represents either a 4 digit display or a 6 digit display dependent on displayType.
+    /// @brief We have 2 diplay types: 4 digits and 6 digits. Unfortunately, these are derived from different classes that do not inherit from each
+    /// other. This class represents either a 4 digit display or a 6 digit display dependent on displayType.
 
-    TM1637Display::TM1637Display(MqttClient *mqttClient, int deviceIndex, const String &baseTopic, Tm1637DisplayType displayType, uint8_t pinClk, uint8_t pinDio,
-                                 bool flipDisplay, const String &serverDownText) : TM1637DisplayBase(deviceIndex, mqttClient, baseTopic)
+    TM1637Display::TM1637Display(MqttClient* mqttClient, int deviceIndex, const String& baseTopic, Tm1637DisplayType displayType, uint8_t pinClk,
+                                 uint8_t pinDio, bool flipDisplay, const String& serverDownText)
+        : TM1637DisplayBase(deviceIndex, mqttClient, baseTopic)
     {
 #ifdef USE_TM1637_4
         if (displayType == Tm1637DisplayType::Digits4)
@@ -56,7 +57,7 @@ namespace IotZoo
         return tm1637Display->getDisplayType();
     }
 
-    void TM1637Display::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void TM1637Display::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
         tm1637Display->addMqttTopicsToRegister(topics);
     }
@@ -72,7 +73,8 @@ namespace IotZoo
     }
 
     /// @brief Sets the orientation of the display.
-    /// @param flip flip Flip display upside down true/false. Setting this parameter to true will cause the rendering on digits to be displayed upside down.
+    /// @param flip flip Flip display upside down true/false. Setting this parameter to true will cause the rendering on digits to be displayed upside
+    /// down.
     void TM1637Display::flipDisplay(bool flip)
     {
         tm1637Display->flipDisplay(flip);
@@ -184,6 +186,6 @@ namespace IotZoo
     {
         tm1637Display->showLevel(level, horizontal);
     }
-}
+} // namespace IotZoo
 
 #endif // defined(USE_TM1637_4) || defined(USE_TM1637_6)

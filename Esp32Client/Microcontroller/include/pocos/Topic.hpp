@@ -16,7 +16,7 @@
 
 namespace IotZoo
 {
-   enum MessageDirection
+   enum class MessageDirection
    {
       IotZooClientInbound = 0,
       IotZooClientOutbound = 1
@@ -31,7 +31,7 @@ namespace IotZoo
       {
          TopicName = topicName;
          Description = description;
-         Direction = messageDirection;
+         Direction = static_cast<int>(messageDirection);
          Persist = persist;
       }
 

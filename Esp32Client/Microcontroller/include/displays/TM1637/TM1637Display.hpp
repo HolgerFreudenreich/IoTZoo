@@ -138,7 +138,7 @@ namespace IotZoo
         void showLevel(unsigned int level = 100, bool horizontal = true);
 
     protected:
-        TM1637DisplayBase *tm1637Display = NULL;
+        TM1637DisplayBase *tm1637Display = nullptr;
     };
 }
 

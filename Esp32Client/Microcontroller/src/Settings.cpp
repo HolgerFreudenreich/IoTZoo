@@ -35,7 +35,7 @@ namespace IotZoo
         Serial.println("Destructor Settings");
     }
 
-    void Settings::saveConfiguration(const String &json)
+    void Settings::saveConfiguration(const String& json)
     {
         if (json.length() == 0)
         {
@@ -67,7 +67,8 @@ namespace IotZoo
         preferences.begin(NamespaceNameConfig, false);
         String key = "gpio_tm1637_4_clk" + String(deviceIndex);
         preferences.putLong(key.c_str(), gpioValue);
-        Serial.println("TM1637_4 ( " + String(deviceIndex) + ") CLK Pin is is connected to GPIO with value " + String(gpioValue) + ". This is Pin " + String(log2(gpioValue)) + ".");
+        Serial.println("TM1637_4 ( " + String(deviceIndex) + ") CLK Pin is is connected to GPIO with value " + String(gpioValue) + ". This is Pin " +
+                       String(log2(gpioValue)) + ".");
         preferences.end();
     }
 
@@ -77,9 +78,9 @@ namespace IotZoo
     int Settings::getGpioTM1637_4_DIO(int index)
     {
         preferences.begin(NamespaceNameConfig, true);
-        String key = "gpio_tm1637_4_dio" + String(index);
-        long gpioValue = preferences.getLong(key.c_str(),
-                                             (long)(index * 2 + 17)); // default value if not found in preferences
+        String key       = "gpio_tm1637_4_dio" + String(index);
+        long   gpioValue = preferences.getLong(key.c_str(),
+                                               (long)(index * 2 + 17)); // default value if not found in preferences
         preferences.end();
 
         Serial.println("TM1637_4 ( " + String(index) + ") DIO Pin is mapped to GPIO " + String((int)log2(gpioValue)));
@@ -103,7 +104,7 @@ namespace IotZoo
         preferences.end();
     }
 
-    bool Settings::storeData(const String &name, const String &data)
+    bool Settings::storeData(const String& name, const String& data)
     {
         try
         {
@@ -116,14 +117,14 @@ namespace IotZoo
             }
             return size == data.length();
         }
-        catch (const std::exception &e)
+        catch (const std::exception& e)
         {
             Serial.println(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
             return false;
         }
     }
 
-    String Settings::getDataString(const String &key, const String &fallbackValue, bool printLog /*= true*/)
+    String Settings::getDataString(const String& key, const String& fallbackValue, bool printLog /*= true*/)
     {
         if (printLog)
         {
@@ -145,7 +146,7 @@ namespace IotZoo
                 return fallbackValue;
             }
         }
-        catch (const std::exception &e)
+        catch (const std::exception& e)
         {
             Serial.println(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
             return fallbackValue;
@@ -162,36 +163,36 @@ namespace IotZoo
         return data;
     }
 
-    bool Settings::setMqttBrokerIp(const String &data)
+    bool Settings::setMqttBrokerIp(const String& data)
     {
         return storeData("MqttBrokerIp", data);
     }
 
-    String Settings::getMqttBrokerIp(const String &fallbackValue)
+    String Settings::getMqttBrokerIp(const String& fallbackValue)
     {
         return getDataString("MqttBrokerIp", fallbackValue);
     }
 
     /// @brief Sets the Namespace Name. This is a prefix of every MQTT Topic. <NamespaceName>/<ProjectName>/
     /// @param namespaceName
-    bool Settings::setNamespaceName(const String &namespaceName)
+    bool Settings::setNamespaceName(const String& namespaceName)
     {
         return storeData("NamespaceName", namespaceName);
     }
 
-    String Settings::getNamespaceName(const String &fallbackValue)
+    String Settings::getNamespaceName(const String& fallbackValue)
     {
         return getDataString("NamespaceName", fallbackValue, false);
     }
 
     /// @brief Sets the Project Name. Each microcontroller is assigned to exactly one project.
     /// @param projectName
-    bool Settings::setProjectName(const String &projectName)
+    bool Settings::setProjectName(const String& projectName)
     {
         return storeData("ProjectName", projectName);
     }
 
-    String Settings::getProjectName(const String &fallbackValue)
+    String Settings::getProjectName(const String& fallbackValue)
     {
         return getDataString("ProjectName", fallbackValue, false);
     }
@@ -210,4 +211,4 @@ namespace IotZoo
         preferences.putLong("interval_temperature_sensors", interval);
         preferences.end();
     }
-}
+} // namespace IotZoo

@@ -24,7 +24,7 @@ namespace IotZoo
   class WS2818 : DeviceBase
   {
   protected:
-    Adafruit_NeoPixel *pixels = NULL;
+    Adafruit_NeoPixel *pixels = nullptr;
     int dioPin;
     int numberOfLeds;
 

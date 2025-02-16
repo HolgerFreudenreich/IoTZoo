@@ -15,28 +15,28 @@
 #define __BUZZER_HPP__
 
 #include "Arduino.h"
-#include "DeviceBase.hpp"
 #include "Buzzer.h"
+#include "DeviceBase.hpp"
 
 namespace IotZoo
 {
     class Buzzer : public DeviceBase
     {
-    protected:
-        ::Buzzer *buzzer;
-        String topicBeep;
+      protected:
+        ::Buzzer* buzzer;
+        String    topicBeep;
 
-    public:
-        Buzzer(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
-               uint8_t pinBuzzer, uint8_t pinLed);
+      public:
+        Buzzer(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pinBuzzer, uint8_t pinLed);
 
         virtual ~Buzzer();
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
-        /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+        /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a
+        /// prerequisite for a subscription.
         /// @param mqttClient
         /// @param baseTopic
         virtual void onMqttConnectionEstablished() override;
@@ -45,6 +45,6 @@ namespace IotZoo
 
         void beep(u_int16_t frequencyHz, u_int16_t durationMs);
     };
-}
+} // namespace IotZoo
 #endif // USE_BUZZER
 #endif // __BUZZER_HPP__

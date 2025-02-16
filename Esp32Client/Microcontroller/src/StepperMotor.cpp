@@ -17,8 +17,9 @@
 
 namespace IotZoo
 {
-    StepperMotor::StepperMotor(MqttClient *mqttClient, int deviceIndex, const String &baseTopic,
-                               u_int8_t pin1, u_int8_t pin2, u_int8_t pin3, u_int8_t pin4) : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    StepperMotor::StepperMotor(MqttClient* mqttClient, int deviceIndex, const String& baseTopic, u_int8_t pin1, u_int8_t pin2, u_int8_t pin3,
+                               u_int8_t pin4)
+        : DeviceBase(deviceIndex, mqttClient, baseTopic)
     {
         Serial.println("Constructor StepperMotor");
         stepperControl = new StepperControl(StepperControl::DefaultStepCount, pin1, pin2, pin3, pin4);
@@ -33,23 +34,19 @@ namespace IotZoo
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void StepperMotor::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void StepperMotor::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
         topics->push_back(*new Topic(getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/actions",
-                                     "{{ 'degrees': -300, 'rpm': 10 }, { 'degrees': 300, 'rpm': 16 }}",
-                                     MessageDirection::IotZooClientOutbound));
+                                     "{{ 'degrees': -300, 'rpm': 10 }, { 'degrees': 300, 'rpm': 16 }}", MessageDirection::IotZooClientOutbound));
 
-        topics->push_back(*new Topic(topicActionDone,
-                                     "The action_id of completed action.",
-                                     MessageDirection::IotZooClientOutbound));
+        topics->push_back(*new Topic(topicActionDone, "The action_id of completed action.", MessageDirection::IotZooClientOutbound));
 
-        topics->push_back(*new Topic(getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/abort",
-                                     "Abort all actions.",
+        topics->push_back(*new Topic(getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/abort", "Abort all actions.",
                                      MessageDirection::IotZooClientOutbound));
     }
 
     // Example: "actions":[{"degrees": -300, "rpm": 10 }]
-    void StepperMotor::onReceivedActionsForStepper(const String &json)
+    void StepperMotor::onReceivedActionsForStepper(const String& json)
     {
         Serial.println("*** onReceivedActionsForStepper: " + json);
         if (!json.startsWith("["))
@@ -74,15 +71,14 @@ namespace IotZoo
 
         for (JsonVariant value : arrActions)
         {
-            StepperAction *stepperAction = new StepperAction(value["id"].as<int>(),
-                                                             value["degrees"].as<double>(),
-                                                             value["rpm"].as<double>(),
-                                                             value["start_delay"].as<double>());
+            StepperAction* stepperAction =
+                new StepperAction(value["id"].as<int>(), value["degrees"].as<double>(), value["rpm"].as<double>(), value["start_delay"].as<double>());
             stepperActions.push_back(*stepperAction);
         }
     }
 
-    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite
+    /// for a subscription.
     /// @param mqttClient
     /// @param baseTopic
     void StepperMotor::onMqttConnectionEstablished()
@@ -95,13 +91,11 @@ namespace IotZoo
         }
         String topicStepperActions = getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/actions";
 
-        mqttClient->subscribe(topicStepperActions, [&](const String &json)
-                              { onReceivedActionsForStepper(json); });
+        mqttClient->subscribe(topicStepperActions, [&](const String& json) { onReceivedActionsForStepper(json); });
 
         String topicStepperActionsAbort = getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/abort";
 
-        mqttClient->subscribe(topicStepperActionsAbort, [&](const String &json)
-                              { stop(); });
+        mqttClient->subscribe(topicStepperActionsAbort, [&](const String& json) { stop(); });
     }
 
     void StepperMotor::loop()
@@ -141,16 +135,16 @@ namespace IotZoo
         }
         degrees = std::abs(degrees);
 
-        action.Type = StepperControl::StepType::HalfStep;
-        action.Rpm = stepperAction->getRpm();
-        action.StartDelay = stepperAction->getStartDelay();
-        action.Steps = stepperControl->GetStepsFromDegrees(degrees);
-        action.EndDelay = 0;
+        action.Type           = StepperControl::StepType::HalfStep;
+        action.Rpm            = stepperAction->getRpm();
+        action.StartDelay     = stepperAction->getStartDelay();
+        action.Steps          = stepperControl->GetStepsFromDegrees(degrees);
+        action.EndDelay       = 0;
         action.DidEndCallback = &actionEnded;
 
-        Serial.println("processing action: degrees: " + String(degrees) + ", rpm: " + String(action.Rpm) + ", steps: " +
-                       String(action.Steps) + ", Direction: " + String(action.Direction) + ", Start delay ms: " +
-                       String(action.StartDelay) + ", CompletedBatches: " + String(completedBatches) + ", totalBatches: " + String(batches));
+        Serial.println("processing action: degrees: " + String(degrees) + ", rpm: " + String(action.Rpm) + ", steps: " + String(action.Steps) +
+                       ", Direction: " + String(action.Direction) + ", Start delay ms: " + String(action.StartDelay) +
+                       ", CompletedBatches: " + String(completedBatches) + ", totalBatches: " + String(batches));
         stepperControl->AddStepperAction(action);
         stepperControl->StartAction();
 
@@ -163,6 +157,6 @@ namespace IotZoo
             mqttClient->publish(topicActionDone, String(stepperAction->getActionId()));
         }
     }
-}
+} // namespace IotZoo
 
 #endif // USE_STEPPER_MOTOR

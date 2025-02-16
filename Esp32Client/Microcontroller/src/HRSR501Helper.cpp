@@ -11,15 +11,15 @@
 #include "Defines.hpp"
 #ifdef USE_HC_SR501
 
-#include "vector"
 #include "HCSR501.hpp"
 #include "HRSR501Helper.hpp"
+#include "vector"
 
 namespace IotZoo
 {
     void HRSR501Helper::readInterrupt()
     {
-        for (auto &motionSensor : HRSR501Helper::motionSensors)
+        for (auto& motionSensor : HRSR501Helper::motionSensors)
         {
             motionSensor.isrMotionDetectorRising();
         }
@@ -27,6 +27,6 @@ namespace IotZoo
 
     // Initialize static members.
     std::vector<IotZoo::HCSC501> HRSR501Helper::motionSensors{};
-}
+} // namespace IotZoo
 
 #endif // USE_HC_SR501
