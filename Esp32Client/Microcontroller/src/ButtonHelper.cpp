@@ -11,15 +11,16 @@
 #include "Defines.hpp"
 #ifdef USE_BUTTON
 
-#include <vector>
-#include "ButtonHelper.hpp"
 #include "Button.hpp"
+#include "ButtonHelper.hpp"
+
+#include <vector>
 
 namespace IotZoo
 {
     void ButtonHelper::onInterruptTriggered()
     {
-        for (auto &button : ButtonHelper::buttons)
+        for (auto& button : ButtonHelper::buttons)
         {
             button.onInterruptTriggered();
         }
@@ -27,5 +28,5 @@ namespace IotZoo
 
     // Initialize static members.
     std::vector<IotZoo::Button> ButtonHelper::buttons{};
-}
+} // namespace IotZoo
 #endif // USE_BUTTON

@@ -10,8 +10,8 @@
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
 #ifdef USE_TM1637_6
-#include "./displays/TM1637/TM1637_6_Handling.hpp"
 #include "./displays/TM1637/TM1637Helper.hpp"
+#include "./displays/TM1637/TM1637_6_Handling.hpp"
 
 namespace IotZoo
 {
@@ -19,7 +19,7 @@ namespace IotZoo
     {
     }
 
-    void TM1637_6_Handling::onMqttConnectionEstablished(MqttClient *mqttClient, const String &baseTopic)
+    void TM1637_6_Handling::onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic)
     {
         Serial.println("TM1637_6_Handling::onMqttConnectionEstablished");
         if (callbacksAreRegistered)
@@ -31,26 +31,26 @@ namespace IotZoo
         this->mqttClient = mqttClient;
         if (NULL != mqttClient)
         {
-            for (auto &display : displays1637)
+            for (auto& display : displays1637)
             {
                 // Can be integer and doube value.
                 String topicTm1637 = baseTopic + "/tm1637_6/" + String(display.getDeviceIndex()) + "/number";
                 mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637_Number);
             }
 
-            for (auto &display : displays1637)
+            for (auto& display : displays1637)
             {
                 String topicTm1637 = baseTopic + "/tm1637_6/" + String(display.getDeviceIndex()) + "/text";
                 mqttClient->subscribe(topicTm1637, callMqttbackOnReceivedDataTm1637Text);
             }
 
-            for (auto &display : displays1637)
+            for (auto& display : displays1637)
             {
                 String topicTm1637 = baseTopic + "/tm1637_6/" + String(display.getDeviceIndex()) + "/level";
                 mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637Level);
             }
 
-            for (auto &display : displays1637)
+            for (auto& display : displays1637)
             {
                 String topicTm1637 = baseTopic + "/tm1637_6/" + String(display.getDeviceIndex()) + "/temperature";
                 mqttClient->subscribe(topicTm1637, callMqttbackOnReceivedDataTm1637Temperature);
@@ -62,7 +62,7 @@ namespace IotZoo
 
     /// @brief Data Reveived to display on a TM1637 4 digit display.
     /// @param rawData: data in json format or unformatted.
-    void TM1637_6_Handling::callMqttbackOnReceivedDataTm1637Temperature(const String &topic, const String &message)
+    void TM1637_6_Handling::callMqttbackOnReceivedDataTm1637Temperature(const String& topic, const String& message)
     {
         try
         {
@@ -105,9 +105,9 @@ namespace IotZoo
                 display->showString(t.c_str(), 6U, 0, tm1637Helper.getDots());
             }
         }
-        catch (const std::exception &e)
+        catch (const std::exception& e)
         {
         }
     }
-}
+} // namespace IotZoo
 #endif

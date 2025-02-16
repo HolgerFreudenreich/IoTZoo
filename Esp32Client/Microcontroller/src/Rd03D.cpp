@@ -13,21 +13,22 @@
 #ifdef USE_RD_03D
 
 #include "RD03D.hpp"
+
 #include <ArduinoJson.h>
 
 namespace IotZoo
 {
-    Rd03D::Rd03D(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
-                 uint8_t pinRx, uint8_t pinTx,
-                 u_int16_t timeoutMillis, u_int16_t maxDistanceMillimeters, bool multiTargetMode)
+    Rd03D::Rd03D(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pinRx, uint8_t pinTx, u_int16_t timeoutMillis,
+                 u_int16_t maxDistanceMillimeters, bool multiTargetMode)
         : DeviceBase(deviceIndex, mqttClient, baseTopic)
     {
         Serial.print("Constructor Rd03D, pinRx: " + String(pinRx) + ", pinTx: " + String(pinTx));
-        Serial.println("timeoutMillis: " + String(timeoutMillis) + ", maxDistanceMillimeters: " + String(maxDistanceMillimeters) + ", multiTargetMode: " + String(multiTargetMode));
-        this->pinRx = pinRx;
-        this->pinTx = pinTx;
+        Serial.println("timeoutMillis: " + String(timeoutMillis) + ", maxDistanceMillimeters: " + String(maxDistanceMillimeters) +
+                       ", multiTargetMode: " + String(multiTargetMode));
+        this->pinRx           = pinRx;
+        this->pinTx           = pinTx;
         this->multiTargetMode = multiTargetMode;
-        this->timeoutMillis = timeoutMillis;
+        this->timeoutMillis   = timeoutMillis;
         if (this->timeoutMillis < 1000)
         {
             this->timeoutMillis = 1000;
@@ -35,18 +36,18 @@ namespace IotZoo
         this->maxDistanceMillimeters = maxDistanceMillimeters;
         if (this->maxDistanceMillimeters > 6000)
         {
-            //this->maxDistanceMillimeters = 6000;
+            // this->maxDistanceMillimeters = 6000;
         }
-        topicDistanceTarget1 = baseTopic + "/rd03d/0/target/0/distance_mm";
+        topicDistanceTarget1       = baseTopic + "/rd03d/0/target/0/distance_mm";
         topicMovementChangeTarget1 = baseTopic + "/rd03d/0/target/0";
         if (multiTargetMode)
         {
-            topicDistanceTarget2 = baseTopic + "/rd03d/0/target/1/distance_mm";
+            topicDistanceTarget2       = baseTopic + "/rd03d/0/target/1/distance_mm";
             topicMovementChangeTarget2 = baseTopic + "/rd03d/0/target/1";
-            topicDistanceTarget3 = baseTopic + "/rd03d/0/target/2/distance_mm";
+            topicDistanceTarget3       = baseTopic + "/rd03d/0/target/2/distance_mm";
             topicMovementChangeTarget3 = baseTopic + "/rd03d/0/target/2";
         }
-        topicMovementDetected = baseTopic + "/rd03d/0/movement_detected";
+        topicMovementDetected             = baseTopic + "/rd03d/0/movement_detected";
         topicCountOfDetectedPeopleInRange = baseTopic + "/rd03d/0/count_of_people_in_range";
         setup();
     }
@@ -59,42 +60,30 @@ namespace IotZoo
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void Rd03D::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void Rd03D::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(topicDistanceTarget1,
-                                     "Sends the distance to human 1 in mm.",
-                                     MessageDirection::IotZooClientInbound));
+        topics->push_back(*new Topic(topicDistanceTarget1, "Sends the distance to human 1 in mm.", MessageDirection::IotZooClientInbound));
         if (multiTargetMode)
         {
-            topics->push_back(*new Topic(topicDistanceTarget2,
-                                         "Sends the distance to human 2 in mm.",
-                                         MessageDirection::IotZooClientInbound));
+            topics->push_back(*new Topic(topicDistanceTarget2, "Sends the distance to human 2 in mm.", MessageDirection::IotZooClientInbound));
 
-            topics->push_back(*new Topic(topicDistanceTarget3,
-                                         "Sends the distance to human 3 in mm.",
-                                         MessageDirection::IotZooClientInbound));
+            topics->push_back(*new Topic(topicDistanceTarget3, "Sends the distance to human 3 in mm.", MessageDirection::IotZooClientInbound));
         }
-        topics->push_back(*new Topic(topicMovementChangeTarget1,
-                                     "Sends movement change data in json format for target 1.",
-                                     MessageDirection::IotZooClientInbound));
+        topics->push_back(
+            *new Topic(topicMovementChangeTarget1, "Sends movement change data in json format for target 1.", MessageDirection::IotZooClientInbound));
         if (multiTargetMode)
         {
-            topics->push_back(*new Topic(topicMovementChangeTarget2,
-                                         "Sends movement change data in json format for target 2.",
+            topics->push_back(*new Topic(topicMovementChangeTarget2, "Sends movement change data in json format for target 2.",
                                          MessageDirection::IotZooClientInbound));
 
-            topics->push_back(*new Topic(topicMovementChangeTarget3,
-                                         "Sends movement change data in json format for target 3.",
+            topics->push_back(*new Topic(topicMovementChangeTarget3, "Sends movement change data in json format for target 3.",
                                          MessageDirection::IotZooClientInbound));
         }
 
-        topics->push_back(*new Topic(topicMovementDetected,
-                                     "1 = movement detected, 2 = no movement detected past 30 seconds.",
+        topics->push_back(*new Topic(topicMovementDetected, "1 = movement detected, 2 = no movement detected past 30 seconds.",
                                      MessageDirection::IotZooClientInbound));
 
-        topics->push_back(*new Topic(topicCountOfDetectedPeopleInRange,
-                                     "Number of people in range [0-3].",
-                                     MessageDirection::IotZooClientInbound));
+        topics->push_back(*new Topic(topicCountOfDetectedPeopleInRange, "Number of people in range [0-3].", MessageDirection::IotZooClientInbound));
     }
 
     void Rd03D::loop()
@@ -118,11 +107,10 @@ namespace IotZoo
             {
                 int countOfDetectedPeople = 0;
 
-                if (target1.distanceMillimeters < maxDistanceMillimeters &&
-                    target1.distanceMillimeters > 0)
+                if (target1.distanceMillimeters < maxDistanceMillimeters && target1.distanceMillimeters > 0)
                 {
                     Serial.println("Target 1 Distance: " + String(target1.distanceMillimeters));
-                    target1IsMoving = true;
+                    target1IsMoving    = true;
                     millisTarget1Moved = millis();
 
                     countOfDetectedPeople++;
@@ -132,12 +120,13 @@ namespace IotZoo
                 }
                 else
                 {
-                    // Serial.println("Target 1 out of range of (" + String(maxDistanceMillimeters) + ") mm: " + String(target1.distanceMillimeters) + " mm.");
-                    //  target1IsMoving = false; sometimes we got wrong data from the sensor, so out of range must not mean that the target is not there or moving.
+                    // Serial.println("Target 1 out of range of (" + String(maxDistanceMillimeters) + ") mm: " +
+                    // String(target1.distanceMillimeters) + " mm.");
+                    //  target1IsMoving = false; sometimes we got wrong data from the sensor, so out of range must not mean
+                    //  that the target is not there or moving.
                 }
 
-                if (target2.distanceMillimeters < maxDistanceMillimeters &&
-                    target2.distanceMillimeters > 0)
+                if (target2.distanceMillimeters < maxDistanceMillimeters && target2.distanceMillimeters > 0)
                 {
                     Serial.println("Target 2 Distance: " + String(target2.distanceMillimeters));
                     countOfDetectedPeople++;
@@ -149,11 +138,11 @@ namespace IotZoo
                 }
                 else
                 {
-                    // Serial.println("Target 2 out of range of (" + String(maxDistanceMillimeters) + ") mm: " + String(target2.distanceMillimeters) + " mm.");
+                    // Serial.println("Target 2 out of range of (" + String(maxDistanceMillimeters) + ") mm: " +
+                    // String(target2.distanceMillimeters) + " mm.");
                 }
 
-                if (target3.distanceMillimeters < maxDistanceMillimeters &&
-                    target3.distanceMillimeters > 0)
+                if (target3.distanceMillimeters < maxDistanceMillimeters && target3.distanceMillimeters > 0)
                 {
                     Serial.println("Target 3 Distance: " + String(target3.distanceMillimeters));
                     countOfDetectedPeople++;
@@ -165,7 +154,8 @@ namespace IotZoo
                 }
                 else
                 {
-                    // Serial.println("Target 3 out of range of (" + String(maxDistanceMillimeters) + ") mm: " + String(target3.distanceMillimeters) + " mm.");
+                    // Serial.println("Target 3 out of range of (" + String(maxDistanceMillimeters) + ") mm: " +
+                    // String(target3.distanceMillimeters) + " mm.");
                 }
 
                 this->countOfPeopleInRange = countOfDetectedPeople;
@@ -198,7 +188,8 @@ namespace IotZoo
         bool isMovingStatus = target1IsMoving || target2IsMoving || target3IsMoving;
         if (currentIsMovingStatus != isMovingStatus)
         {
-            Serial.println("Moving status changed -> target1IsMoving: " + String(target1IsMoving) + ", target2IsMoving: " + String(target2IsMoving) + ", target3IsMoving: " + String(target3IsMoving) + ", Count of People in Range: " + String(countOfPeopleInRange));
+            Serial.println("Moving status changed -> target1IsMoving: " + String(target1IsMoving) + ", target2IsMoving: " + String(target2IsMoving) +
+                           ", target3IsMoving: " + String(target3IsMoving) + ", Count of People in Range: " + String(countOfPeopleInRange));
 
             mqttClient->publish(topicMovementDetected, String(isMovingStatus));
             mqttClient->publish(topicCountOfDetectedPeopleInRange, String(countOfPeopleInRange));
@@ -210,9 +201,7 @@ namespace IotZoo
     {
         Serial1.setRxBufferSize(1024);
         Serial1.begin(256000, // Baudrate
-                      SERIAL_8N1,
-                      pinRx,
-                      pinTx);
+                      SERIAL_8N1, pinRx, pinTx);
         // Send target detection command
         if (multiTargetMode)
         {
@@ -228,14 +217,14 @@ namespace IotZoo
         Serial1.flush();
     }
 
-    String Rd03D::serializeTarget(const Target &target)
+    String Rd03D::serializeTarget(const Target& target)
     {
         StaticJsonDocument<256> doc;
         doc["x"] = target.x;
         doc["y"] = target.y;
         // doc["speedCentimetersPerSecond"] = std::rint(target.speedCentimetersPerSecond);
         doc["distanceMillimeters"] = target.distanceMillimeters;
-        doc["angle"] = std::rint(target.angle);
+        doc["angle"]               = std::rint(target.angle);
         String json;
         size_t size = serializeJson(doc, json);
         // Serial.println("Serialized target " + json + " size: " + String(size) + " bytes.");
@@ -248,12 +237,12 @@ namespace IotZoo
 
         int bufferIndex = 4 + targetIndex * 8;
 
-        target.x = (serialBuffer[bufferIndex++] | (serialBuffer[bufferIndex++] << 8)) - 0x200;
-        target.y = (serialBuffer[bufferIndex++] | (serialBuffer[bufferIndex++] << 8)) - 0x8000;
-        target.speedCentimetersPerSecond = (serialBuffer[bufferIndex++] | (serialBuffer[bufferIndex++] << 8)) - 0x10;
+        target.x                             = (serialBuffer[bufferIndex++] | (serialBuffer[bufferIndex++] << 8)) - 0x200;
+        target.y                             = (serialBuffer[bufferIndex++] | (serialBuffer[bufferIndex++] << 8)) - 0x8000;
+        target.speedCentimetersPerSecond     = (serialBuffer[bufferIndex++] | (serialBuffer[bufferIndex++] << 8)) - 0x10;
         target.distanceResolutionMillimeters = (serialBuffer[bufferIndex++] | (serialBuffer[bufferIndex++] << 8));
-        target.distanceMillimeters = sqrt(pow(target.x, 2) + pow(target.y, 2));
-        target.angle = atan2(target.y, target.x) * 180.0 / PI;
+        target.distanceMillimeters           = sqrt(pow(target.x, 2) + pow(target.y, 2));
+        target.angle                         = atan2(target.y, target.x) * 180.0 / PI;
         return target;
     }
 
@@ -267,8 +256,7 @@ namespace IotZoo
             minBufferCount = 10;
         }
 
-        if (serialBufferCount > minBufferCount && serialBuffer[serialBufferCount - 1] == 0xCC &&
-            serialBuffer[serialBufferCount - 2] == 0x55)
+        if (serialBufferCount > minBufferCount && serialBuffer[serialBufferCount - 1] == 0xCC && serialBuffer[serialBufferCount - 2] == 0x55)
         {
             /* RX_BUF: 0xAA 0xFF 0x03 0x00                   Header
              *  0x05 0x01 0x19 0x82 0x00 0x00 0x68 0x01      target1
@@ -293,6 +281,6 @@ namespace IotZoo
         }
         return false;
     }
-}
+} // namespace IotZoo
 
 #endif // USE_RD_03D

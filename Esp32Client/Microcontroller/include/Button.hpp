@@ -20,30 +20,30 @@ namespace IotZoo
 {
     class Button : public DeviceBase
     {
-    protected:
-        uint8_t pin;
-        uint16_t counter;
-        uint16_t counterOld;
+      protected:
+        uint8_t       pin;
+        uint16_t      counter;
+        uint16_t      counterOld;
         unsigned long lastPressedMillis;
-        String topicButtonPushedCounter;
-        String topicButtonSetCounter;
+        String        topicButtonPushedCounter;
+        String        topicButtonSetCounter;
 
-    public:
-        Button(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
-               uint8_t pin);
+      public:
+        Button(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pin);
 
         virtual ~Button();
 
         /// @brief interrupt is triggered.
         void IRAM_ATTR onInterruptTriggered()
         {
-            // We do not know which of the buttons is pushed (the interrupt method is static and has no parameters). so we have to read the button
-            // state and increment the counter of all pushed buttons.
+            // We do not know which of the buttons is pushed (the interrupt method is static and has no
+            // parameters). so we have to read the button state and increment the counter of all pushed
+            // buttons.
             if (millis() - lastPressedMillis > 50) // debounce
             {
                 if (digitalRead(pin) == LOW)
                 {
-                    counter++;                    
+                    counter++;
                 }
             }
             lastPressedMillis = millis();
@@ -57,9 +57,10 @@ namespace IotZoo
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
-        /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+        /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is
+        /// a prerequisite for a subscription.
         /// @param mqttClient
         /// @param baseTopic
         virtual void onMqttConnectionEstablished() override;
@@ -70,7 +71,7 @@ namespace IotZoo
 
         virtual void loop() override;
     };
-}
+} // namespace IotZoo
 
 #endif // __BUTTON_HPP__
 #endif // USE_BUTTON

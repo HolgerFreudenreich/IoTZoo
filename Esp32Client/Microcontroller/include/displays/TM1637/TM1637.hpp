@@ -26,7 +26,7 @@ namespace IotZoo
     class TM1637 : public TM1637DisplayBase
     {
     protected:
-        TM1637Display *displayTm1637 = NULL;
+        TM1637Display *displayTm1637 = nullptr;
 
     public:
         TM1637(Tm1637DisplayType displayType, MqttClient *mqttClient, int deviceIndex, const String &baseTopic,
@@ -170,4 +170,4 @@ namespace IotZoo
 }
 
 #endif
-#endif
+#endif // USE_TM1637_4

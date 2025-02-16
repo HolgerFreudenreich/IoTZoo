@@ -27,12 +27,13 @@ namespace IotZoo
     /// @brief Pure virtual base class of everything that can be connected to the ESP32.
     class DeviceHandlingBase
     {
-    public:
+      public:
         DeviceHandlingBase()
         {
         }
 
-        /// @brief The IotZooMqtt client is not available, so tell this this user. Providing false information is worse than not providing any information.
+        /// @brief The IotZooMqtt client is not available, so tell this this user. Providing false information is worse
+        /// than not providing any information.
         ///        This method is a suitable point to erase a display or stop something.
         virtual void onIotZooClientUnavailable()
         {
@@ -41,19 +42,20 @@ namespace IotZoo
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const = 0;
+        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const = 0;
 
-        /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+        /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a
+        /// prerequisite for a subscription.
         /// @param mqttClient
         /// @param baseTopic
-        virtual void onMqttConnectionEstablished(MqttClient *mqttClient, const String &baseTopic)
+        virtual void onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic)
         {
             Serial.println("override onMqttConnectionEstablished!");
         }
 
-    protected:
-        MqttClient *mqttClient;
-        bool callbacksAreRegistered = false;
+      protected:
+        MqttClient* mqttClient = nullptr;
+        bool        callbacksAreRegistered = false;
     };
-}
+} // namespace IotZoo
 #endif // __DEVICE_HANDLING_BASE_HPP__

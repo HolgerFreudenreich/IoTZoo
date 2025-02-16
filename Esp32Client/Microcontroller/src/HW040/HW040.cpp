@@ -17,23 +17,17 @@
 
 namespace IotZoo
 {
-    RotaryEncoder::RotaryEncoder(MqttClient *mqttClient, int deviceIndex, const String &baseTopic,
-                                 int boundaryMinValue,
-                                 int boundaryMaxValue,
-                                 bool circleValues,
-                                 int acceleration,
-                                 uint8_t encoderSteps,
-                                 uint8_t encoderAPin,
-                                 uint8_t encoderBPin,
-                                 int encoderButtonPin,
-                                 int encoderVccPin) : AiEsp32RotaryEncoder(encoderAPin, encoderBPin, encoderButtonPin, encoderVccPin, encoderSteps),
-                                                      DeviceBase(deviceIndex, mqttClient, baseTopic)
+    RotaryEncoder::RotaryEncoder(MqttClient* mqttClient, int deviceIndex, const String& baseTopic, int boundaryMinValue, int boundaryMaxValue,
+                                 bool circleValues, int acceleration, uint8_t encoderSteps, uint8_t encoderAPin, uint8_t encoderBPin,
+                                 int encoderButtonPin, int encoderVccPin)
+        : AiEsp32RotaryEncoder(encoderAPin, encoderBPin, encoderButtonPin, encoderVccPin, encoderSteps),
+          DeviceBase(deviceIndex, mqttClient, baseTopic)
 
     {
         Serial.println("constructor RotaryEncoder");
         lastTimeButtonDown = 0;
-        wasButtonDown = false;
-        topicEncoderValue = baseTopic + "/rotary_encoder/" + String(deviceIndex) + "/value";
+        wasButtonDown      = false;
+        topicEncoderValue  = baseTopic + "/rotary_encoder/" + String(deviceIndex) + "/value";
 
         // We must initialize the rotary encoder (attachInterrupt).
         setup(HW040Helper::onInterruptTriggered);
@@ -56,7 +50,7 @@ namespace IotZoo
         Serial.println("Deleting RotaryEncoder with deviceIndex " + String(getDeviceIndex()));
     }
 
-    void RotaryEncoder::onReceivedRotaryEncoderValue(const String &strValue)
+    void RotaryEncoder::onReceivedRotaryEncoderValue(const String& strValue)
     {
         long value = std::stol(strValue.c_str());
         setEncoderValue(value - 1);
@@ -74,8 +68,7 @@ namespace IotZoo
             return;
         }
         String topic = baseTopic + "/rotary_encoder/" + String(getDeviceIndex()) + "/set_value";
-        if (mqttClient->subscribe(topic, [&](const String &payload)
-                                  { onReceivedRotaryEncoderValue(payload); }))
+        if (mqttClient->subscribe(topic, [&](const String& payload) { onReceivedRotaryEncoderValue(payload); }))
         {
             Serial.println("Subscribed topic: " + topic);
         }
@@ -83,19 +76,17 @@ namespace IotZoo
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void RotaryEncoder::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void RotaryEncoder::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
         topics->push_back(*new Topic(getBaseTopic() + "/rotary_encoder/" + String(deviceIndex) + "/set_value",
-                                     "Sets the value of the rotary encoder " + String(deviceIndex) + ".",
-                                     MessageDirection::IotZooClientOutbound));
+                                     "Sets the value of the rotary encoder " + String(deviceIndex) + ".", MessageDirection::IotZooClientOutbound));
 
         topics->push_back(*new Topic(getBaseTopic() + "/rotary_encoder/" + String(deviceIndex) + "/button_pressed",
                                      "Button of rotary encoder " + String(deviceIndex) + " has been pressed.",
                                      MessageDirection::IotZooClientInbound));
 
         topics->push_back(*new Topic(getBaseTopic() + "/rotary_encoder/" + String(deviceIndex) + "/value",
-                                     "Value of Rotary encoder " + String(deviceIndex) + " changed.",
-                                     MessageDirection::IotZooClientInbound));
+                                     "Value of Rotary encoder " + String(deviceIndex) + " changed.", MessageDirection::IotZooClientInbound));
     }
 
     void RotaryEncoder::setLastTimeButtonDown(unsigned long lastTimeButtonDown)
@@ -156,10 +147,10 @@ namespace IotZoo
                 mqttClient->publish(topicEncoderValue, String(rotaryEncoderValue));
             }
         }
-        catch (const std::exception &e)
+        catch (const std::exception& e)
         {
             Serial.println(e.what());
         }
     }
-}
+} // namespace IotZoo
 #endif // USE_HW040

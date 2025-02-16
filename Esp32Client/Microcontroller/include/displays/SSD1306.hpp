@@ -16,41 +16,41 @@
 #define __OLED_SSD1306_DISPLAY_HPP__
 
 #include "DeviceBase.hpp"
-#include <Wire.h>
 #include "SSD1306Ascii.h"
 #include "SSD1306AsciiWire.h"
 
+#include <Wire.h>
+
 namespace IotZoo
 {
-  class OledSsd1306Display : public DeviceBase
-  {
-  public:
-    OledSsd1306Display(u_int8_t i2cAddress,
-                       int deviceIndex, MqttClient *mqttClient, const String &baseTopic);
+    class OledSsd1306Display : public DeviceBase
+    {
+      public:
+        OledSsd1306Display(u_int8_t i2cAddress, int deviceIndex, MqttClient* mqttClient, const String& baseTopic);
 
-    virtual ~OledSsd1306Display();
+        virtual ~OledSsd1306Display();
 
-    /// @brief Let the user know what the device can do.
-    /// @param topics
-    virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        /// @brief Let the user know what the device can do.
+        /// @param topics
+        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
-    /// @brief Subscribe to Topics
-    virtual void onMqttConnectionEstablished() override;
+        /// @brief Subscribe to Topics
+        virtual void onMqttConnectionEstablished() override;
 
-    virtual void onIotZooClientUnavailable() override;
+        virtual void onIotZooClientUnavailable() override;
 
-  protected:
-    // ------------------------------------------------------------------------------------------------
-    // Prints the text <@see text> in lineNumber <@lineNumber>.
-    // ------------------------------------------------------------------------------------------------
-    void setTextLine(u_int8_t lineNumber, const String &text);
+        /// @brief Prints the text <@see text> in lineNumber <@lineNumber>.
+        /// @param lineNumber
+        /// @param text
+        void setTextLine(u_int8_t lineNumber, const String& text);
 
-    void setupDisplay(uint8_t i2cAddress);
+      protected:
+        void setupDisplay(uint8_t i2cAddress);
 
-  protected:
-    SSD1306AsciiWire *oled = NULL;
-  };
-}
+      protected:
+        SSD1306AsciiWire* oled = nullptr;
+    };
+} // namespace IotZoo
 
 #endif // __OLED_SSD1306_DISPLAY_HPP__
 #endif // USE_OLED_SSD1306

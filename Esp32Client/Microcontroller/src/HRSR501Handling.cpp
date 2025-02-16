@@ -23,17 +23,17 @@ namespace IotZoo
         Serial.println("Destructor HRSR501Handling");
     }
 
-    void HRSR501Handling::addDevice(int deviceIndex, MqttClient *mqttClient, const String &baseTopic, uint8_t pin1)
+    void HRSR501Handling::addDevice(int deviceIndex, MqttClient* mqttClient, const String& baseTopic, uint8_t pin1)
     {
-        HCSC501 *motionSensor = new HCSC501(deviceIndex, mqttClient, baseTopic, pin1);
+        HCSC501* motionSensor = new HCSC501(deviceIndex, mqttClient, baseTopic, pin1);
         HRSR501Helper::motionSensors.push_back(*motionSensor);
     }
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void HRSR501Handling::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void HRSR501Handling::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        for (auto &motionSensor : HRSR501Helper::motionSensors)
+        for (auto& motionSensor : HRSR501Helper::motionSensors)
         {
             motionSensor.addMqttTopicsToRegister(topics);
         }
@@ -42,11 +42,11 @@ namespace IotZoo
     void HRSR501Handling::loop()
     {
         // Triggered?
-        for (auto &motionSensor : HRSR501Helper::motionSensors)
+        for (auto& motionSensor : HRSR501Helper::motionSensors)
         {
             motionSensor.loop();
         }
     }
-}
+} // namespace IotZoo
 
 #endif // USE_HC_SR501

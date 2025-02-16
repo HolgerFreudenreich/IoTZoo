@@ -11,13 +11,14 @@
 #include "Defines.hpp"
 #ifdef USE_KEYPAD
 #include "ButtonMatrix.hpp"
+
 #include <Arduino.h>
 
 namespace IotZoo
 {
-    ButtonMatrix::ButtonMatrix(MqttClient *mqttClient, int deviceIndex, const String &baseTopic) : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    ButtonMatrix::ButtonMatrix(MqttClient* mqttClient, int deviceIndex, const String& baseTopic) : DeviceBase(deviceIndex, mqttClient, baseTopic)
     {
-        keyMap = makeKeymap(hexaKeys);
+        keyMap       = makeKeymap(hexaKeys);
         customKeypad = new Keypad(keyMap, rowPins, colPins, ROWS, COLS);
     }
 
@@ -28,7 +29,7 @@ namespace IotZoo
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void ButtonMatrix::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void ButtonMatrix::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
         for (int row = 0; row < getCountOfRows(); row++)
         {
@@ -38,8 +39,7 @@ namespace IotZoo
                 char keyChar = getKeyMap()[row * getCountOfRows() + col]; // hmm
 
                 topics->push_back(*new Topic(getBaseTopic() + "/button_matrix/" + String(deviceIndex) + "/button/" + keyChar,
-                                             "Button " + String(keyChar) + " status changed.",
-                                             MessageDirection::IotZooClientInbound));
+                                             "Button " + String(keyChar) + " status changed.", MessageDirection::IotZooClientInbound));
 
                 topics->push_back(*new Topic(getBaseTopic() + "/button_matrix/" + String(deviceIndex) + "/button/" + keyChar + "/pressed",
                                              "Button " + String(keyChar) + " was pressed. Payload: millis() of the ESP32.",
@@ -70,22 +70,22 @@ namespace IotZoo
                         // Report active key state : IDLE, PRESSED, HOLD, or RELEASED
                     case PRESSED:
                     {
-                        msg = " PRESSED.";
+                        msg     = " PRESSED.";
                         Key key = getCustomKeypad()->key[i];
 #ifdef USE_MQTT
-                        String topicButton = getBaseTopic() + "/button_matrix/" +  String(getDeviceIndex()) + "/button/" + String(key.kchar);
+                        String topicButton = getBaseTopic() + "/button_matrix/" + String(getDeviceIndex()) + "/button/" + String(key.kchar);
                         mqttClient->publish(topicButton, "PRESSED");
-                        topicButton = getBaseTopic() + "/button_matrix/" +  String(getDeviceIndex()) + "/button/" + String(key.kchar) + "/pressed";
-                        mqttClient->publish(topicButton, String(millis()));      
+                        topicButton = getBaseTopic() + "/button_matrix/" + String(getDeviceIndex()) + "/button/" + String(key.kchar) + "/pressed";
+                        mqttClient->publish(topicButton, String(millis()));
 #endif
                     }
                     break;
                     case HOLD:
                     {
-                        msg = " HOLD.";
+                        msg     = " HOLD.";
                         Key key = getCustomKeypad()->key[i];
 #ifdef USE_MQTT
-                        String topicButton = getBaseTopic() + "/button_matrix/" +  String(getDeviceIndex()) + "/button/" + String(key.kchar);
+                        String topicButton = getBaseTopic() + "/button_matrix/" + String(getDeviceIndex()) + "/button/" + String(key.kchar);
                         mqttClient->publish(topicButton, "HOLD");
                         topicButton = getBaseTopic() + "/button_matrix/" + String(getDeviceIndex()) + "/button/" + String(key.kchar) + "/hold";
                         mqttClient->publish(topicButton, String(millis()));
@@ -94,12 +94,12 @@ namespace IotZoo
                     break;
                     case RELEASED:
                     {
-                        msg = " RELEASED.";
+                        msg     = " RELEASED.";
                         Key key = getCustomKeypad()->key[i];
 #ifdef USE_MQTT
-                        String topicButton = getBaseTopic() + "/button_matrix/" +  String(getDeviceIndex()) + "/button/" + String(key.kchar);
+                        String topicButton = getBaseTopic() + "/button_matrix/" + String(getDeviceIndex()) + "/button/" + String(key.kchar);
                         mqttClient->publish(topicButton, "RELEASED");
-                        topicButton = getBaseTopic() + "/button_matrix/" +  String(getDeviceIndex()) + "/button/" + String(key.kchar) + "/released";
+                        topicButton = getBaseTopic() + "/button_matrix/" + String(getDeviceIndex()) + "/button/" + String(key.kchar) + "/released";
                         mqttClient->publish(topicButton, String(millis()));
 #endif
                     }
@@ -119,6 +119,6 @@ namespace IotZoo
         {
         }
     }
-}
+} // namespace IotZoo
 
 #endif // USE_KEYPAD

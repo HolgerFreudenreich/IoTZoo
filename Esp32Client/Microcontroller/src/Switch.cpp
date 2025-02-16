@@ -14,8 +14,8 @@
 
 namespace IotZoo
 {
-    Switch::Switch(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
-                   uint8_t pin) : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    Switch::Switch(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pin)
+        : DeviceBase(deviceIndex, mqttClient, baseTopic)
     {
         this->pin = pin;
         Serial.println("Constructor Switch. Pin: " + String(pin));
@@ -39,20 +39,18 @@ namespace IotZoo
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void Switch::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void Switch::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
         topics->push_back(*new Topic(getBaseTopic() + "/switch/" + String(getDeviceIndex()) + "/on",
-                                     "Switch " + String(getDeviceIndex()) + " is on. Payload: millis();",
-                                     MessageDirection::IotZooClientInbound));
+                                     "Switch " + String(getDeviceIndex()) + " is on. Payload: millis();", MessageDirection::IotZooClientInbound));
         topics->push_back(*new Topic(getBaseTopic() + "/switch/" + String(getDeviceIndex()) + "/off",
-                                     "Wwitch " + String(getDeviceIndex()) + " is off. Payload: millis();",
-                                     MessageDirection::IotZooClientInbound));
+                                     "Wwitch " + String(getDeviceIndex()) + " is off. Payload: millis();", MessageDirection::IotZooClientInbound));
     }
 
     bool Switch::hasStateChanged()
     {
-        oldIsButtonPressed = isButtonPressed;
-        isButtonPressed = digitalRead(pin) == LOW;
+        oldIsButtonPressed    = isButtonPressed;
+        isButtonPressed       = digitalRead(pin) == LOW;
         buttonStateHasChanged = oldIsButtonPressed != isButtonPressed;
         if (buttonStateHasChanged)
         {
@@ -80,6 +78,6 @@ namespace IotZoo
             }
         }
     }
-}
+} // namespace IotZoo
 
 #endif // USE_SWITCH

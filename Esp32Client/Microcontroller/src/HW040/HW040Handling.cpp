@@ -10,8 +10,8 @@
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
 #ifdef USE_HW040
-#include "HW040/HW040Handling.hpp"
 #include "HW040/HW040.hpp"
+#include "HW040/HW040Handling.hpp"
 #include "HW040/HW040Helper.hpp"
 
 namespace IotZoo
@@ -27,9 +27,9 @@ namespace IotZoo
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void HW040Handling::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void HW040Handling::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        for (auto &rotaryEncoder : HW040Helper::rotaryEncoders)
+        for (auto& rotaryEncoder : HW040Helper::rotaryEncoders)
         {
             rotaryEncoder.addMqttTopicsToRegister(topics);
         }
@@ -38,7 +38,7 @@ namespace IotZoo
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
     /// @param mqttClient
     /// @param baseTopic
-    void HW040Handling::onMqttConnectionEstablished(MqttClient *mqttClient, const String &baseTopic)
+    void HW040Handling::onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic)
     {
         Serial.println("HW040Handling::onMqttConnectionEstablished");
         return;
@@ -47,41 +47,30 @@ namespace IotZoo
             Serial.println("Reconnection -> nothing to do.");
             return;
         }
-        for (auto &rotaryEncoder : HW040Helper::rotaryEncoders)
+        for (auto& rotaryEncoder : HW040Helper::rotaryEncoders)
         {
             rotaryEncoder.onMqttConnectionEstablished();
         }
         callbacksAreRegistered = true;
     }
 
-    void HW040Handling::addDevice(MqttClient *mqttClient, const String &baseTopic, int deviceIndex,
-                                  int boundaryMinValue,
-                                  int boundaryMaxValue,
-                                  bool circleValues,
-                                  int acceleration,
-                                  uint8_t encoderSteps,
-                                  uint8_t encoderAPin,
-                                  uint8_t encoderBPin,
-                                  int encoderButtonPin,
-                                  int encoderVccPin)
+    void HW040Handling::addDevice(MqttClient* mqttClient, const String& baseTopic, int deviceIndex, int boundaryMinValue, int boundaryMaxValue,
+                                  bool circleValues, int acceleration, uint8_t encoderSteps, uint8_t encoderAPin, uint8_t encoderBPin,
+                                  int encoderButtonPin, int encoderVccPin)
     {
-        RotaryEncoder *rotaryEncoder = new IotZoo::RotaryEncoder(mqttClient, deviceIndex, baseTopic,
-                                                                 boundaryMinValue,
-                                                                 boundaryMaxValue,
-                                                                 circleValues,
-                                                                 acceleration,
-                                                                 encoderSteps,
-                                                                 encoderAPin, encoderBPin, encoderButtonPin, encoderVccPin);
+        RotaryEncoder* rotaryEncoder =
+            new IotZoo::RotaryEncoder(mqttClient, deviceIndex, baseTopic, boundaryMinValue, boundaryMaxValue, circleValues, acceleration,
+                                      encoderSteps, encoderAPin, encoderBPin, encoderButtonPin, encoderVccPin);
         HW040Helper::rotaryEncoders.push_back(*rotaryEncoder);
     }
 
     void HW040Handling::loop()
     {
-        for (auto &rotaryEncoder : HW040Helper::rotaryEncoders)
+        for (auto& rotaryEncoder : HW040Helper::rotaryEncoders)
         {
             rotaryEncoder.loop();
         }
     }
-}
+} // namespace IotZoo
 
 #endif // USE_HW040

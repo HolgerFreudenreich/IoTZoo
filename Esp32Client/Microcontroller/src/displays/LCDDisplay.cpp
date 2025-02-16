@@ -12,12 +12,13 @@
 #include "Defines.hpp"
 #ifdef USE_LCD_160X
 #include "./displays/LCDDisplay.hpp"
+
 #include <ArduinoJson.h>
 
 namespace IotZoo
 {
-    LcdDisplay::LcdDisplay(u_int8_t address, u_int8_t cols, u_int8_t rows,
-                           int deviceIndex, MqttClient *mqttClient, const String &baseTopic) : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    LcdDisplay::LcdDisplay(u_int8_t address, u_int8_t cols, u_int8_t rows, int deviceIndex, MqttClient* mqttClient, const String& baseTopic)
+        : DeviceBase(deviceIndex, mqttClient, baseTopic)
     {
         Serial.println("Constructor LcdDisplay");
         uint8_t heart[8] = {0x0, 0xa, 0x1f, 0x1f, 0xe, 0x4, 0x0};
@@ -82,14 +83,12 @@ namespace IotZoo
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void LcdDisplay::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void LcdDisplay::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/lcd160x/" + getDeviceIndex(),
-                                     "Payload: {'text': 'IoT Zoo', 'clear': true, 'x':1, 'y': 0}",
+        topics->push_back(*new Topic(getBaseTopic() + "/lcd160x/" + getDeviceIndex(), "Payload: {'text': 'IoT Zoo', 'clear': true, 'x':1, 'y': 0}",
                                      MessageDirection::IotZooClientOutbound));
 
-        topics->push_back(*new Topic(getBaseTopic() + "/lcd160x/ " + getDeviceIndex() + "/backlight",
-                                     "Payload : 0 (off); 1 (on)",
+        topics->push_back(*new Topic(getBaseTopic() + "/lcd160x/ " + getDeviceIndex() + "/backlight", "Payload : 0 (off); 1 (on)",
                                      MessageDirection::IotZooClientOutbound));
     }
 
@@ -121,7 +120,7 @@ namespace IotZoo
         return lcd->write(data);
     }
 
-    void LcdDisplay::setLcd160xBacklight(const String &rawData)
+    void LcdDisplay::setLcd160xBacklight(const String& rawData)
     {
         if (rawData == "1")
         {
@@ -134,12 +133,12 @@ namespace IotZoo
     }
 
     // {"text": "IoT Zoo", "clear": true, "x":1, "y": 0}
-    void LcdDisplay::setLcd160xData(const String &json)
+    void LcdDisplay::setLcd160xData(const String& json)
     {
         Serial.println("setLcd160xData: " + json);
 
         String text;
-        bool doClear = true;
+        bool   doClear = true;
 
         u_int8_t x = 0;
         u_int8_t y = 0;
@@ -152,14 +151,14 @@ namespace IotZoo
             if (error)
             {
                 Serial.print(F("deserializeJson() failed: "));
-                Serial.println(error.f_str());                
+                Serial.println(error.f_str());
                 return;
             }
 
-            text = jsonDocument["text"].as<String>();
+            text    = jsonDocument["text"].as<String>();
             doClear = jsonDocument["clear"].as<bool>();
-            x = jsonDocument["x"].as<u_int8_t>();
-            y = jsonDocument["y"].as<u_int8_t>();
+            x       = jsonDocument["x"].as<u_int8_t>();
+            y       = jsonDocument["y"].as<u_int8_t>();
         }
         else
         {
@@ -200,17 +199,15 @@ namespace IotZoo
     {
         String topicLcd160x = getBaseTopic() + "/lcd160x/" + getDeviceIndex();
         Serial.println("Subscribe Topic " + topicLcd160x);
-        mqttClient->subscribe(topicLcd160x, [=](const String &json)
-                              { setLcd160xData(json); });
+        mqttClient->subscribe(topicLcd160x, [=](const String& json) { setLcd160xData(json); });
     }
 
     void LcdDisplay::subscribeSetBacklight()
     {
         String topicLcd160x = getBaseTopic() + "/lcd160x/ " + getDeviceIndex() + "/backlight";
         Serial.println("Subscribe Topic " + topicLcd160x);
-        mqttClient->subscribe(topicLcd160x, [=](const String &rawData)
-                              { setLcd160xBacklight(rawData); });
+        mqttClient->subscribe(topicLcd160x, [=](const String& rawData) { setLcd160xBacklight(rawData); });
     }
-}
+} // namespace IotZoo
 
 #endif // USE_LCD_160X
