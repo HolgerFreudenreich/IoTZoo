@@ -182,7 +182,7 @@ namespace IotZoo
         }
 
     protected:
-        TM1637TinyDisplay *tm1637_4_Display = NULL;
+        TM1637TinyDisplay *tm1637_4_Display = nullptr;
     };
 }
 

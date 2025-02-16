@@ -18,7 +18,7 @@ namespace IotZoo
     {
     }
 
-    void TM1637_4_Handling::onMqttConnectionEstablished(MqttClient *mqttClient, const String &baseTopic)
+    void TM1637_4_Handling::onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic)
     {
         Serial.println("TM1637_4_Handling::onMqttConnectionEstablished");
         if (callbacksAreRegistered)
@@ -30,7 +30,7 @@ namespace IotZoo
         this->mqttClient = mqttClient;
         if (NULL != mqttClient)
         {
-            for (auto &display : displays1637)
+            for (auto& display : displays1637)
             {
                 String topicTm1637 = baseTopic + "/tm1637_4/" + String(display.getDeviceIndex()) + "/number";
                 if (mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637_Number))
@@ -39,7 +39,7 @@ namespace IotZoo
                 }
             }
 
-            for (auto &display : displays1637)
+            for (auto& display : displays1637)
             {
                 String topicTm1637 = baseTopic + "/tm1637_4/" + String(display.getDeviceIndex()) + "/time";
                 if (mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637_Number))
@@ -48,7 +48,7 @@ namespace IotZoo
                 }
             }
 
-            for (auto &display : displays1637)
+            for (auto& display : displays1637)
             {
                 String topicTm1637 = baseTopic + "/tm1637_4/" + String(display.getDeviceIndex()) + "/text";
                 if (mqttClient->subscribe(topicTm1637, callMqttbackOnReceivedDataTm1637Text))
@@ -57,7 +57,7 @@ namespace IotZoo
                 }
             }
 
-            for (auto &display : displays1637)
+            for (auto& display : displays1637)
             {
                 String topicTm1637 = baseTopic + "/tm1637_4/" + String(display.getDeviceIndex()) + "/level";
                 if (mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637Level))
@@ -69,5 +69,5 @@ namespace IotZoo
         Serial.println(".");
         callbacksAreRegistered = true;
     }
-}
+} // namespace IotZoo
 #endif // USE_TM1637_4

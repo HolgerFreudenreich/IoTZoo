@@ -28,13 +28,11 @@ namespace IotZoo
     /// @brief Pure virtual base class of everything that can be connected to the ESP32.
     class DeviceBase
     {
-    public:
-        DeviceBase(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic)
+      public:
+        DeviceBase(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic)
+            : deviceIndex(deviceIndex), mqttClient(mqttClient), baseTopic(baseTopic)
         {
             Serial.println("Constructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
-            this->mqttClient = mqttClient;
-            this->deviceIndex = deviceIndex;
-            this->baseTopic = baseTopic;
         }
 
         virtual ~DeviceBase()
@@ -54,9 +52,10 @@ namespace IotZoo
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const = 0;
+        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const = 0;
 
-        /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+        /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a
+        /// prerequisite for a subscription.
         /// @param mqttClient
         /// @param baseTopic
         virtual void onMqttConnectionEstablished()
@@ -65,7 +64,8 @@ namespace IotZoo
             mqttCallbacksAreRegistered = true;
         }
 
-        /// @brief The IotZooMqtt client is not available, so tell this this user. Providing false information is worse than not providing any information.
+        /// @brief The IotZooMqtt client is not available, so tell this this user. Providing false information is worse
+        /// than not providing any information.
         ///        This method is a suitable point to erase a display or stop something.
         virtual void onIotZooClientUnavailable()
         {
@@ -77,18 +77,18 @@ namespace IotZoo
             return baseTopic;
         }
 
-        void publishError(const String &errMsg)
+        void publishError(const String& errMsg)
         {
             String topic = getBaseTopic() + "/error";
             mqttClient->publish(topic, errMsg);
         }
 
-    protected:
-        MqttClient *mqttClient;
-        int deviceIndex = -1;
-        String baseTopic;
-        bool mqttCallbacksAreRegistered = false;
+      protected:
+        MqttClient* mqttClient;
+        int         deviceIndex = -1;
+        String      baseTopic;
+        bool        mqttCallbacksAreRegistered = false;
     };
 
-}
+} // namespace IotZoo
 #endif

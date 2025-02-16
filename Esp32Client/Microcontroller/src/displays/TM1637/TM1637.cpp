@@ -11,18 +11,14 @@
 #include "Defines.hpp"
 #if defined(USE_TM1637_4) || defined(USE_TM1637_6)
 #include "./displays/TM1637/TM1637.hpp"
+
 #include <Arduino.h>
 
 namespace IotZoo
 {
-    TM1637::TM1637(Tm1637DisplayType displayType,
-                   MqttClient *mqttClient,
-                   int deviceIndex,
-                   const String &baseTopic,
-                   int clkPin,
-                   int dioPin,
-                   bool flipDisplay,
-                   const String &serverDownText) : TM1637DisplayBase(deviceIndex, mqttClient, baseTopic)
+    TM1637::TM1637(Tm1637DisplayType displayType, MqttClient* mqttClient, int deviceIndex, const String& baseTopic, int clkPin, int dioPin,
+                   bool flipDisplay, const String& serverDownText)
+        : TM1637DisplayBase(deviceIndex, mqttClient, baseTopic)
     {
         Serial.println("Constructor TM1637. DisplayType:" + displayType);
 
@@ -41,9 +37,9 @@ namespace IotZoo
         return displayTm1637->getDisplayType();
     }
 
-    void TM1637::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void TM1637::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
         displayTm1637->addMqttTopicsToRegister(topics);
     }
-}
+} // namespace IotZoo
 #endif

@@ -10,8 +10,8 @@
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
 #if defined(USE_TM1637_4) || defined(USE_TM1637_6)
-#include "./displays/TM1637/TM1637_Handling.hpp"
 #include "./displays/TM1637/TM1637Helper.hpp"
+#include "./displays/TM1637/TM1637_Handling.hpp"
 
 namespace IotZoo
 {
@@ -23,7 +23,7 @@ namespace IotZoo
     void TM1637_Handling::setup()
     {
         int index = 0;
-        for (auto &display : displays1637)
+        for (auto& display : displays1637)
         {
             display.clear();
             display.setBrightness(0x0A, true); // 0x0f = max brightness
@@ -35,15 +35,15 @@ namespace IotZoo
 
     void TM1637_Handling::onIotZooClientUnavailable()
     {
-        for (auto &display : displays1637)
+        for (auto& display : displays1637)
         {
             display.onIotZooClientUnavailable();
         }
     }
 
-    void TM1637_Handling::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void TM1637_Handling::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        for (auto &display : displays1637)
+        for (auto& display : displays1637)
         {
             display.addMqttTopicsToRegister(topics);
         }
@@ -51,11 +51,11 @@ namespace IotZoo
 
     /// @brief Data received to display on a TM1637 display.
     /// @param rawData: data in json format or unformatted.
-    void TM1637_Handling::onReceivedDataTm1637_Number(const String &rawData, int deviceIndex)
+    void TM1637_Handling::onReceivedDataTm1637_Number(const String& rawData, int deviceIndex)
     {
         Serial.println("onReceivedDataTm1637_Number " + rawData);
 
-        TM1637 *display = getDisplayByDeviceIndex(deviceIndex);
+        TM1637* display = getDisplayByDeviceIndex(deviceIndex);
 
         if (NULL != display)
         {
@@ -72,11 +72,11 @@ namespace IotZoo
                 data.replace(":", ""); // needed to display Time like 10:23
             }
 
-            int number = 0;
+            int  number           = 0;
             bool showLeadingZeros = false;
-            int displayLength = display->getDefaultDisplayLength();
-            int position = 0;
-            int dots = 0;
+            int  displayLength    = display->getDefaultDisplayLength();
+            int  position         = 0;
+            int  dots             = 0;
 
             if (containsColon)
             {
@@ -94,18 +94,18 @@ namespace IotZoo
             {
                 number = std::stoi(data.c_str());
             }
-            catch (const std::exception &e)
+            catch (const std::exception& e)
             {
                 Serial.println("Unable to convert to a number!");
             }
 
-            Serial.println("device index: " + String(deviceIndex) + "; number: " + String(number) + "; LeadingZeros: " + String(showLeadingZeros) + "; displayLength: " +
-                           String(displayLength) + "; position: " + String(position) + "; dots: " + String(dots));
+            Serial.println("device index: " + String(deviceIndex) + "; number: " + String(number) + "; LeadingZeros: " + String(showLeadingZeros) +
+                           "; displayLength: " + String(displayLength) + "; position: " + String(position) + "; dots: " + String(dots));
             display->showNumberDec(number, dots, showLeadingZeros, displayLength, position);
         }
     }
 
-    void TM1637_Handling::callbackMqttOnReceivedDataTm1637_Number(const String &topic, const String &message)
+    void TM1637_Handling::callbackMqttOnReceivedDataTm1637_Number(const String& topic, const String& message)
     {
         Serial.println("callbackMqttOnReceivedDataTm1637_Number topic: " + topic + " message: " + message);
 
@@ -120,7 +120,7 @@ namespace IotZoo
         }
     }
 
-    void TM1637_Handling::callMqttbackOnReceivedDataTm1637Text(const String &topic, const String &message)
+    void TM1637_Handling::callMqttbackOnReceivedDataTm1637Text(const String& topic, const String& message)
     {
         Serial.println("callMqttbackOnReceivedDataTm1637Text topic: " + topic + " message: " + message);
 
@@ -132,7 +132,7 @@ namespace IotZoo
             Serial.println(deviceIndex);
             Serial.println(topic.c_str()[indexEnd - 1]);
 
-            TM1637 *display = getDisplayByDeviceIndex(deviceIndex);
+            TM1637* display = getDisplayByDeviceIndex(deviceIndex);
 
             if (NULL != display)
             {
@@ -143,9 +143,9 @@ namespace IotZoo
         }
     }
 
-    TM1637 *TM1637_Handling::getDisplayByDeviceIndex(int index)
+    TM1637* TM1637_Handling::getDisplayByDeviceIndex(int index)
     {
-        for (auto &display : displays1637)
+        for (auto& display : displays1637)
         {
             if (display.getDeviceIndex() == index)
             {
@@ -159,7 +159,7 @@ namespace IotZoo
     /// @brief Incoming MqttMessage to indicate a level between 0 and 100.
     /// @param topic
     /// @param message
-    void TM1637_Handling::callbackMqttOnReceivedDataTm1637Level(const String &topic, const String &message)
+    void TM1637_Handling::callbackMqttOnReceivedDataTm1637Level(const String& topic, const String& message)
     {
         Serial.println("callbackMqttOnReceivedDataTm1637Level topic: " + topic + " message: " + message);
 
@@ -171,7 +171,7 @@ namespace IotZoo
             Serial.println(deviceIndex);
             Serial.println(topic.c_str()[indexEnd - 1]);
 
-            TM1637 *display = getDisplayByDeviceIndex(deviceIndex);
+            TM1637* display = getDisplayByDeviceIndex(deviceIndex);
             if (NULL != display)
             {
                 display->setBrightness(0x0A, true); // 0x0f = max brightness. Do not delete this, the display may be turned off before.
@@ -180,7 +180,7 @@ namespace IotZoo
                 {
                     level = std::stoi(message.c_str());
                 }
-                catch (const std::exception &e)
+                catch (const std::exception& e)
                 {
                     Serial.println("Unable to convert to a number!");
                 }
@@ -190,20 +190,14 @@ namespace IotZoo
         }
     }
 
-    void TM1637_Handling::addDevice(const String &baseTopic, int deviceIndex, int clkPin, int dioPin, bool flipDisplay, const String &serverDownText)
+    void TM1637_Handling::addDevice(const String& baseTopic, int deviceIndex, int clkPin, int dioPin, bool flipDisplay, const String& serverDownText)
     {
-        IotZoo::TM1637 *displayTm1637 = new IotZoo::TM1637(tm1637DisplayType,
-                                                           mqttClient,
-                                                           deviceIndex,
-                                                           baseTopic,
-                                                           clkPin,
-                                                           dioPin,
-                                                           flipDisplay,
-                                                           serverDownText);
+        IotZoo::TM1637* displayTm1637 =
+            new IotZoo::TM1637(tm1637DisplayType, mqttClient, deviceIndex, baseTopic, clkPin, dioPin, flipDisplay, serverDownText);
         displays1637.push_back(*displayTm1637);
     }
 
     // Initialize static members
     std::vector<IotZoo::TM1637> TM1637_Handling::displays1637{};
-}
+} // namespace IotZoo
 #endif

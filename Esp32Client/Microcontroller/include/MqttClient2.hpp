@@ -30,7 +30,7 @@ namespace IotZoo
     class MqttClient
     {
     protected:
-        PubSubClient *mqttClient = NULL;
+        PubSubClient *mqttClient = nullptr;
         WiFiClient wifiClient;
 
     public:
@@ -38,8 +38,8 @@ namespace IotZoo
                    const char *wifiSsid,
                    const char *wifiPassword,
                    const char *mqttServerIp,
-                   const char *mqttUsername = NULL,
-                   const char *mqttPassword = NULL,
+                   const char *mqttUsername = nullptr,
+                   const char *mqttPassword = nullptr,
                    const short mqttServerPort = 1883,
                    int bufferSize = 4096)
         {

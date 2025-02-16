@@ -1,0 +1,16 @@
+BasedOnStyle: Microsoft
+IndentWidth: 4
+UseTab: Never
+ColumnLimit: 150
+PointerAlignment: Left  # int* ptr; instead of int *ptr;
+AllowShortIfStatementsOnASingleLine: false
+BreakBeforeBraces: Allman  # Braces on a new line
+AlwaysBreakTemplateDeclarations: Yes
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+SortIncludes: true
+IncludeBlocks: Regroup
+NamespaceIndentation: All  # Indents contents inside namespaces
+SpacesInParentheses: false
+SpaceBeforeParens: ControlStatements
+Standard: Latest
