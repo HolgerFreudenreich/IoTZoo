@@ -14,16 +14,16 @@
 
 namespace IotZoo
 {
-  void HW040Helper::onInterruptTriggered()
-  {
-    // not nice, because we do not know which of the devices is the trigger. Loop over all devices as workaround.
-    for (auto &encoder : rotaryEncoders)
+    void HW040Helper::onInterruptTriggered()
     {
-      encoder.readEncoder_ISR();
+        // not nice, because we do not know which of the devices is the trigger. Loop over all devices as workaround.
+        for (auto& encoder : rotaryEncoders)
+        {
+            encoder.readEncoder_ISR();
+        }
     }
-  }
 
-  std::vector<IotZoo::RotaryEncoder> HW040Helper::rotaryEncoders{};
-}
+    std::vector<IotZoo::RotaryEncoder> HW040Helper::rotaryEncoders{};
+} // namespace IotZoo
 
 #endif // USE_HW040

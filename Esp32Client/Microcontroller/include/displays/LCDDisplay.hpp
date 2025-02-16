@@ -60,7 +60,7 @@ namespace IotZoo
         void subscribeSetBacklight();
 
     protected:
-        LiquidCrystal_I2C *lcd = NULL;
+        LiquidCrystal_I2C *lcd = nullptr;
     };
 }
 

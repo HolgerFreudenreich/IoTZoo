@@ -15,13 +15,13 @@
 
 namespace IotZoo
 {
-    Button::Button(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
-                   uint8_t pin) : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    Button::Button(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pin)
+        : DeviceBase(deviceIndex, mqttClient, baseTopic)
     {
         this->pin = pin;
         Serial.println("Constructor Button. Pin: " + String(pin));
         topicButtonPushedCounter = getBaseTopic() + "/button/" + String(deviceIndex) + "/pushed_counter";
-        topicButtonSetCounter = getBaseTopic() + "/button/" + String(deviceIndex) + "/set_counter";
+        topicButtonSetCounter    = getBaseTopic() + "/button/" + String(deviceIndex) + "/set_counter";
         pinMode(pin, INPUT_PULLUP);
         counter = counterOld = 0;
         setup(ButtonHelper::onInterruptTriggered);
@@ -39,17 +39,16 @@ namespace IotZoo
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void Button::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void Button::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(topicButtonPushedCounter,
-                                     "Button " + String(getDeviceIndex()) + " was pushed x times.",
+        topics->push_back(*new Topic(topicButtonPushedCounter, "Button " + String(getDeviceIndex()) + " was pushed x times.",
                                      MessageDirection::IotZooClientInbound));
-        topics->push_back(*new Topic(topicButtonSetCounter,
-                                     "Reset push counter for Button " + String(getDeviceIndex()),
-                                     MessageDirection::IotZooClientOutbound));
+        topics->push_back(
+            *new Topic(topicButtonSetCounter, "Reset push counter for Button " + String(getDeviceIndex()), MessageDirection::IotZooClientOutbound));
     }
 
-    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite
+    /// for a subscription.
     /// @param mqttClient
     /// @param baseTopic
     void Button::onMqttConnectionEstablished()
@@ -61,8 +60,12 @@ namespace IotZoo
             return;
         }
 
-        mqttClient->subscribe(topicButtonSetCounter, [&](const String &json)
-                              { Serial.println("set counter"); counter = counterOld = atoi(json.c_str()); });
+        mqttClient->subscribe(topicButtonSetCounter,
+                              [&](const String& json)
+                              {
+                                  Serial.println("set counter");
+                                  counter = counterOld = atoi(json.c_str());
+                              });
     }
 
     bool Button::hasStateChanged()
@@ -79,6 +82,6 @@ namespace IotZoo
             mqttClient->publish(topicButtonPushedCounter, String(counter));
         }
     }
-}
+} // namespace IotZoo
 
 #endif // USE_BUTTON

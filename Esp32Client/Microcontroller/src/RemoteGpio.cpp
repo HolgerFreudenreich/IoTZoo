@@ -11,14 +11,14 @@
 #include "Defines.hpp"
 #ifdef USE_REMOTE_GPIOS
 #ifndef __REMOTE_GPIO_HPP__
-#include "RemoteGpio.hpp"
 #include "./pocos/Topic.hpp"
+#include "RemoteGpio.hpp"
 #endif
 
 namespace IotZoo
 {
-    RemoteGpio::RemoteGpio(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
-                           int pin) : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    RemoteGpio::RemoteGpio(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, int pin)
+        : DeviceBase(deviceIndex, mqttClient, baseTopic)
     {
         pinGpio = pin;
         pinMode(pinGpio, OUTPUT);
@@ -32,13 +32,14 @@ namespace IotZoo
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void RemoteGpio::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void RemoteGpio::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
         topics->push_back(*new Topic(getBaseTopic() + "/gpio/" + String(deviceIndex), "0, LOW, OFF or 1, HIGH, ON or TOGGLE for toggling state",
                                      MessageDirection::IotZooClientOutbound));
     }
 
-    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite
+    /// for a subscription.
     /// @param mqttClient
     /// @param baseTopic
     void RemoteGpio::onMqttConnectionEstablished()
@@ -50,8 +51,7 @@ namespace IotZoo
             return;
         }
 
-        mqttClient->subscribe(getBaseTopic() + "/gpio/" + String(deviceIndex), [&](const String &json)
-                              { handlePayload(json); });
+        mqttClient->subscribe(getBaseTopic() + "/gpio/" + String(deviceIndex), [&](const String& json) { handlePayload(json); });
     }
 
     int RemoteGpio::getGpioPin() const
@@ -64,7 +64,7 @@ namespace IotZoo
         return digitalRead(pinGpio);
     }
 
-    void RemoteGpio::handlePayload(const String &rawData)
+    void RemoteGpio::handlePayload(const String& rawData)
     {
         Serial.println("Remote GPIO RawData: " + rawData);
         String payload(rawData);
@@ -94,6 +94,6 @@ namespace IotZoo
             }
         }
     }
-}
+} // namespace IotZoo
 
 #endif // USE_REMOTE_GPIOS

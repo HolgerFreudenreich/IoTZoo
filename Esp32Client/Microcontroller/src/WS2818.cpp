@@ -16,13 +16,13 @@
 
 namespace IotZoo
 {
-    WS2818::WS2818(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
-                   int pin, int numberOfLeds) : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    WS2818::WS2818(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, int pin, int numberOfLeds)
+        : DeviceBase(deviceIndex, mqttClient, baseTopic)
     {
         Serial.println("Constructor WS2818");
-        dioPin = pin;
+        dioPin             = pin;
         this->numberOfLeds = numberOfLeds;
-        pixels = new Adafruit_NeoPixel(numberOfLeds, dioPin, (NEO_GRB + NEO_KHZ800));
+        pixels             = new Adafruit_NeoPixel(numberOfLeds, dioPin, (NEO_GRB + NEO_KHZ800));
         setup();
     }
 
@@ -37,6 +37,7 @@ namespace IotZoo
     {
         Serial.println("WS2818 setup. DIN Pin is " + String(dioPin));
         pixels->begin();
+
         setPixelColorRGB(255, 0, 0, 0, 25);
         delay(125);
         setPixelColorRGB(0, 255, 0, 1, 25);
@@ -48,15 +49,15 @@ namespace IotZoo
 
     /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColorRGB
     /// @param json
-    void WS2818::setPixelColorRGB(const String &json)
+    void WS2818::setPixelColorRGB(const String& json)
     {
         Serial.println("setPixelColorRGB rawData: " + String(json)); // {"r": 0, "g": 125, "b": 0, "index": 15, "length": 1, "brightness": 33}
-        u_int8_t r = 0;
-        u_int8_t g = 0;
-        u_int8_t b = 0;
+        u_int8_t  r          = 0;
+        u_int8_t  g          = 0;
+        u_int8_t  b          = 0;
         u_int16_t startIndex = 0;
-        u32_t length = 1;
-        u_int8_t brightness = 0;
+        u32_t     length     = 1;
+        u_int8_t  brightness = 0;
 
         StaticJsonDocument<200> jsonDocument;
 
@@ -66,9 +67,9 @@ namespace IotZoo
             publishError("deserializeJson() of '" + String(json) + "' failed: " + String(error.f_str()));
         }
 
-        r = jsonDocument["r"].as<u_int8_t>();
-        g = jsonDocument["g"].as<u_int8_t>();
-        b = jsonDocument["b"].as<u_int8_t>();
+        r          = jsonDocument["r"].as<u_int8_t>();
+        g          = jsonDocument["g"].as<u_int8_t>();
+        b          = jsonDocument["b"].as<u_int8_t>();
         startIndex = jsonDocument["index"].as<u_int16_t>();
         brightness = jsonDocument["brightness"].as<u32_t>();
 
@@ -78,7 +79,8 @@ namespace IotZoo
             length = 1;
         }
 
-        Serial.println("setPixelColor r: " + String(r) + ", g: " + String(g) + ", b, " + String(b) + ", startIndex: " + String(startIndex) + ", brightness: " + brightness + ", length: " + String(length));
+        Serial.println("setPixelColor r: " + String(r) + ", g: " + String(g) + ", b, " + String(b) + ", startIndex: " + String(startIndex) +
+                       ", brightness: " + brightness + ", length: " + String(length));
 
         for (u_int16_t index = startIndex; index < startIndex + length; index++)
         {
@@ -88,14 +90,14 @@ namespace IotZoo
 
     /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
     /// @param json
-    void WS2818::setPixelColor(const String &json)
+    void WS2818::setPixelColor(const String& json)
     {
         Serial.println("setPixelColor rawData: " + String(json)); // {"color": 1106052, "index": 15, "length": 1, "brightness": 33}
         u_int32_t color;
 
         u_int16_t startIndex;
-        u_int16_t length = 1;
-        u_int8_t brightness = 2; // < 2 means off
+        u_int16_t length     = 1;
+        u_int8_t  brightness = 2; // < 2 means off
 
         StaticJsonDocument<200> jsonDocument;
 
@@ -120,7 +122,8 @@ namespace IotZoo
             brightness = 2;
         }
 
-        Serial.println("setPixelColor color: " + String(color) + ", startIndex: " + String(startIndex) + ", brightness: " + brightness + ", length: " + String(length));
+        Serial.println("setPixelColor color: " + String(color) + ", startIndex: " + String(startIndex) + ", brightness: " + brightness +
+                       ", length: " + String(length));
 
         for (u_int16_t index = startIndex; index < startIndex + length; index++)
         {
@@ -130,14 +133,14 @@ namespace IotZoo
 
     /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
     /// @param json
-    void WS2818::setPixelColorHex(const String &json)
+    void WS2818::setPixelColorHex(const String& json)
     {
         Serial.println("setPixelColorHex rawData: " + String(json)); // {"color": "0x10E084", "index": 15, "length": 1, "brightness": 33}
         String colorHex;
 
         u_int16_t startIndex;
-        u_int16_t length = 1;
-        u_int8_t brightness = 2; // 0 means off
+        u_int16_t length     = 1;
+        u_int8_t  brightness = 2; // 0 means off
 
         StaticJsonDocument<200> jsonDocument;
 
@@ -169,7 +172,8 @@ namespace IotZoo
 
         u_int32_t color = stoi(colorHex.c_str(), 0, 16);
 
-        Serial.println("setPixelColor colorHex: " + String(colorHex) + ", color: " + String(color) + ", startIndex: " + String(startIndex) + ", brightness: " + brightness + ", length: " + String(length));
+        Serial.println("setPixelColor colorHex: " + String(colorHex) + ", color: " + String(color) + ", startIndex: " + String(startIndex) +
+                       ", brightness: " + brightness + ", length: " + String(length));
 
         for (u_int16_t index = startIndex; index < startIndex + length; index++)
         {
@@ -179,7 +183,7 @@ namespace IotZoo
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void WS2818::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void WS2818::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
         topics->push_back(*new Topic(getBaseTopic() + "/neo/0/setPixelColorRgb",
                                      "{\"r\": 0, \"g\": 125, \"b\": 0, \"index\": 15, \"length\": 1, \"brightness\": 35}",
@@ -194,7 +198,8 @@ namespace IotZoo
                                      MessageDirection::IotZooClientOutbound));
     }
 
-    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite
+    /// for a subscription.
     /// @param mqttClient
     /// @param baseTopic
     void WS2818::onMqttConnectionEstablished()
@@ -207,22 +212,19 @@ namespace IotZoo
         }
         String topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColorRGB";
 
-        mqttClient->subscribe(topic, [&](const String &json)
-                              { setPixelColorRGB(json); });
+        mqttClient->subscribe(topic, [&](const String& json) { setPixelColorRGB(json); });
 
         Serial.println("LED strip subscribed to topic " + topic);
 
         topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColor";
 
-        mqttClient->subscribe(topic, [&](const String &json)
-                              { setPixelColor(json); });
+        mqttClient->subscribe(topic, [&](const String& json) { setPixelColor(json); });
 
         Serial.println("LED strip subscribed to topic " + topic);
 
         topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColorHex";
 
-        mqttClient->subscribe(topic, [&](const String &json)
-                              { setPixelColorHex(json); });
+        mqttClient->subscribe(topic, [&](const String& json) { setPixelColorHex(json); });
         Serial.println("LED strip subscribed to topic " + topic);
     }
 
@@ -241,5 +243,5 @@ namespace IotZoo
         pixels->setPixelColor(index, color);
         pixels->show();
     }
-}
+} // namespace IotZoo
 #endif // USE_WS2818

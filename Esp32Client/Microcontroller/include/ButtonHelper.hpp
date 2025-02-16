@@ -13,20 +13,21 @@
 #ifndef __BUTTON_HELPER_HPP__
 #define __BUTTON_HELPER_HPP__
 
-#include <vector>
 #include "Arduino.h"
 #include "Button.hpp"
+
+#include <vector>
 
 namespace IotZoo
 {
     class ButtonHelper
     {
-    public:
+      public:
         static void onInterruptTriggered();
-        
+
         static std::vector<Button> buttons;
     };
-}
+} // namespace IotZoo
 
 #endif // __BUTTON_HELPER_HPP__
 #endif // USE_BUTTON

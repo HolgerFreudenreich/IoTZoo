@@ -10,47 +10,49 @@
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
 #ifdef USE_BUTTON
-#include <vector>
 #include "Button.hpp"
 #include "ButtonHandling.hpp"
+
+#include <vector>
 
 namespace IotZoo
 {
     /// @brief Let the user know what the device can do.
     /// @param topics
-    void ButtonHandling::addMqttTopicsToRegister(std::vector<Topic> *const topics) const
+    void ButtonHandling::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        for (auto &button : ButtonHelper::buttons)
+        for (auto& button : ButtonHelper::buttons)
         {
             button.addMqttTopicsToRegister(topics);
         }
     }
 
-    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite
+    /// for a subscription.
     /// @param mqttClient
     /// @param baseTopic
     void ButtonHandling::onMqttConnectionEstablished()
     {
-        for (auto &button : ButtonHelper::buttons)
+        for (auto& button : ButtonHelper::buttons)
         {
             button.onMqttConnectionEstablished();
         }
     }
 
-    void ButtonHandling::addDevice(MqttClient *mqttClient, const String &baseTopic, int deviceIndex, u_int8_t buttonPin)
+    void ButtonHandling::addDevice(MqttClient* mqttClient, const String& baseTopic, int deviceIndex, u_int8_t buttonPin)
     {
-        Button *button = new Button(deviceIndex, mqttClient, baseTopic, buttonPin);
+        Button* button = new Button(deviceIndex, mqttClient, baseTopic, buttonPin);
 
         ButtonHelper::buttons.push_back(*button);
     }
 
     void ButtonHandling::loop()
     {
-        for (auto &button : ButtonHelper::buttons)
+        for (auto& button : ButtonHelper::buttons)
         {
             button.loop();
         }
     }
-}
+} // namespace IotZoo
 
 #endif // USE_BUTTON
