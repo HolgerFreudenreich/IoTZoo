@@ -41,15 +41,16 @@ namespace IotZoo
         Serial.println();
     }
 
-    std::list<float> DS18B20::requestTemperatures()
+    std::vector<float> DS18B20::requestTemperatures()
     {
-        std::list<float> list;
+        std::vector<float> temperatures;
         dallasTemperatureSensors->requestTemperatures();
         for (int i = 0; i < numberOfDevices; i++)
         {
-            list.push_back(dallasTemperatureSensors->getTempCByIndex(i));
+            float temperatureCelsius = dallasTemperatureSensors->getTempCByIndex(i);         
+            temperatures.push_back(temperatureCelsius);
         }
-        return list;
+        return temperatures;
     }
 
     /// @brief
