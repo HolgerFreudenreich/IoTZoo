@@ -772,7 +772,6 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
                                   {
                                       // Remove retained message from the server
                                       mqttClient->removeRetainedMessageFromBroker(topicSetMicrocontrollerConfiguration);
-                                      delay(1000);
                                       restart();
                                   }
                               }
@@ -1613,30 +1612,34 @@ void publishViaMqtt(const String& topicName, const String& payload)
 #ifdef USE_DS18B20
 void loopDS18B20()
 {
+    if (millis() - ds18B20SensorManager->getLastPublishedTemperatureMillis() < ds18B20SensorManager->getInterval())
+    {
+        return;
+    }
+
+    ds18B20SensorManager->setLastPublishedTemperatureMillis(millis());
+
     if (NULL != ds18B20SensorManager)
     {
-        std::list<float> temperatures = ds18B20SensorManager->requestTemperatures();
+        std::vector<float> temperatures = ds18B20SensorManager->requestTemperatures();
+        Serial.println("Count of Temperature sensors: " + String(temperatures.size()));
+        int indexTemperatureSensor = 0;
 
-        int index = 0;
-
-        for (const auto& temperature : temperatures)
+        for (const auto& temperatureCelsius : temperatures)
         {
-            if (millis() - ds18B20SensorManager->getLastPublishedTemperatureMillis() > ds18B20SensorManager->getInterval())
-            {
-                String topic = getBaseTopic() + "/ds18b20_manager/0/sensor/" + String(index) + "/celsius";
+            String topic = getBaseTopic() + "/ds18b20_manager/0/sensor/" + String(indexTemperatureSensor) + "/celsius";
 
-                Serial.print(topic + "/" + String(temperature));
-                Serial.println(" ºC");
-                if (temperature > -55 && temperature < 125)
-                {
-                    mqttClient->publish(topic, String(temperature, 1));
-                    ds18B20SensorManager->setLastPublishedTemperatureMillis(millis());
-                }
+            Serial.print(topic + "/" + String(temperatureCelsius));
+            Serial.println(" ºC");
+            if (temperatureCelsius > -55 && temperatureCelsius < 125)
+            {
+                mqttClient->publish(topic, String(temperatureCelsius, 1));
             }
-            index++;
-        }
+            indexTemperatureSensor++;
+        }       
     }
 }
+
 #endif
 
 /// @brief Register all from this microcontroller supported topics at the IOTZOO client.
