@@ -44,7 +44,7 @@ namespace IotZoo
         /// @param transmissionIntervalMs Interval at which the temperatures are sent via MQTT.
         void setup(int gpioNumber, u_int8_t resolution, int transmissionIntervalMs);
 
-        std::list<float> requestTemperatures();
+        std::vector<float> requestTemperatures();
 
         /// @brief Sets the interval at which the temperature is sent
         /// @param interval in milliseconds
