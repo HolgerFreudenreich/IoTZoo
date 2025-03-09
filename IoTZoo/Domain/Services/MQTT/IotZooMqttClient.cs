@@ -327,7 +327,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
          var splitted = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Topic.Split('/');
          topicEntry.NamespaceName = splitted[0];
 
-         topicEntry.Payload = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.ConvertPayloadToString().Trim();
+         topicEntry.Payload = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.ConvertPayloadToString();
          topicEntry.QualityOfServiceLevel =
              (int)mqttApplicationMessageReceivedEventArgs.ApplicationMessage.QualityOfServiceLevel;
          topicEntry.Retain = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Retain;

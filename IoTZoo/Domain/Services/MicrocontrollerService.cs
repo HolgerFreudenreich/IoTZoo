@@ -409,28 +409,36 @@ public class MicrocontrollerService : DataServiceBase,
       else if (topicEntry.Topic.EndsWith(TopicConstants.DEVICE_CONFIG))
       {
          string payload = GetPayload(mqttApplicationMessageReceivedEventArgs);
-         List<ConnectedDevice>? connectedDevices = null;
-         try
+         if (null != payload)
          {
-            connectedDevices = JsonSerializer.Deserialize<List<ConnectedDevice>>(payload);
-         }
-         catch (Exception ex)
-         {
-            Logger.LogError(ex, ex.GetBaseException().Message);
-         }
-         if (connectedDevices != null)
-         {
-            this.ConnectedDevicesList.Clear();
-            this.ConnectedDevicesList.AddRange(connectedDevices);
-            OnReceivedDeviceConfig?.Invoke(connectedDevices);
+            List<ConnectedDevice>? connectedDevices = null;
+            try
+            {
+               connectedDevices = JsonSerializer.Deserialize<List<ConnectedDevice>>(payload);
+            }
+            catch (Exception ex)
+            {
+               Logger.LogError(ex, ex.GetBaseException().Message);
+            }
+
+            if (connectedDevices != null)
+            {
+               this.ConnectedDevicesList.Clear();
+               this.ConnectedDevicesList.AddRange(connectedDevices);
+               OnReceivedDeviceConfig?.Invoke(connectedDevices);
+            }
          }
       }
    }
 
    private string GetPayload(MqttApplicationMessageReceivedEventArgs mqttApplicationMessageReceivedEventArgs)
    {
-      string payload = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.ConvertPayloadToString().Trim();
-      return payload;
+      string? payload = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.ConvertPayloadToString();
+      if (null == payload)
+      {
+         return string.Empty;
+      }
+      return payload.Trim();
    }
 
    /// <summary>
