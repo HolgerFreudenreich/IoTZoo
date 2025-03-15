@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // (c) 2025 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
-// Provides an interface to configure things/devices on the microcontroller (mapping to the correct gpio pins, etc). 
+// Provides an interface to configure things/devices on the microcontroller (mapping to the correct gpio pins, etc).
 // --------------------------------------------------------------------------------------------------------------------
 
 using Dapper;
