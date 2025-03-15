@@ -320,16 +320,13 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
             return;
          }
 
-
-
          TopicEntry topicEntry = new TopicEntry();
 
          var splitted = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Topic.Split('/');
          topicEntry.NamespaceName = splitted[0];
 
          topicEntry.Payload = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.ConvertPayloadToString();
-         topicEntry.QualityOfServiceLevel =
-             (int)mqttApplicationMessageReceivedEventArgs.ApplicationMessage.QualityOfServiceLevel;
+         topicEntry.QualityOfServiceLevel = (int)mqttApplicationMessageReceivedEventArgs.ApplicationMessage.QualityOfServiceLevel;
          topicEntry.Retain = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Retain;
          topicEntry.DateOfReceipt = DateTime.UtcNow;
 
