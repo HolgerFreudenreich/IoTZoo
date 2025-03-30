@@ -12,16 +12,16 @@
          <MudSwitch T="bool"
                     Value="@MqttBrokerSettings.UseInternalMqttBroker"
                     ValueChanged="UseInternalMqttBrokerChanged"
-                    Label="Use internal MQTT Broker"
+                    Label="Start internal MQTT Broker"
                     Color="Color.Primary" />
          <br />
          <MudStack Row=true>
-            <MudTextField ReadOnly="@MqttBrokerSettings.UseInternalMqttBroker"
-                          Label="MQTT Broker IPv4 Address"
+            <MudTextField ReadOnly="false"
+                          Label="MQTT Broker DNS name or IPv4 Address"
                           @bind-Value="MqttBrokerSettings.Ip"
                           Variant="@Variant.Text" Clearable>
             </MudTextField>
-            <MudTextField ReadOnly="@MqttBrokerSettings.UseInternalMqttBroker"
+            <MudTextField ReadOnly="false"
                           Label="MQTT Broker Port"
                           Format="D"
                           HelperText="Example: 1883"

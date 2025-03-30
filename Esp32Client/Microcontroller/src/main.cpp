@@ -145,7 +145,7 @@ std::vector<Switch> switches{};
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.1.4";
+String firmwareVersion = "0.1.5";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -199,7 +199,7 @@ String identifyBoard()
 
 #ifdef USE_DS18B20
 #include "DS18B20.hpp"
-IotZoo::DS18B20* ds18B20SensorManager = NULL;
+IotZoo::DS18B20* ds18B20SensorManager = nullptr;
 #endif
 
 #ifdef USE_MQTT
@@ -1019,7 +1019,10 @@ void makeInstanceConfiguredDevices()
                             resolution = 11;
                         }
                     }
-                    ds18B20SensorManager->setup(datPin, resolution, transmissionInterval);
+                    if (nullptr != ds18B20SensorManager)
+                    {
+                        ds18B20SensorManager->setup(datPin, resolution, transmissionInterval);
+                    }
 
                     Serial.println("DS18B20 sensors configuration loaded! Dat Pin is " + String(datPin) + ", Resolution: " + String(resolution) +
                                    ", Transmission interval: " + String(transmissionInterval));
@@ -1612,6 +1615,10 @@ void publishViaMqtt(const String& topicName, const String& payload)
 #ifdef USE_DS18B20
 void loopDS18B20()
 {
+    if (nullptr == ds18B20SensorManager)
+    {
+        return;
+    }
     if (millis() - ds18B20SensorManager->getLastPublishedTemperatureMillis() < ds18B20SensorManager->getInterval())
     {
         return;
@@ -1619,7 +1626,7 @@ void loopDS18B20()
 
     ds18B20SensorManager->setLastPublishedTemperatureMillis(millis());
 
-    if (NULL != ds18B20SensorManager)
+    if (nullptr != ds18B20SensorManager)
     {
         std::vector<float> temperatures = ds18B20SensorManager->requestTemperatures();
         Serial.println("Count of Temperature sensors: " + String(temperatures.size()));
@@ -1636,7 +1643,7 @@ void loopDS18B20()
                 mqttClient->publish(topic, String(temperatureCelsius, 1));
             }
             indexTemperatureSensor++;
-        }       
+        }
     }
 }
 
@@ -1757,7 +1764,7 @@ void registerTopics()
 #endif
 
 #ifdef USE_DS18B20
-    if (NULL != ds18B20SensorManager)
+    if (nullptr != ds18B20SensorManager)
     {
         Serial.println("Register temperature sensors.");
         // std::list<float> temperatures = ds18B20SensorManager->requestTemperatures();
