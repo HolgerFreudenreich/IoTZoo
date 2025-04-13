@@ -1377,25 +1377,35 @@ namespace UnitTests
       [Fact]
       public async Task CSharpScriptEvaluateTest1()
       {
-         ScriptOptions scriptOptions = ScriptOptions.Default.AddReferences(typeof(JsonSerializer).Assembly)
-             .AddReferences(typeof(Color).Assembly).AddImports("System.Text.Json").AddImports("MudBlazor");
+         for (int i = 0; i < 1000000; i++)
+         {
+            var modifyByScript = new ScriptDataIn { IndexLed = 1, Temperature = 2.3 };
+            var result1 =
+                await CSharpScript.EvaluateAsync<string>(
+                    "IndexLed = IndexLed + 1; Temperature = 33.344;return \"super\";", null, modifyByScript);
+            Assert.True(result1 == "super");
+            Assert.True(modifyByScript.Temperature == 33.344);
 
-         string baseCode = File.ReadAllText("CSharpScriptTemperatureToColor.csx");
+            ScriptOptions scriptOptions = ScriptOptions.Default.AddReferences(typeof(JsonSerializer).Assembly)
+                .AddReferences(typeof(Color).Assembly).AddImports("System.Text.Json").AddImports("MudBlazor");
 
-         double t = -12.34;
-         string sourceCode = baseCode +
-                             $"{Environment.NewLine}double temperature = {t.ToString(CultureInfo.InvariantCulture)};{Environment.NewLine}return new HolgerDemo().TemperatureToColor(temperature);";
+            string baseCode = File.ReadAllText("CSharpScriptTemperatureToColor.csx");
 
-         var result1 = await CSharpScript.EvaluateAsync(sourceCode, scriptOptions);
-         Assert.True(result1.ToString() == "#FFFFFF");
+            double t = -12.34;
+            string sourceCode = baseCode +
+                                $"{Environment.NewLine}double temperature = {t.ToString(CultureInfo.InvariantCulture)};{Environment.NewLine}return new HolgerDemo().TemperatureToColor(temperature);";
 
-         t = 12.34;
-         sourceCode = baseCode +
-                      $"{Environment.NewLine}double temperature = {t.ToString(CultureInfo.InvariantCulture)};{Environment.NewLine}return TemperatureToColor(temperature);";
+            var result1a = await CSharpScript.EvaluateAsync(sourceCode, scriptOptions);
+            Assert.True(result1a.ToString() == "#FFFFFF");
 
-         var result2 = await CSharpScript.EvaluateAsync(sourceCode, scriptOptions);
+            t = 12.34;
+            sourceCode = baseCode +
+                         $"{Environment.NewLine}double temperature = {t.ToString(CultureInfo.InvariantCulture)};{Environment.NewLine}return TemperatureToColor(temperature);";
 
-         Assert.True(result2.ToString() == "#FF9800");
+            var result2 = await CSharpScript.EvaluateAsync(sourceCode, scriptOptions);
+
+            Assert.True(result2.ToString() == "#FF9800");
+         }
       }
 
       [Fact]
