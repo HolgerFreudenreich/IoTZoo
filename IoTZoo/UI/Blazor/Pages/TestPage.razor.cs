@@ -15,6 +15,7 @@ using Domain.Pocos;
 using Domain.Services.RuleEngine;
 using Infrastructure;
 using Microsoft.AspNetCore.Components;
+using System.Diagnostics;
 
 namespace IotZoo.Pages
 {
@@ -89,19 +90,41 @@ namespace IotZoo.Pages
          }
       }
 
+      protected void RestartLinux()
+      {
+         try
+         {
+            var startInfo = new ProcessStartInfo
+            {
+               FileName = "/bin/bash",
+               Arguments = "-c \"sudo reboot\"",
+               UseShellExecute = false,
+               RedirectStandardOutput = true,
+               RedirectStandardError = true
+            };
+
+            Process process = new Process { StartInfo = startInfo };
+            process.Start();
+         }
+         catch (Exception ex)
+         {
+            Snackbar.Add(ex.GetBaseException().Message, MudBlazor.Severity.Error);
+         }
+      }
+
       protected void TestButtonClicked()
       {
          ip = Tools.GetLocalIpAddress();
 
          TimeZoneInfo localTimeZone = TimeZoneInfo.Local;
-   
+
          // Get the adjustment rules for the current year
          var adjustmentRule = localTimeZone.GetAdjustmentRules().FirstOrDefault();
          if (adjustmentRule != null)
          {
             TimeZoneInfo.TransitionTime startTransitionTime = adjustmentRule.DaylightTransitionStart;
             string summerTimeStart = $"Summertime Start: {startTransitionTime}";
-            
+
             TimeZoneInfo.TransitionTime endTransitionTime = adjustmentRule.DaylightTransitionEnd;
          }
 
@@ -117,4 +140,6 @@ namespace IotZoo.Pages
 
       protected string ip = string.Empty;
    }
+
+
 }

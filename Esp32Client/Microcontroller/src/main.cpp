@@ -654,7 +654,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 
 #ifdef USE_WS2818
     // It seems that the library only supports one light strip!
-    if (NULL != ws2812)
+    if (nullptr != ws2812)
     {
         ws2812->onMqttConnectionEstablished();
     }
@@ -1779,7 +1779,10 @@ void registerTopics()
 #endif
 
 #ifdef USE_WS2818
-    ws2812->addMqttTopicsToRegister(&topics);
+    if (nullptr != ws2812)
+    {
+        ws2812->addMqttTopicsToRegister(&topics);
+    }
 #endif
 
 #ifdef USE_TRAFFIC_LIGHT_LEDS
