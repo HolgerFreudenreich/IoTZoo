@@ -185,7 +185,7 @@ namespace IotZoo
     /// @param topics
     void WS2818::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/neo/0/setPixelColorRgb",
+        topics->push_back(*new Topic(getBaseTopic() + "/neo/0/setPixelColorRGB",
                                      "{\"r\": 0, \"g\": 125, \"b\": 0, \"index\": 15, \"length\": 1, \"brightness\": 35}",
                                      MessageDirection::IotZooClientOutbound));
 
