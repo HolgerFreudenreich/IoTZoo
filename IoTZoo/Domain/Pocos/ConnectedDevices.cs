@@ -112,6 +112,38 @@ public static class ConnectedDevices
       };
    }
 
+   public static ConnectedDevice FromHT1621()
+   {
+      return new ConnectedDevice
+      {
+         IsEnabled = true,
+         DeviceType = "HT1621",
+         Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "27",
+                                    PinName               = "CS_PIN"
+                                 },
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "26",
+                                    PinName               = "WS_PIN"
+                                 },
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "25",
+                                    PinName               = "DATA_PIN"
+                                 },                                 
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "33",
+                                    PinName               = "BACKLIGHT_PIN"
+                                 }
+                              }
+      };
+   }
+
    public static ConnectedDevice FromLedTrafficLights()
    {
       return new ConnectedDevice

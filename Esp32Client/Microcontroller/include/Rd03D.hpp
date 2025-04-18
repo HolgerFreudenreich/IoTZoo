@@ -101,7 +101,7 @@ namespace IotZoo
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
 
         void loop();
     };

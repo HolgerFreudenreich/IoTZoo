@@ -24,7 +24,7 @@ namespace IotZoo
       public:
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
         void AddDevice(ButtonMatrix* const buttonMatrix);
 
