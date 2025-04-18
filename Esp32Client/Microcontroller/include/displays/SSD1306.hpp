@@ -32,12 +32,12 @@ namespace IotZoo
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
         /// @brief Subscribe to Topics
-        virtual void onMqttConnectionEstablished() override;
+        void onMqttConnectionEstablished() override;
 
-        virtual void onIotZooClientUnavailable() override;
+        void onIotZooClientUnavailable() override;
 
         /// @brief Prints the text <@see text> in lineNumber <@lineNumber>.
         /// @param lineNumber
