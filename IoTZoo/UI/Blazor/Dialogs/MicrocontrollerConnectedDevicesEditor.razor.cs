@@ -327,6 +327,24 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
       }
    }
 
+   protected async Task AddHT1621Display()
+   {
+      try
+      {
+         Snackbar.Add("Adding HT1621 6 digit LED display", Severity.Info);
+         var device = ConnectedDevices.FromHT1621();
+         MicrocontrollerService.AddConnectedDevice(this.Microcontroller, device);
+
+         Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
+         await InvokeAsync(StateHasChanged);
+      }
+      catch (Exception ex)
+      {
+         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+         Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
+      }
+   }
+
    protected async Task AddHW040RotaryEncoder()
    {
       try

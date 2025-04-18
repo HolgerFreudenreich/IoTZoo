@@ -15,7 +15,6 @@ using Domain.Pocos;
 using Domain.Services.RuleEngine;
 using Infrastructure;
 using Microsoft.AspNetCore.Components;
-using System.Diagnostics;
 
 namespace IotZoo.Pages
 {
@@ -83,28 +82,6 @@ namespace IotZoo.Pages
             var result = CalculationService.Calculate(parsedExpression);
             var diff = DateTime.UtcNow - startDateTime;
             Snackbar.Add($"Expression: {Expression} → Parsed Expression: {parsedExpression} Result: {result} → Duration: {diff.TotalMilliseconds.ToString("N1")} ms");
-         }
-         catch (Exception ex)
-         {
-            Snackbar.Add(ex.GetBaseException().Message, MudBlazor.Severity.Error);
-         }
-      }
-
-      protected void RestartLinux()
-      {
-         try
-         {
-            var startInfo = new ProcessStartInfo
-            {
-               FileName = "/bin/bash",
-               Arguments = "-c \"sudo reboot\"",
-               UseShellExecute = false,
-               RedirectStandardOutput = true,
-               RedirectStandardError = true
-            };
-
-            Process process = new Process { StartInfo = startInfo };
-            process.Start();
          }
          catch (Exception ex)
          {

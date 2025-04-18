@@ -118,6 +118,11 @@ OledSsd1306Display* oled1306 = nullptr;
 LcdDisplay* lcdDisplay = nullptr;
 #endif
 
+#ifdef USE_HT1621
+#include "./displays/HT1621.hpp"
+IotZoo::HT1621* ht1621 = nullptr;
+#endif
+
 #ifdef USE_KEYPAD
 #include "ButtonMatrixHandling.hpp"
 using namespace IotZoo;
@@ -145,7 +150,7 @@ std::vector<Switch> switches{};
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.1.5";
+String firmwareVersion = "0.1.6";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -208,12 +213,12 @@ IotZoo::DS18B20* ds18B20SensorManager = nullptr;
 
 #ifdef USE_MQTT
 #include "MqttClient.hpp"
-MqttClient* mqttClient = NULL;
+MqttClient* mqttClient = nullptr;
 #endif
 
 #ifdef USE_MQTT2
 #include "MqttClient2.hpp"
-MqttClient* mqttClient = NULL;
+MqttClient* mqttClient = nullptr;
 #endif
 
 #ifdef USE_TM1637_4
@@ -428,6 +433,11 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
     jsonObjectSupportedDevices["TM1638LedAndKey"] = true;
 #else
     jsonObjectSupportedDevices["TM1638LedAndKey"] = false;
+#endif
+#ifdef USE_HT1621
+    jsonObjectSupportedDevices["HT1621"] = true;
+#else
+    jsonObjectSupportedDevices["HT1621"] = false;
 #endif
 #ifdef USE_LCD_160X
     jsonObjectSupportedDevices["LCD160x"] = true;
@@ -646,7 +656,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     mqttClient->subscribe(getBaseTopic() + "/alive_ack", onAliveAck);
 
 #ifdef USE_LCD_160X
-    if (NULL != lcdDisplay)
+    if (nullptr != lcdDisplay)
     {
         lcdDisplay->onMqttConnectionEstablished();
     }
@@ -670,21 +680,21 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 #endif
 
 #ifdef USE_STEPPER_MOTOR
-    if (NULL != stepperMotor)
+    if (nullptr != stepperMotor)
     {
         stepperMotor->onMqttConnectionEstablished();
     }
 #endif
 
 #ifdef USE_OLED_SSD1306
-    if (NULL != oled1306)
+    if (nullptr != oled1306)
     {
         oled1306->onMqttConnectionEstablished();
     }
 #endif
 
 #ifdef USE_STEPPER_MOTOR
-    if (NULL != stepperMotor)
+    if (nullptr != stepperMotor)
     {
         stepperMotor->onMqttConnectionEstablished();
     }
@@ -695,7 +705,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 #endif
 
 #ifdef USE_BUZZER
-    if (NULL != buzzer)
+    if (nullptr != buzzer)
     {
         buzzer->onMqttConnectionEstablished();
     }
@@ -710,9 +720,16 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 #endif
 
 #ifdef USE_LED_AND_KEY
-    if (NULL != tm1638)
+    if (nullptr != tm1638)
     {
         tm1638->onMqttConnectionEstablished();
+    }
+#endif
+
+#ifdef USE_HT1621
+    if (nullptr != ht1621)
+    {
+        ht1621->onMqttConnectionEstablished();
     }
 #endif
 
@@ -840,6 +857,20 @@ void makeInstanceConfiguredDevices()
                     Serial.println("Buzzer initialized.");
                 }
 #endif // USE_BUZZER
+
+#ifdef USE_HT1621
+                if (deviceType == "HT1621")
+                {
+                    uint8_t csPin        = arrPins[0]["MicrocontrollerGpoPin"];
+                    uint8_t wsPin        = arrPins[1]["MicrocontrollerGpoPin"];
+                    uint8_t dataPin      = arrPins[2]["MicrocontrollerGpoPin"];
+                    uint8_t backlightPin = arrPins[3]["MicrocontrollerGpoPin"];
+
+                    ht1621 = new IotZoo::HT1621(csPin, wsPin, dataPin, backlightPin, deviceIndex, mqttClient, getBaseTopic());
+
+                    Serial.println("HT1621 6 digit LED Display initialized.");
+                }
+#endif // USE_HT1621
 
 #ifdef USE_SWITCH
                 if (deviceType == "Switch")
@@ -1392,7 +1423,7 @@ void connectToWiFi()
     while (WiFi.status() != WL_CONNECTED)
     {
         Serial.print("+");
-        delay(200);
+        delay(250);
     }
 
     WiFi.setAutoReconnect(true);
@@ -1737,6 +1768,13 @@ void registerTopics()
     tm1637_6Handling.addMqttTopicsToRegister(&topics);
 #endif
 
+#ifdef USE_HT1621
+    if (nullptr != ht1621)
+    {
+        ht1621->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
 #ifdef USE_HW040
     hw040Handling.addMqttTopicsToRegister(&topics);
 #endif
@@ -1746,14 +1784,14 @@ void registerTopics()
 #endif
 
 #ifdef USE_RD_03D
-    if (NULL != rd03d)
+    if (nullptr != rd03d)
     {
         rd03d->addMqttTopicsToRegister(&topics);
     }
 #endif // USE_RD_03D
 
 #ifdef USE_LED_AND_KEY
-    if (NULL != tm1638)
+    if (nullptr != tm1638)
     {
         tm1638->addMqttTopicsToRegister(&topics);
     }
@@ -1815,28 +1853,35 @@ void onIotZooClientUnavailable()
 #endif
 
 #ifdef USE_LED_AND_KEY
-    if (NULL != tm1638)
+    if (nullptr != tm1638)
     {
         tm1638->onIotZooClientUnavailable();
     }
 #endif // USE_LED_AND_KEY
 
+#ifdef USE_HT1621
+    if (nullptr != ht1621)
+    {
+        ht1621->onIotZooClientUnavailable();
+    }
+#endif
+
 #ifdef USE_OLED_SSD1306
-    if (NULL != oled1306)
+    if (nullptr != oled1306)
     {
         oled1306->onIotZooClientUnavailable();
     }
 #endif
 
 #ifdef USE_LCD_160X
-    if (NULL != lcdDisplay)
+    if (nullptr != lcdDisplay)
     {
         lcdDisplay->onIotZooClientUnavailable();
     }
 #endif
 
 #ifdef USE_STEPPER_MOTOR
-    if (NULL != stepperMotor)
+    if (nullptr != stepperMotor)
     {
         stepperMotor->onIotZooClientUnavailable();
     }

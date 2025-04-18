@@ -57,13 +57,13 @@ namespace IotZoo
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
         /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is
         /// a prerequisite for a subscription.
         /// @param mqttClient
         /// @param baseTopic
-        virtual void onMqttConnectionEstablished() override;
+        void onMqttConnectionEstablished() override;
 
         uint8_t getPin() const;
 
