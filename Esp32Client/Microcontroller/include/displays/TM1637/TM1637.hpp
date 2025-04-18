@@ -34,7 +34,7 @@ namespace IotZoo
 
         virtual ~TM1637();
 
-        virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
 
         void begin()
         {

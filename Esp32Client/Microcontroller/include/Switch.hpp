@@ -34,7 +34,7 @@ namespace IotZoo
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
 
         uint8_t getPin() const;
 
@@ -42,7 +42,7 @@ namespace IotZoo
 
         bool hasStateChanged();
 
-        virtual void loop() override;
+        void loop() override;
     };
 }
 
