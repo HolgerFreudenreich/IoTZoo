@@ -180,6 +180,29 @@
 <MudDivider />
 <br />
 <br />
+<MudText Typo="Typo.h6">HT1621 6 digit LCD display</MudText>
+<br />
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/ht1621/0/number"
+                     Description="Floating-point number to send to the display."
+                     ExamplePayload="123.456">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/ht1621/0/temperature"
+                     Description="Floating-point number to send to the display. °C is automatically attached."
+                     ExamplePayload="12.6">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/ht1621/0/batteryLevel"
+                     Description="Indicates battery level from 0 (empty) to 3 (full)."
+                     ExamplePayload="2">
+</KnownTopicComponent>
+<br />
+<br />
+<MudDivider />
+<br />
+<br />
 <MudText Typo="Typo.h6">SD1306 oled display</MudText>
 <br />
 <br />
