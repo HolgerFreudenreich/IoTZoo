@@ -101,7 +101,6 @@ namespace IotZoo.Pages
          {
             TimeZoneInfo.TransitionTime startTransitionTime = adjustmentRule.DaylightTransitionStart;
             string summerTimeStart = $"Summertime Start: {startTransitionTime}";
-
             TimeZoneInfo.TransitionTime endTransitionTime = adjustmentRule.DaylightTransitionEnd;
          }
 
@@ -117,6 +116,4 @@ namespace IotZoo.Pages
 
       protected string ip = string.Empty;
    }
-
-
 }
