@@ -63,11 +63,11 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
 
    private string selectedTopic = string.Empty;
 
-   protected JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions
-   {
-      WriteIndented = true,
-      Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-   };
+    protected JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
    protected override async Task Client_Connected(MqttClientConnectedEventArgs args)
    {
