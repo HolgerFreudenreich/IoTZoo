@@ -60,34 +60,6 @@ namespace IotZoo
         return json;
     }
 
-    /// @brief Sets the GPIO Pin for one wire DS18B20 temperature sensor.
-    /// @param gpioValue
-    void Settings::setGpioPinFlagValueTM1637_4_CLK(int deviceIndex, long gpioValue)
-    {
-        preferences.begin(NamespaceNameConfig, false);
-        String key = "gpio_tm1637_4_clk" + String(deviceIndex);
-        preferences.putLong(key.c_str(), gpioValue);
-        Serial.println("TM1637_4 ( " + String(deviceIndex) + ") CLK Pin is is connected to GPIO with value " + String(gpioValue) + ". This is Pin " +
-                       String(log2(gpioValue)) + ".");
-        preferences.end();
-    }
-
-    /// @brief Gets the GPIO Pin DIO for TM1637 4 digit display with index.
-    /// @param index Index of the display.
-    /// @returns stored value from preferences. If not found in preferences than 15.
-    int Settings::getGpioTM1637_4_DIO(int index)
-    {
-        preferences.begin(NamespaceNameConfig, true);
-        String key       = "gpio_tm1637_4_dio" + String(index);
-        long   gpioValue = preferences.getLong(key.c_str(),
-                                               (long)(index * 2 + 17)); // default value if not found in preferences
-        preferences.end();
-
-        Serial.println("TM1637_4 ( " + String(index) + ") DIO Pin is mapped to GPIO " + String((int)log2(gpioValue)));
-
-        return log2(gpioValue);
-    }
-
     // gets the interval for sending alive message via mqtt.
     long Settings::getAliveIntervalMillis()
     {

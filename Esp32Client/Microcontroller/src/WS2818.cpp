@@ -30,7 +30,7 @@ namespace IotZoo
     {
         Serial.println("Destructor WS2818");
         delete pixels;
-        pixels = NULL;
+        pixels = nullptr;
     }
 
     void WS2818::setup()
