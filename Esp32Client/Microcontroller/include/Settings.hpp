@@ -76,15 +76,6 @@ namespace IotZoo
 
     String loadConfiguration();
 
-    /// @brief Sets the GPIO Pin for one wire DS18B20 temperature sensor.
-    /// @param gpioValue
-    void setGpioPinFlagValueTM1637_4_CLK(int deviceIndex, long gpioValue);
-
-    /// @brief Gets the GPIO Pin DIO for TM1637 4 digit display with index.
-    /// @param index Index of the display.
-    /// @returns stored value from preferences. If not found in preferences than 15.
-    int getGpioTM1637_4_DIO(int index);
-
     // gets the interval for sending alive message via mqtt.
     long getAliveIntervalMillis();
 

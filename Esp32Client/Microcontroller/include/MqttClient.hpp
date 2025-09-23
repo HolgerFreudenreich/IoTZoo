@@ -15,54 +15,50 @@
 
 #include "Defines.hpp"
 #include "EspmqttClient.h"
+
 #include <Arduino.h>
 
 namespace IotZoo
 {
     class MqttClient
     {
-    protected:
-        EspMQTTClient *mqttClient = nullptr; // Extends the PubSubClient Library, but requires more memory. Has nice debugging messages.
+      protected:
+        EspMQTTClient* mqttClient = nullptr; // Extends the PubSubClient Library, but requires more memory. Has nice debugging messages.
 
-    public:
-        MqttClient(const char *mqttClientName,
-                   const char *wifiSsid,
-                   const char *wifiPassword,
-                   const char *mqttServerIp,
-                   const char *mqttUsername = nullptr,
-                   const char *mqttPassword = nullptr,
-                   const short mqttServerPort = 1883,
-                   int bufferSize = 16384);
+      public:
+        MqttClient(const char* mqttClientName, const char* wifiSsid, const char* wifiPassword, const char* mqttServerIp,
+                   const char* mqttUsername = nullptr, const char* mqttPassword = nullptr, const short mqttServerPort = 1883, int bufferSize = 16384);
 
         virtual ~MqttClient();
 
-        void enableLastWillMessage(const String &topic, const String &message, const bool retain = false); // Must be set before the first loop() call.
+        void enableLastWillMessage(const String& topic, const String& message,
+                                   const bool retain = false); // Must be set before the first loop() call.
 
-        bool publish(const String &topic, const String &payload, bool retain = false);
+        bool publish(const String& topic, const String& payload, bool retain = false);
 
         /// @brief
         /// @param topic
         /// @param messageReceivedCallback
         /// @param qos // 0 or 1 only
         /// @return
-        bool subscribe(const String &topic, MessageReceivedCallback messageReceivedCallback, uint8_t qos = 0);
+        bool subscribe(const String& topic, MessageReceivedCallback messageReceivedCallback, uint8_t qos = 0);
 
-        bool subscribe(const String &topic, MessageReceivedCallbackWithTopic messageReceivedCallback, uint8_t qos = 0);
+        bool subscribe(const String& topic, MessageReceivedCallbackWithTopic messageReceivedCallback, uint8_t qos = 0);
 
-        bool unsubscribe(const String &topic);
+        bool unsubscribe(const String& topic);
 
         unsigned int getConnectionEstablishedCount() const;
 
         bool isConnected() const;
 
-        void removeRetainedMessageFromBroker(const String &topic);
+        void removeRetainedMessageFromBroker(const String& topic);
 
         /// Main loop, to call at each sketch loop()
         void loop();
 
-    protected:
+      protected:
         bool printSuccess(bool ok);
     };
-}
+} // namespace IotZoo
 #endif
 #endif
