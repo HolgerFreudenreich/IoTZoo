@@ -14,7 +14,6 @@ using Domain.Interfaces;
 using Domain.Interfaces.Crud;
 using Domain.Pocos;
 using HueApi;
-using HueApi.ColorConverters;
 using HueApi.ColorConverters.Original.Extensions;
 using HueApi.Models;
 using HueApi.Models.Requests;
