@@ -2013,7 +2013,7 @@ void loop()
 #endif
 
 #ifdef USE_STEPPER_MOTOR
-    if (NULL != stepperMotor)
+    if (nullptr != stepperMotor)
     {
         stepperMotor->loop();
     }
@@ -2067,7 +2067,7 @@ void loop()
 #endif
 
 #ifdef USE_RD_03D
-    if (NULL != rd03d)
+    if (nullptr != rd03d)
     {
         rd03d->loop();
     }

@@ -169,7 +169,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
          // publish <ProjectName>/INIT topic.
          foreach (var project in projects)
          {
-            string topic = $"{project.ProjectName}/{TopicConstants.INIT}";
+            string topic = $"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.INIT}";
             //await KnownTopicsDatabaseService.Save(new KnownTopic
             //{
             //   ProjectName = project.ProjectName,

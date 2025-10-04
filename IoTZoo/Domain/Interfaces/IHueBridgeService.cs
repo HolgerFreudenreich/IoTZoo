@@ -28,8 +28,6 @@ public interface IHueBridgeService
 
    Task TurnOnLight(Light light);
 
-   Task TurnOn(Guid lightGuid);
-
    /// <summary>
    /// Turns off a light or a plug.
    /// </summary>
@@ -37,8 +35,6 @@ public interface IHueBridgeService
    Task TurnOffLight(int lightId);
 
    Task TurnOffLight(Light light);
-
-   Task TurnOff(Guid lightGuid);
 
    /// <summary>
    /// TurnOn or TurnOf depending on the current state.

@@ -23,9 +23,9 @@ namespace IotZoo
     {
         Serial.println("Destructor DS18B20");
         delete dallasTemperatureSensors;
-        dallasTemperatureSensors = NULL;
+        dallasTemperatureSensors = nullptr;
         delete oneWire;
-        oneWire = NULL;
+        oneWire = nullptr;
     }
 
     void DS18B20::printDeviceAddress(DeviceAddress deviceAddress)
