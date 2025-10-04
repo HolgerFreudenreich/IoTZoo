@@ -26,7 +26,7 @@ namespace IotZoo
     TM1638::~TM1638()
     {
         delete tm1638plus;
-        tm1638plus = NULL;
+        tm1638plus = nullptr;
     }
 
     void TM1638::setServerDownText(const String& serverDownText)

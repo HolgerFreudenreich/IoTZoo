@@ -96,8 +96,7 @@ public class RulesPageBase : PageBase
    protected async Task ExecuteRule(Rule rule)
    {
       var applicationMessage = new MqttApplicationMessageBuilder()
-                               .WithTopic(rule.TargetTopic)
-                               .WithPayload(rule.TargetPayload)
+                               .WithTopic(rule.SourceTopicFullQualified)                   
                                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
                                .Build();
 

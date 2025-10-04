@@ -23,8 +23,8 @@ namespace IotZoo
     class DS18B20
     {
       protected:
-        OneWire*           oneWire;
-        DallasTemperature* dallasTemperatureSensors;
+        OneWire*           oneWire = nullptr;
+        DallasTemperature* dallasTemperatureSensors = nullptr;
 
         int numberOfDevices = 0;
         int interval        = 0; // 0 = ASAP

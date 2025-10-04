@@ -138,8 +138,8 @@ namespace IotZoo
     NimBLEUUID                  HeartRateSensor::serviceUUID           = (NimBLEUUID((uint16_t)0x180D));
     bool                        HeartRateSensor::connected             = false;
     bool                        HeartRateSensor::doConnect             = false;
-    NimBLEAddress*              HeartRateSensor::pServerAddress        = NULL;
-    NimBLERemoteCharacteristic* HeartRateSensor::pRemoteCharacteristic = NULL;
+    NimBLEAddress*              HeartRateSensor::pServerAddress        = nullptr;
+    NimBLERemoteCharacteristic* HeartRateSensor::pRemoteCharacteristic = nullptr;
 } // namespace IotZoo
 
 #endif // USE_BLE_HEART_RATE_SENSOR
