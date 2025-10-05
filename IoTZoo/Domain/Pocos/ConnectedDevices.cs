@@ -419,7 +419,29 @@ public static class ConnectedDevices
       };
    }
 
-   public static ConnectedDevice FromSwitch()
+    public static ConnectedDevice FromGps()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "GPS",
+            Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "22",
+                                    PinName               = "RX"
+                                 },
+                                  new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "23",
+                                    PinName               = "TX"
+                                 }
+                              }
+        };
+    }
+
+    public static ConnectedDevice FromSwitch()
    {
       return new ConnectedDevice
       {

@@ -23,6 +23,7 @@ namespace IotZoo
 #define USE_DS18B20            // Temperatur Sensor | Default Pins: DAT: Pin 23
 
 #define USE_BUTTON             // briefly on, then off again after releasing
+#define USE_GPS
 #define USE_SWITCH             // permanently off or on
 
 #define USE_KEYPAD             // 4 x 4 Button Matrix | Default Pins: R1: 26, R2: 25, R3: 33, R4: 32, C1: 27, C2: 14, C3: 12, C4: 13

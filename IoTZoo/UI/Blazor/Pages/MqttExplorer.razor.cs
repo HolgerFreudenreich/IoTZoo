@@ -201,6 +201,10 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
     {
         try
         {
+            if (null == data)
+            {
+                return string.Empty;
+            }
             if (data.StartsWith("{"))
             {
                 using var jsonDocument = JsonDocument.Parse(data);
