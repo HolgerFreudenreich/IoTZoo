@@ -75,7 +75,7 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
       {
          Snackbar.Add("Adding Buzzer configuration to the microcontroller...", Severity.Info);
          MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromBuzzer());
-         Snackbar.Add("Ensure that the buzzer is correctly wired! Optionally you can connect an LED.", Severity.Info);
+         Snackbar.Add("Ensure that the buzzer is correctly wired!", Severity.Info);
          await InvokeAsync(StateHasChanged);
       }
       catch (Exception ex)
@@ -85,7 +85,23 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
       }
    }
 
-   protected async Task AddSwitch()
+    protected async Task AddGps()
+    {
+        try
+        {
+            Snackbar.Add("Adding Gps configuration to the microcontroller...", Severity.Info);
+            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromGps());
+            Snackbar.Add("Ensure that the Gps Device is correctly wired!", Severity.Info);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
+        }
+    }
+
+    protected async Task AddSwitch()
    {
       try
       {

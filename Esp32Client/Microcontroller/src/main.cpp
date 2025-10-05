@@ -142,6 +142,11 @@ IotZoo::ButtonMatrixHandling buttonMatrixHandling;
 ButtonHandling buttonHandling;
 #endif
 
+#ifdef USE_GPS
+#include "Gps.hpp"
+Gps* gps = nullptr;
+#endif
+
 #ifdef USE_SWITCH
 #include "Switch.hpp"
 std::vector<Switch> switches{};
@@ -150,7 +155,7 @@ std::vector<Switch> switches{};
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.1.6";
+String firmwareVersion = "0.1.7";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -408,6 +413,11 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
     jsonObjectSupportedDevices["BUTTON"] = true;
 #else
     jsonObjectSupportedDevices["BUTTON"] = false;
+#endif
+#ifdef USE_GPS
+    jsonObjectSupportedDevices["GPS"] = true;
+#else
+    jsonObjectSupportedDevices["GPS"] = false;
 #endif
 #ifdef USE_BUZZER
     jsonObjectSupportedDevices["BUZZER"] = true;
@@ -704,6 +714,13 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     buttonHandling.onMqttConnectionEstablished();
 #endif
 
+#ifdef USE_GPS
+    if (nullptr != gps)
+    {
+        gps->onMqttConnectionEstablished();
+    }
+#endif
+
 #ifdef USE_BUZZER
     if (nullptr != buzzer)
     {
@@ -843,6 +860,17 @@ void makeInstanceConfiguredDevices()
                     buttonHandling.addDevice(mqttClient, getBaseTopic(), deviceIndex, buttonPin);
 
                     Serial.println("Button initialized.");
+                }
+#endif // USE_BUTTON
+
+#ifdef USE_GPS
+                if (deviceType == "GPS")
+                {
+                    Serial.println("GPS is in the configuration.");
+                    int pinRx = arrPins[0]["MicrocontrollerGpoPin"];
+                    int pinTx = arrPins[1]["MicrocontrollerGpoPin"];
+
+                    gps = new Gps(deviceIndex, mqttClient, getBaseTopic(), pinRx, pinTx);                  
                 }
 #endif // USE_BUTTON
 
@@ -1932,6 +1960,13 @@ void loop()
 
 #ifdef USE_BUTTON
     buttonHandling.loop();
+#endif
+
+#ifdef USE_GPS
+    if (nullptr != gps)
+    {
+        gps->loop();
+    }
 #endif
 
 #ifdef USE_SWITCH

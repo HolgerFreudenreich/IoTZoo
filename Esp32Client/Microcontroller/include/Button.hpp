@@ -31,7 +31,7 @@ namespace IotZoo
       public:
         Button(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pin);
 
-        virtual ~Button();
+        ~Button() override;
 
         /// @brief interrupt is triggered.
         void IRAM_ATTR onInterruptTriggered()
@@ -69,7 +69,7 @@ namespace IotZoo
 
         bool hasStateChanged();
 
-        virtual void loop() override;
+        void loop() override;
     };
 } // namespace IotZoo
 

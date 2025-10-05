@@ -16,6 +16,7 @@ using Domain.Interfaces.Crud;
 using Domain.Interfaces.MQTT;
 using Domain.Pocos;
 using Domain.Services.Timer;
+using Microsoft.Extensions.Logging;
 using MQTTnet.Protocol;
 using SunriseAndSunset;
 
@@ -28,20 +29,23 @@ public interface ISunsetAndSunriseService
 
 public class SunsetAndSunriseService : ISunsetAndSunriseService
 {
-    public ISettingsCrudService SettingsService { get; }
-    public IProjectCrudService ProjectService { get; }
-    public IIoTZooMqttClient IotZooMqttClient { get; }
-    public IDataTransferService DataTransferService { get; }
+    protected ISettingsCrudService SettingsService { get; }
+    protected IProjectCrudService ProjectService { get; }
+    protected IIoTZooMqttClient IotZooMqttClient { get; }
+    protected IDataTransferService DataTransferService { get; }
+    protected ILogger Logger { get; }
 
     public SunsetAndSunriseService(ISettingsCrudService settingsService,
                                    IProjectCrudService projectService,
                                    IIoTZooMqttClient iotZooMqttClient,
-                                   IDataTransferService dataTransferService)
+                                   IDataTransferService dataTransferService,
+                                   ILogger<SunsetAndSunriseService> logger)
     {
         this.SettingsService = settingsService;
         this.ProjectService = projectService;
         this.IotZooMqttClient = iotZooMqttClient;
         this.DataTransferService = dataTransferService;
+        this.Logger = logger;
         StartSunriseTimer();
         StartSunsetTimer();
     }
@@ -50,6 +54,7 @@ public class SunsetAndSunriseService : ISunsetAndSunriseService
     {
         double latitude = await SettingsService.GetSettingDouble(SettingCategory.Location, SettingKey.Latitude);
         double longitude = await SettingsService.GetSettingDouble(SettingCategory.Location, SettingKey.Longitude);
+
         SunriseCalc homeLocationSun = new SunriseCalc(latitude,
                                                       longitude)
         {
@@ -71,12 +76,14 @@ public class SunsetAndSunriseService : ISunsetAndSunriseService
         TimerService timerServiceToSunrise = new TimerService(millisecondsUntilSunrise, start: true);
         timerServiceToSunrise.OnElapsed -= TimerServiceToSunrise_OnElapsed;
         timerServiceToSunrise.OnElapsed += TimerServiceToSunrise_OnElapsed;
+        Logger.LogInformation($"Sunrise is in {millisecondsUntilSunrise / 1000.0 / 60.0} minutes.");
     }
 
     protected async void StartSunsetTimer()
     {
         double latitude = await SettingsService.GetSettingDouble(SettingCategory.Location, SettingKey.Latitude);
         double longitude = await SettingsService.GetSettingDouble(SettingCategory.Location, SettingKey.Longitude);
+
         SunriseCalc homeLocationSun = new SunriseCalc(latitude,
             longitude)
         {
@@ -99,27 +106,42 @@ public class SunsetAndSunriseService : ISunsetAndSunriseService
         TimerService timerServiceToSunset = new TimerService(millisecondsUntilSunset, start: true);
         timerServiceToSunset.OnElapsed -= TimerServiceToSunset_OnElapsed;
         timerServiceToSunset.OnElapsed += TimerServiceToSunset_OnElapsed;
+        Logger.LogInformation($"Sunset is in {millisecondsUntilSunset / 1000.0 / 60.0} minutes.");
     }
 
+    /// <summary>
+    /// The sun rises.
+    /// </summary>
+    /// <param name="timer"></param>
+    /// <param name="elapsedEventArgs"></param>
     private async void TimerServiceToSunrise_OnElapsed(System.Timers.Timer timer, TimerServiceEventArgs elapsedEventArgs)
     {
+        await IotZooMqttClient.PublishTopic($"{DataTransferService.NamespaceName}/{TopicConstants.IS_DAY_MODE}", 1.ToString());
         var projects = await ProjectService.LoadProjects();
         foreach (var project in projects)
         {
-            await IotZooMqttClient.PublishTopic($"{project.ProjectName}/{TopicConstants.SUNRISE_NOW}", "When the sun rises...");
-            await IotZooMqttClient.PublishTopic($"{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", 0.ToString());
+            await IotZooMqttClient.PublishTopic($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.SUNRISE_NOW}", "When the sun rises...");
+            await IotZooMqttClient.PublishTopic($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", 1.ToString());
         }
         timer.Dispose();
         StartSunriseTimer();
     }
 
+    /// <summary>
+    /// The sun goes down.
+    /// </summary>
+    /// <param name="timer"></param>
+    /// <param name="elapsedEventArgs"></param>
     private async void TimerServiceToSunset_OnElapsed(System.Timers.Timer timer, TimerServiceEventArgs elapsedEventArgs)
     {
+        await IotZooMqttClient.PublishTopic($"{DataTransferService.NamespaceName}/{TopicConstants.IS_DAY_MODE}", 0.ToString());
+
         var projects = await ProjectService.LoadProjects();
         foreach (var project in projects)
         {
-            await IotZooMqttClient.PublishTopic($"{project.ProjectName}/{TopicConstants.SUNSET_NOW}", "When the sun goes down...");
-            await IotZooMqttClient.PublishTopic($"{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", 1.ToString());
+            await IotZooMqttClient.PublishTopic($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.SUNSET_NOW}", "When the sun goes down...");
+            await IotZooMqttClient.PublishTopic($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", 0.ToString());
+
         }
         timer.Dispose();
         StartSunsetTimer();
@@ -136,10 +158,12 @@ public class SunsetAndSunriseService : ISunsetAndSunriseService
         homeLocationSun.GetSunrise(out DateTime todaysSunriseUtc);
         homeLocationSun.GetSunset(out DateTime todaysSununsetUtc);
         bool isDay = DateTime.UtcNow >= todaysSunriseUtc && DateTime.UtcNow <= todaysSununsetUtc;
+        await IotZooMqttClient.PublishTopic($"{DataTransferService.NamespaceName}/{TopicConstants.IS_DAY_MODE}", isDay ? "1" : "0", MqttQualityOfServiceLevel.ExactlyOnce);
         var projects = await ProjectService.LoadProjects();
         foreach (var project in projects)
         {
             await IotZooMqttClient.PublishTopic($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", isDay ? "1" : "0", MqttQualityOfServiceLevel.ExactlyOnce);
         }
+        Logger.LogInformation($"{TopicConstants.IS_DAY_MODE}: {isDay}");
     }
 }
