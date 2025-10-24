@@ -524,6 +524,40 @@
                      ExamplePayload=@("""{"DateTime":"11.01.2025 16:29:33","Date":"11.01.2025","Time":"16:29:33","TimeShort":"16:29"}""")>
 </KnownTopicComponent>
 <br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.IS_DAY_MODE}")
+                     Description="Fires when the sun rises."
+                     Payload=@("1")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.IS_DAY_MODE}")
+                     Description="Fires when the sun goes down."
+                     Payload=@("0")>
+</KnownTopicComponent>
+<br />
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.MINUTES_NEXT_SUNRISE}")
+                     Description="Minutes until the next sunrise."
+                     ExamplePayload=@("729")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.MINUTES_NEXT_SUNSET}")
+                     Description="Minutes until the next sunset."
+                     ExamplePayload=@("1333")>
+</KnownTopicComponent>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.MINUTES_AFTER_SUNRISE}")
+                     Description="Minutes after the last sunrise."
+                     ExamplePayload=@("713")>
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/{TopicConstants.MINUTES_AFTER_SUNSET}")
+                     Description="Minutes until the last sunset."
+                     ExamplePayload=@("105")>
+</KnownTopicComponent>
+<br />
 <MudText>Read('IS_DAY_MODE'). 0 = Night; 1 = Day</MudText>
 <br />
 <br />

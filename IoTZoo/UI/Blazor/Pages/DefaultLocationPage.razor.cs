@@ -12,13 +12,12 @@
 // Page for managing the location/geo-coordinate to calculate sunrise and sunset.
 // --------------------------------------------------------------------------------------------------------------------
 
+using Domain.Interfaces.Crud;
 using Domain.Pocos;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using SunriseAndSunset;
 using System.Reflection;
-using HueApi.Models;
-using Domain.Interfaces.Crud;
 
 namespace IotZoo.Pages;
 
