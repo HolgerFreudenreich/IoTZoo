@@ -82,7 +82,6 @@ builder.Services.AddSingleton<ITopicHistoryCrudService, TopicHistoryDatabaseServ
 builder.Services.AddSingleton<ICronCrudService, CronDatabaseService>();
 builder.Services.AddSingleton<INamespaceCrudService, NamespaceService>();
 builder.Services.AddSingleton<ICronService, CronService>();
-builder.Services.AddSingleton<ISunsetAndSunriseService, SunsetAndSunriseService>();
 
 builder.Services.AddTransient<ISearchHelper, SearchHelper>();
 
@@ -92,8 +91,7 @@ builder.Services.AddSingleton<IHueBridgeService, HueBridgeService>();
 // Quartz.net
 builder.Services.AddSingleton<Quartz.Spi.IJobFactory, JobFactory>();
 builder.Services.AddSingleton<PublishTimeJob>();
-
-//builder.Services.AddScoped<ITimerService>(s => new TimerService(1000));
+builder.Services.AddSingleton<CalculateNextSunriseAndSunsetJob>();
 
 builder.Services.AddSingleton<IExpressionEvaluationService, ExpressionEvaluationService>();
 
@@ -145,12 +143,6 @@ catch (Exception exception)
    Console.WriteLine(exception.GetBaseException().Message);
 }
 var conJobService = app.Services.GetService<ICronService>();
-var sunsetAndSunriseService = app.Services.GetService<ISunsetAndSunriseService>();
-if (null == sunsetAndSunriseService)
-{
-   throw new Exception("Unable to instantiate SunsetAndSunriseService!");
-}
-await sunsetAndSunriseService.PublishIsDayMode();
 
 
 //#pragma warning disable CS0168 // Variable is declared but never used
