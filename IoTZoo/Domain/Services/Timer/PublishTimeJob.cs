@@ -20,48 +20,13 @@ using System.Text.Json;
 
 namespace Domain.Services.Timer;
 
-public class PublishTimeJob : IJob
+public class PublishTimeJob : MqttJob
 {
-    protected IMqttClient MqttClient
+    public PublishTimeJob(IDataTransferService dataTransferService, ILogger<PublishTimeJob> logger) : base(dataTransferService, logger)
     {
-        get;
-        set;
-    } = null!;
-
-    protected IDataTransferService DataTransferService { get; set; }
-    private ILogger Logger { get; }
-
-    public PublishTimeJob(IDataTransferService dataTransferService, ILogger<PublishTimeJob> logger)
-    {
-        Logger = logger;
-        DataTransferService = dataTransferService;
-        InitMqttClient();
     }
 
-    private async Task MqttClient_DisconnectedAsync(MqttClientDisconnectedEventArgs arg)
-    {
-        Logger.LogWarning("MQTT disconnected! Try to reconnect...");
-        await Task.Delay(3000);
-        await MqttClient.ReconnectAsync();
-    }
-
-    private void InitMqttClient()
-    {
-        var factory = new MqttClientFactory();
-        MqttClient = factory.CreateMqttClient();
-
-        var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
-                                                                             DataTransferService.MqttBrokerSettings.Port).Build();
-        MqttClient.DisconnectedAsync -= MqttClient_DisconnectedAsync;
-        MqttClient.DisconnectedAsync += MqttClient_DisconnectedAsync;
-        MqttClientConnectResult connectionResult = MqttClient.ConnectAsync(mqttClientOptions).Result;
-        if (connectionResult.ResultCode == MqttClientConnectResultCode.Success)
-        {
-            Logger.LogInformation("MQTT connected!");
-        }
-    }
-
-    public async Task Execute(IJobExecutionContext context)
+    public override async Task Execute(IJobExecutionContext context)
     {
         try
         {
