@@ -13,6 +13,7 @@ using DataAccess.Interfaces;
 using Domain.Interfaces;
 using Domain.Interfaces.Crud;
 using Domain.Pocos;
+using Domain.Services.MQTT;
 using HueApi;
 using HueApi.ColorConverters.Original.Extensions;
 using HueApi.Models;
@@ -27,20 +28,10 @@ using System.Text.Json;
 
 namespace DataAccess.Services;
 
-public class HueBridgeService : IHueBridgeService, IDisposable
+public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
 {
     public event Action<EventStreamData>? OnLightChanged;
 
-    private ILogger<HueBridgeService> Logger { get; set; }
-
-    /// <summary>
-    /// To publish the HUE Events via MQTT.
-    /// </summary>
-    protected IMqttClient MqttClient
-    {
-        get;
-        set;
-    } = null!;
 
     protected LightColor LightColorPoc
     {
@@ -53,17 +44,13 @@ public class HueBridgeService : IHueBridgeService, IDisposable
         get; set;
     }
 
-    IDataTransferService DataTransferService { get; } = null!;
-
     protected LocalHueApi HueApi { get; set; } = null!;
 
     public HueBridgeService(ILogger<HueBridgeService> logger,
                             IOptions<AppSettings> options,
                             IDataTransferService dataTransferService,
-                            IKnownTopicsCrudService knownTopicsCrudService)
+                            IKnownTopicsCrudService knownTopicsCrudService) : base(logger, dataTransferService)
     {
-        Logger = logger;
-        DataTransferService = dataTransferService;
         KnownTopicsDatabaseService = knownTopicsCrudService;
 
         LightColorPoc = new LightColor()
@@ -73,44 +60,29 @@ public class HueBridgeService : IHueBridgeService, IDisposable
             Green = 255
         };
 
-        ApplySettings();
+        _ = ApplySettingsAsync();
     }
 
-    private async Task MqttClient_DisconnectedAsync(MqttClientDisconnectedEventArgs arg)
-    {
-        Logger.LogWarning("MQTT disconnected! Try to reconnect...");
-        await Task.Delay(2000);
-        await MqttClient.ReconnectAsync();
-    }
 
-    private void InitMqttClient()
+    public async Task ApplySettingsAsync()
     {
-        var factory = new MqttClientFactory();
-        MqttClient = factory.CreateMqttClient();
-
-        var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
-                                                                             DataTransferService.MqttBrokerSettings.Port).Build();
-        MqttClient.DisconnectedAsync -= MqttClient_DisconnectedAsync;
-        MqttClient.DisconnectedAsync += MqttClient_DisconnectedAsync;
-        MqttClientConnectResult connectionResult = MqttClient.ConnectAsync(mqttClientOptions).Result;
-        if (connectionResult.ResultCode == MqttClientConnectResultCode.Success)
+        try
         {
-            Logger.LogInformation("MQTT connected!");
-        }
-    }
+            if (!string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Ip) &&
+                !string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Key))
+            {
+                HueApi = new LocalHueApi(DataTransferService.PhilipsHueBridgeSettings.Ip, DataTransferService.PhilipsHueBridgeSettings.Key);
 
-    public void ApplySettings()
-    {
-        if (!string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Ip) &&
-            !string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Key))
+                HueApi.OnEventStreamMessage -= HueApi_OnEventStreamMessage;
+                HueApi.OnEventStreamMessage += HueApi_OnEventStreamMessage;
+                await HueApi.StartEventStream();
+            }
+            await InitMqttClientAsync();
+        }
+        catch (Exception ex)
         {
-            HueApi = new LocalHueApi(DataTransferService.PhilipsHueBridgeSettings.Ip, DataTransferService.PhilipsHueBridgeSettings.Key);
-
-            HueApi.OnEventStreamMessage -= HueApi_OnEventStreamMessage;
-            HueApi.OnEventStreamMessage += HueApi_OnEventStreamMessage;
-            HueApi.StartEventStream();
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
         }
-        InitMqttClient();
     }
 
     /// <summary>
@@ -494,9 +466,9 @@ public class HueBridgeService : IHueBridgeService, IDisposable
         return regResult.Username;
     }
 
-    public void Dispose()
+    public new void Dispose()
     {
+        base.Dispose();
         HueApi.OnEventStreamMessage -= HueApi_OnEventStreamMessage;
-        MqttClient.DisconnectedAsync -= MqttClient_DisconnectedAsync;
     }
 }

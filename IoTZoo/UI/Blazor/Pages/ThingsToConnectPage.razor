@@ -21,6 +21,15 @@
                      Description="Sets how often the button was pushed."
                      ExamplePayload="0">
 </KnownTopicComponent>
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">Buzzer</MudText>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/buzzer/<index>/beep"
+                     ExamplePayload="[{'FrequencyHz': 1000, 'DurationMs': 200}, {'FrequencyHz': 0, 'DurationMs': 500} {'FrequencyHz': 2000, 'DurationMs': 100}]">
+</KnownTopicComponent>
 <br />
 <br />
 <MudText Typo="Typo.h6">Switch</MudText>
@@ -561,12 +570,17 @@
 <MudText>Read('IS_DAY_MODE'). 0 = Night; 1 = Day</MudText>
 <br />
 <br />
-<MudDivider />
+
+<MudText Typo="Typo.h6">Mail receiver</MudText>
 <br />
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic=@($"{DataTransferService.NamespaceName}/mail_receiver/<MailAddress>/mail_count")
+                     Description="Mailfolder got a new mail."
+                     ExamplePayload=@("199")>
+</KnownTopicComponent>
 <br />
-<MudText Typo="Typo.h6">Buzzer</MudText>
-<br />
-<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
-                     Topic="/buzzer/<index>/beep"
-                     ExamplePayload="[{'FrequencyHz': 1000, 'DurationMs': 200}, {'FrequencyHz': 0, 'DurationMs': 500} {'FrequencyHz': 2000, 'DurationMs': 100}]">
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic=@($"{DataTransferService.NamespaceName}/mail_receiver/<MailAddress>/subject")
+                     Description="subject of the new mail"
+                     ExamplePayload=@("[Camera 17] has detected a person at 2025/10/29 19:45:41")>
 </KnownTopicComponent>
