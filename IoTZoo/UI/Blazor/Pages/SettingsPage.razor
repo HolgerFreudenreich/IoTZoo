@@ -80,6 +80,30 @@
       </MudPaper>
       <br />
       <br />
+      <MudText Typo="Typo.h5">Mail Receiver</MudText>
+      <div style="width:64px; height:64px">
+      <MudIconButton Icon="@Icons.Material.Outlined.Add"
+                     Color="Color.Success"
+                     OnClick="AddMailReceiver">
+      </MudIconButton>
+      </div>
+      <br />
+      @foreach (var mailReceiverConfig in MailReceiverConfigs)
+      {
+         <MudStack Row="true">
+            <IotZoo.Components.MailSettingsComponent MailReceiverConfig="@mailReceiverConfig">
+            </IotZoo.Components.MailSettingsComponent>
+                  <div style="width:64px; height:64px">
+            <MudIconButton Icon="@Icons.Material.Outlined.Remove"
+                           Color="Color.Error"
+                           OnClick="@(()=>RemoveEmailConfig(mailReceiverConfig))">
+            </MudIconButton>
+            </div>
+         </MudStack>
+         <br />
+      }
+      <br />
+      <br />
       <MudDivider DividerType="DividerType.FullWidth" />
       <br />
       <br />
