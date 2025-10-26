@@ -14,31 +14,31 @@ using DataAccess.Services;
 using Domain.Interfaces;
 using Domain.Interfaces.Crud;
 using Domain.Pocos;
+using Domain.Services.MQTT;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Protocol;
 using Quartz;
-using Quartz.Xml.JobSchedulingData20;
 using SunriseAndSunset;
 using System.Reflection;
 
 namespace Domain.Services.Timer;
 
-public class CalculateNextSunriseAndSunsetJob : MqttJob
+public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
 {
     protected ISettingsCrudService SettingsCrudService { get; set; } = null!;
 
     protected IProjectCrudService ProjectCrudService { get; set; } = null!;
 
-    public CalculateNextSunriseAndSunsetJob(IDataTransferService dataTransferService, ILogger<MqttJob> logger,
+    public CalculateNextSunriseAndSunsetJob(ILogger<MqttPublisher> logger, IDataTransferService dataTransferService,
         ISettingsCrudService settingsCrudService,
-        IProjectCrudService projectsCrudService) : base(dataTransferService, logger)
+        IProjectCrudService projectsCrudService) : base(logger, dataTransferService)
     {
         SettingsCrudService = settingsCrudService;
         ProjectCrudService = projectsCrudService;
     }
 
-    public override async Task Execute(IJobExecutionContext context)
+    public  async Task Execute(IJobExecutionContext context)
     {
         try
         {

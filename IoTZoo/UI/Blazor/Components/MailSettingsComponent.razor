@@ -1,0 +1,31 @@
+﻿@inherits MailSettingsComponentBase
+
+<MudPaper Class="pa-6" Height="250px" Width="1200px" Elevation="2">
+   <MudStack>
+      <MudSwitch @bind-Value="MailReceiverConfig.Enabled" Label="Enabled" />
+      <MudStack Row=true>
+         <MudTextField ReadOnly="false"
+                       Label="Hostname"
+                       @bind-Value="MailReceiverConfig.HostName"
+                       Variant="@Variant.Text" Clearable>
+         </MudTextField>
+         <MudTextField ReadOnly="true"
+                       Label="Port"
+                       Format="D"
+                       HelperText="Example: 993"
+                       @bind-Value="MailReceiverConfig.Port"
+                       Variant="@Variant.Text" Clearable>
+         </MudTextField>
+      </MudStack>
+      <MudStack Row=true>
+         <MudTextField Label="User-Name"
+                       @bind-Value="MailReceiverConfig.UserName"
+                       Variant="@Variant.Text" Clearable>
+         </MudTextField>
+         <MudTextField Label="Password" InputType="InputType.Password"
+                       @bind-Value="MailReceiverConfig.Password"
+                       Variant="@Variant.Text" Clearable>
+         </MudTextField>
+      </MudStack>
+   </MudStack>
+</MudPaper>
