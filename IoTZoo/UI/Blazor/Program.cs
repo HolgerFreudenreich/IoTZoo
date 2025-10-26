@@ -37,24 +37,22 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers(); // needed for swagger
 builder.Services.AddSwaggerGen(c =>
                                         {
-                                           c.SwaggerDoc("v1", new OpenApiInfo { Title = "IoTZoo", Version = "v1" });
+                                            c.SwaggerDoc("v1", new OpenApiInfo { Title = "IoTZoo", Version = "v1" });
                                         });
-
-//StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration); // Wof�r ist das gut?
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices(config =>
                                        {
-                                          config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
-                                          config.SnackbarConfiguration.PreventDuplicates = false;
-                                          config.SnackbarConfiguration.NewestOnTop = false;
-                                          config.SnackbarConfiguration.ShowCloseIcon = true;
-                                          config.SnackbarConfiguration.VisibleStateDuration = 10000;
-                                          config.SnackbarConfiguration.HideTransitionDuration = 500;
-                                          config.SnackbarConfiguration.ShowTransitionDuration = 500;
-                                          config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+                                           config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
+                                           config.SnackbarConfiguration.PreventDuplicates = false;
+                                           config.SnackbarConfiguration.NewestOnTop = false;
+                                           config.SnackbarConfiguration.ShowCloseIcon = true;
+                                           config.SnackbarConfiguration.VisibleStateDuration = 10000;
+                                           config.SnackbarConfiguration.HideTransitionDuration = 500;
+                                           config.SnackbarConfiguration.ShowTransitionDuration = 500;
+                                           config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
                                        });
 
 IConfigurationSection configurationSectionAppSettings = builder.Configuration.GetSection(nameof(AppSettings));
@@ -106,9 +104,11 @@ builder.Services.AddSingleton<IKnownMicrocontrollerCrudService, MicrocontrollerS
 builder.Services.AddSingleton<IPrepareTargetPayload, PrepareTargetPayload>();
 builder.Services.AddSingleton<IRulesCrudService, RulesDatabaseService>(); // set ConfigurationDatabaseType in appsetings.json to Postgres or Sqlite!
 
+builder.Services.AddSingleton<IMailReceiverFactory, MailReceiverFactory>();
+
 builder.Host.UseSerilog((ctx, lc) =>
                      {
-                        lc.ReadFrom.Configuration(ctx.Configuration);
+                         lc.ReadFrom.Configuration(ctx.Configuration);
                      });
 
 var app = builder.Build();
@@ -118,55 +118,42 @@ var app = builder.Build();
 var iotZooMqttBroker = app.Services.GetService<IIotZooMqttBroker>();
 if (null != iotZooMqttBroker)
 {
-   await iotZooMqttBroker.StartServer();
+    await iotZooMqttBroker.StartServer();
 }
 try
 {
-   var iotZooMqttClient = app.Services.GetService<IIoTZooMqttClient>();
-   if (null == iotZooMqttClient)
-   {
-      throw new Exception("Unable to instantiate IoTZooMqttClient!");
-   }
-   else
-   {
-      // This must be done here! There is only one client (singleton).
-      await iotZooMqttClient.Connect();
-   }
+    var iotZooMqttClient = app.Services.GetService<IIoTZooMqttClient>();
+    if (null == iotZooMqttClient)
+    {
+        throw new Exception("Unable to instantiate IoTZooMqttClient!");
+    }
+    else
+    {
+        // This must be done here! There is only one client (singleton).
+        await iotZooMqttClient.Connect();
+    }
 }
 catch (MqttCommunicationTimedOutException exception)
 {
-   // Maybe you do not have internet access or a wrong configured MQTTClient.
-   Console.WriteLine(exception.GetBaseException().Message);
+    // Maybe you do not have internet access or a wrong configured MQTTClient.
+    Console.WriteLine(exception.GetBaseException().Message);
+
 }
 catch (Exception exception)
 {
-   Console.WriteLine(exception.GetBaseException().Message);
+    Console.WriteLine(exception.GetBaseException().Message);
 }
+
 var conJobService = app.Services.GetService<ICronService>();
 
-
-//#pragma warning disable CS0168 // Variable is declared but never used
-//try
-//{
-//   await iotZooService.Client.PublishAsync(new MQTTnet.MqttApplicationMessage { Topic = "IOTZOO/SYSTEM/STARTED" });
-//}
-//catch (Exception exception)
-//{
-//   // Probably not configured, see Settings.
-//}
-//#pragma warning restore CS0168 // Variable is declared but never used
-
-//app.UseForwardedHeaders(new ForwardedHeadersOptions
-//                        {
-//                          ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-//                        });
+var mailReceiverFactory = app.Services.GetService<IMailReceiverFactory>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-   app.UseExceptionHandler("/Error");
-   // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-   app.UseHsts();
+    app.UseExceptionHandler("/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
 }
 
 app.UseSwagger();
@@ -174,7 +161,7 @@ app.UseSwagger();
 //app.UseSwaggerUI();
 app.UseSwaggerUI(c =>
                      {
-                        c.SwaggerEndpoint("/swagger/v1/swagger.json", "IoTZoo");
+                         c.SwaggerEndpoint("/swagger/v1/swagger.json", "IoTZoo");
                      });
 
 app.UseHttpsRedirection();

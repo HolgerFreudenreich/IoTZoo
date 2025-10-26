@@ -73,44 +73,65 @@ public class HueBridgeService : IHueBridgeService, IDisposable
             Green = 255
         };
 
-        ApplySettings();
+        _ = ApplySettingsAsync();
     }
 
     private async Task MqttClient_DisconnectedAsync(MqttClientDisconnectedEventArgs arg)
     {
-        Logger.LogWarning("MQTT disconnected! Try to reconnect...");
-        await Task.Delay(2000);
-        await MqttClient.ReconnectAsync();
-    }
-
-    private void InitMqttClient()
-    {
-        var factory = new MqttClientFactory();
-        MqttClient = factory.CreateMqttClient();
-
-        var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
-                                                                             DataTransferService.MqttBrokerSettings.Port).Build();
-        MqttClient.DisconnectedAsync -= MqttClient_DisconnectedAsync;
-        MqttClient.DisconnectedAsync += MqttClient_DisconnectedAsync;
-        MqttClientConnectResult connectionResult = MqttClient.ConnectAsync(mqttClientOptions).Result;
-        if (connectionResult.ResultCode == MqttClientConnectResultCode.Success)
+        try
         {
-            Logger.LogInformation("MQTT connected!");
+            Logger.LogWarning("MQTT disconnected! Try to reconnect...");
+            await Task.Delay(2000);
+            await MqttClient.ReconnectAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
         }
     }
 
-    public void ApplySettings()
+    private async Task InitMqttClientAsync()
     {
-        if (!string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Ip) &&
-            !string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Key))
+        try
         {
-            HueApi = new LocalHueApi(DataTransferService.PhilipsHueBridgeSettings.Ip, DataTransferService.PhilipsHueBridgeSettings.Key);
+            var factory = new MqttClientFactory();
+            MqttClient = factory.CreateMqttClient();
 
-            HueApi.OnEventStreamMessage -= HueApi_OnEventStreamMessage;
-            HueApi.OnEventStreamMessage += HueApi_OnEventStreamMessage;
-            HueApi.StartEventStream();
+            var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
+                                                                                 DataTransferService.MqttBrokerSettings.Port).Build();
+            MqttClient.DisconnectedAsync -= MqttClient_DisconnectedAsync;
+            MqttClient.DisconnectedAsync += MqttClient_DisconnectedAsync;
+            MqttClientConnectResult connectionResult = await MqttClient.ConnectAsync(mqttClientOptions);
+            if (connectionResult.ResultCode == MqttClientConnectResultCode.Success)
+            {
+                Logger.LogInformation("MQTT connected!");
+            }
         }
-        InitMqttClient();
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+        }
+    }
+
+    public async Task ApplySettingsAsync()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Ip) &&
+                !string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Key))
+            {
+                HueApi = new LocalHueApi(DataTransferService.PhilipsHueBridgeSettings.Ip, DataTransferService.PhilipsHueBridgeSettings.Key);
+
+                HueApi.OnEventStreamMessage -= HueApi_OnEventStreamMessage;
+                HueApi.OnEventStreamMessage += HueApi_OnEventStreamMessage;
+                await HueApi.StartEventStream();
+            }
+            await InitMqttClientAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+        }
     }
 
     /// <summary>
