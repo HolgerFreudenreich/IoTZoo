@@ -7,7 +7,8 @@
 // --------------------------------------------------------------------------------------------------------------------
 // (c) 2025 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
-// The MQTT Client which processes the incoming topics and fires new topics resulting on executing rules.
+// The MQTT Client to publish messages/topics in special cases like MailReceiver, Philips Hue-Events, Cron-Jobs,
+// Sunrise and Sunset
 // --------------------------------------------------------------------------------------------------------------------
 
 using Microsoft.Extensions.Logging;
