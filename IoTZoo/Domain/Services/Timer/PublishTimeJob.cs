@@ -11,6 +11,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Interfaces;
+using Domain.Services.MQTT;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Protocol;
@@ -20,13 +21,13 @@ using System.Text.Json;
 
 namespace Domain.Services.Timer;
 
-public class PublishTimeJob : MqttJob
+public class PublishTimeJob : MqttPublisher, IJob
 {
-    public PublishTimeJob(IDataTransferService dataTransferService, ILogger<PublishTimeJob> logger) : base(dataTransferService, logger)
+    public PublishTimeJob(ILogger<PublishTimeJob> logger, IDataTransferService dataTransferService) : base(logger, dataTransferService)
     {
     }
 
-    public override async Task Execute(IJobExecutionContext context)
+    public virtual async Task Execute(IJobExecutionContext context)
     {
         try
         {
