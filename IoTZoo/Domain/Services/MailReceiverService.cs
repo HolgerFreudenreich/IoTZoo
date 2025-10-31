@@ -12,7 +12,6 @@ namespace Domain.Services
 {
     public class MailReceiverService : MqttPublisher
     {
-
         public MailReceiverConfig MailReceiverConfig { get; private set; }
 
         private ImapClient client = null!;
@@ -21,13 +20,11 @@ namespace Domain.Services
         private readonly SemaphoreSlim imapLock = new SemaphoreSlim(1, 1);
         private Task idleTask = null!;
 
-
         public MailReceiverService(ILogger<MailReceiverService> logger,
                                    MailReceiverConfig mailReceiverConfig,
                                    IDataTransferService dataTransferService) : base(logger, dataTransferService)
         {
             MailReceiverConfig = mailReceiverConfig;
-
             _ = StartIdleAsync();
         }
 
