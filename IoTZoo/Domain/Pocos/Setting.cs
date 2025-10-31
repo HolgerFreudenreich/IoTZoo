@@ -21,6 +21,7 @@ public enum SettingCategory
   MqttPublishTestMessage = 4,
   PhilipsHue = 5,
   UiSettings = 6,
+  Mail = 7
 }
 
 public enum SettingKey
@@ -34,6 +35,7 @@ public enum SettingKey
   Ip = 6,
   AppKey = 7,
   IsDarkMode = 8,
+  MailReceiverConfigs = 9,
 }
 
 public class Setting : BasePoco
