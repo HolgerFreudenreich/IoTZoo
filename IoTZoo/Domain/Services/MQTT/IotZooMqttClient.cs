@@ -66,6 +66,8 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
 
     public ICronCrudService CronCrudService { get; }
 
+    public ICountDownFactory CountDownFactory { get; }
+
     public IotZooMqttClient(IOptions<AppSettings> options,
                             IKnownMicrocontrollerCrudService microcontrollerDatabaseService,
                             IDataTransferService dataTransferService,
@@ -79,7 +81,8 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
                             IExpressionEvaluationService expressionEvaluationService,
                             IPrepareTargetPayload prepareTargetPayload,
                             IJobFactory jobFactory,
-                            ICronCrudService cronCrudService)
+                            ICronCrudService cronCrudService,
+                            ICountDownFactory countDownFactory)
     {
         Logger = logger;
         MicrocontrollerService = microcontrollerDatabaseService;
@@ -94,6 +97,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
         ExpressionEvaluationService = expressionEvaluationService;
         PrepareTargetPayload = prepareTargetPayload;
         CronCrudService = cronCrudService;
+        CountDownFactory = countDownFactory;
         _ = ApplyRulesAsync();
 
         // Read settings from database
@@ -320,15 +324,15 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
 
             TopicEntry topicEntry = new TopicEntry();
 
-            var splitted = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Topic.Split('/');
-            topicEntry.NamespaceName = splitted[0];
+            var split = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Topic.Split('/');
+            topicEntry.NamespaceName = split[0];
 
             topicEntry.Payload = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.ConvertPayloadToString();
             topicEntry.QualityOfServiceLevel = (int)mqttApplicationMessageReceivedEventArgs.ApplicationMessage.QualityOfServiceLevel;
             topicEntry.Retain = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Retain;
             topicEntry.DateOfReceipt = DateTime.UtcNow;
 
-            if (splitted.Length < 3)
+            if (split.Length < 3)
             {
                 if (mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Topic.StartsWith(TopicConstants.I_AM_LOST))
                 {
@@ -374,7 +378,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
                 return;
             }
 
-            topicEntry.ProjectName = splitted[1];
+            topicEntry.ProjectName = split[1];
             topicEntry.Topic = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Topic.Substring(topicEntry.NamespaceName.Length + 1 + topicEntry.ProjectName.Length + 1);
 
             MessageHandlingResult messageHandlingResult = await HandleMqttMessage(topicEntry);
@@ -504,19 +508,65 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
                                           StringComparison.OrdinalIgnoreCase))
             {
                 await PublishTopic(topicEntry.Topic + "_ack", Convert.ToString(DateTime.Now));
+                return true;
             }
             else if (topicEntry.Topic.EndsWith(TopicConstants.REGISTER_MICROCONTROLLER,
                                                StringComparison.OrdinalIgnoreCase))
             {
                 await RegisterMicrocontroller(topicEntry.Payload);
+                return true;
             }
             else if (topicEntry.Topic.EndsWith(TopicConstants.REGISTER_KNOWN_TOPIC,
                                              StringComparison.OrdinalIgnoreCase))
             {
                 await RegisterKnownTopic(topicEntry.Payload);
+                return true;
             }
         }
 
+        bool ok = await HandlePhilipsHue(topicEntry);
+        if (ok)
+        {
+            return true;
+        }
+
+        ok = await HandleCountDown(topicEntry);
+        if (ok)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private Task<bool> HandleCountDown(TopicEntry topicEntry)
+    {
+        bool ok = false;
+        if (topicEntry.Topic.EndsWith("start_countdown"))
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(topicEntry.Payload))
+                {
+                    CountDownData? countDownData = JsonSerializer.Deserialize<CountDownData>(topicEntry.Payload);
+                    if (countDownData != null)
+                    {
+                        CountDownFactory.Create(countDownData);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
+                return Task.FromResult(false);
+            }
+        }
+        return Task.FromResult(ok);
+    }
+
+    private async Task<bool> HandlePhilipsHue(TopicEntry topicEntry)
+    {
+        bool ok = false;
         // green: {"LightId": 9, "Color": {"X": 0.2465, "Y": 0.6425}}
         // yellow: {"LightId": 9, "Color": {"X": 0.469,"Y":0.4754}}
         // red: {"LightId": 9, "Color": {"X": 0.6915,"Y":0.3083}}
@@ -646,9 +696,8 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
             {
                 Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
             }
-            return true;
         }
-        return false;
+        return ok;
     }
 
     private async Task RegisterKnownTopic(string payload)

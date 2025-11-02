@@ -190,7 +190,7 @@ public partial class TestCases
 
       rule.SourceTopic = "esp32/123/counter/0";
       rule.TargetTopic = "IncResult";
-      rule.TargetPayload = $"Calc({FunctionNames.Input} + 1);";
+      rule.TargetPayload = $"{FunctionNames.Calc}({FunctionNames.Input} + 1);";
 
       topicEntry = new TopicEntry();
       topicEntry.Topic = "esp32/123/counter/0";

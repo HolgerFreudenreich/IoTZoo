@@ -27,6 +27,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using MudBlazor;
+using System.Data;
 using System.Globalization;
 using System.Text.Json;
 using Xunit.Microsoft.DependencyInjection;
@@ -327,6 +328,14 @@ namespace UnitTests
             Assert.Equal(1 + value, Convert.ToInt32(targetPayload));
         }
 
+        [Fact]
+        public async Task Test()
+        {
+            string expression = "'input' like ('[Vorne]%')";
+            string payload = "[Vorne] has detected a person at 2025/10/31 20:09:14";
+            var expressionEvaluationResult =
+            await ExpressionEvaluationService.EvaluateExpressionAsync(expression, payload);
+        }
 
         //[Theory]
         //[InlineData(1)]
@@ -1109,6 +1118,22 @@ namespace UnitTests
         }
 
         [Fact]
+        public async Task JsonPathTest1C()
+        {
+            Rule rule = new Rule
+            {
+                Expression = "$['Seconds'] == 0",
+                SourceTopic = "iotzoo/picea/count_down",
+                TargetPayload = "{ \"ProjectName\": \"picea\", \"CounterName\": \"Counter1\", \"Seconds\": 0 }"
+            };
+
+            var expressionEvaluationResult =
+                await ExpressionEvaluationService.EvaluateExpressionAsync(rule.Expression,
+                    rule.TargetPayload);
+            Assert.True(expressionEvaluationResult.Matches);
+        }
+
+        [Fact]
         public async Task JsonPathMultipleAndTest1()
         {
             Rule rule = new Rule
@@ -1197,7 +1222,7 @@ namespace UnitTests
         }
 
         /// <summary>
-        /// The aim is to replace input1 in rule.TargetPayload with the payload value.
+        /// The aim is to replace input in rule.TargetPayload with the payload value.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>

@@ -36,10 +36,10 @@ namespace IotZoo
     void HT1621::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
         topics->push_back(
-            *new Topic(baseTopic + "/ht1621/" + String(deviceIndex) + "/temperature", "Temperature", MessageDirection::IotZooClientInbound));
-        topics->push_back(*new Topic(baseTopic + "/ht1621/" + String(deviceIndex) + "/number", "Number", MessageDirection::IotZooClientInbound));
+            *new Topic(baseTopic + "/ht1621/" + String(deviceIndex) + "/temperature", "Temperature", MessageDirection::IotZooClientOutbound));
+        topics->push_back(*new Topic(baseTopic + "/ht1621/" + String(deviceIndex) + "/number", "Number", MessageDirection::IotZooClientOUtbound));
         topics->push_back(
-            *new Topic(baseTopic + "/ht1621/" + String(deviceIndex) + "/batteryLevel", "Battery level [0-2]", MessageDirection::IotZooClientInbound));
+            *new Topic(baseTopic + "/ht1621/" + String(deviceIndex) + "/batteryLevel", "Battery level [0-2]", MessageDirection::IotZooClientOutbound));
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a

@@ -19,65 +19,84 @@ using System.Timers;
 
 public class TimerServiceEventArgs : EventArgs
 {
-   public MqttApplicationMessage? ApplicationMessage
-   {
-      get;
-      set;
-   }
+    public MqttApplicationMessage? ApplicationMessage
+    {
+        get;
+        set;
+    }
 }
 
-public class TimerService : ITimerService
+public class TimerService : ITimerService, IDisposable
 {
-   public delegate void Elapsed(Timer timer, TimerServiceEventArgs elapsedEventArgs);
-   public event Elapsed OnElapsed = null!;
+    public delegate void Elapsed(Timer timer, TimerServiceEventArgs elapsedEventArgs);
+    public event Elapsed? OnElapsed;
 
-   private Timer timer;
+    private readonly Timer timer;
+    private readonly object syncRoot = new();
+    private bool disposed;
 
-   public bool IsRunning => timer.Enabled;
+    public bool IsRunning => timer.Enabled;
 
-   public MqttApplicationMessage ApplicationMessage
-   {
-      get;
-      set;
-   } = null!;
+    public MqttApplicationMessage ApplicationMessage { get; set; } = null!;
 
-   public TimerService(double interval, bool start = true)
-   {
-      timer = new Timer();
-      timer.Elapsed -= NotifyTimer;
-      timer.Elapsed += NotifyTimer;
-      SetInterval(interval);
-      timer.Enabled = start;
-   }
+    public TimerService(double interval, bool start = true)
+    {
+        timer = new Timer(interval);
+        timer.Elapsed += NotifyTimer;
+        timer.AutoReset = true;
+        timer.Enabled = start;
+    }
 
-   public void Start()
-   {
-      timer.Start();
-   }
+    public void Start()
+    {
+        if (disposed) return;
+        lock (syncRoot)
+        {
+            timer.Start();
+        }
+    }
 
-   public void Stop()
-   {
-      timer.Stop();
-   }
+    public void Stop()
+    {
+        if (disposed) return;
+        lock (syncRoot)
+        {
+            timer.Stop();
+        }
+    }
 
-   public void Dispose()
-   {
-      timer.Stop();
-      timer.Dispose();
-   }
+    public void SetInterval(double interval)
+    {
+        if (disposed) return;
+        lock (syncRoot)
+        {
+            timer.Interval = interval;
+        }
+    }
 
-   /// <summary>
-   /// 
-   /// </summary>
-   /// <param name="interval in Milliseconds"></param>
-   public void SetInterval(double interval)
-   {
-      timer.Interval = interval;
-   }
+    public void Dispose()
+    {
+        lock (syncRoot)
+        {
+            if (disposed)
+            {
+                return;
+            }
+            disposed = true;
 
-   private void NotifyTimer(object? sender, ElapsedEventArgs e)
-   {
-      TimerServiceEventArgs timerServiceEventArgs = new TimerServiceEventArgs { ApplicationMessage = ApplicationMessage };
-      OnElapsed?.Invoke(timer, timerServiceEventArgs);
-   }
+            timer.Elapsed -= NotifyTimer;
+            timer.Stop();
+            timer.Dispose();
+        }
+    }
+
+    private void NotifyTimer(object? sender, ElapsedEventArgs e)
+    {
+        lock (syncRoot)
+        {
+            if (disposed) return;
+            TimerServiceEventArgs args = new() { ApplicationMessage = ApplicationMessage };
+            OnElapsed?.Invoke(timer, args);
+        }
+    }
 }
