@@ -1,22 +1,20 @@
-﻿using Domain.Interfaces;
-using Domain.Interfaces.Crud;
+﻿using Domain.Interfaces.Crud;
 using Domain.Pocos;
+using Domain.Services;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
-namespace Domain.Services
+namespace Domain.Interfaces
 {
-    public interface IMailReceiverFactory
-    {
-        MailReceiverService Create(MailReceiverConfig config, IDataTransferService dataTransferService);
-    }
 
     public class MailReceiverFactory : IMailReceiverFactory
     {
         protected ILogger<MailReceiverService> Logger { get; }
 
-
-        public MailReceiverFactory(ILogger<MailReceiverService> logger, ISettingsCrudService settingsCrudService, IDataTransferService dataTransferService)
+        public MailReceiverFactory(ILogger<MailReceiverService> logger,
+            ISettingsCrudService settingsCrudService,
+            IDataTransferService dataTransferService,
+            IProjectCrudService projectCrudService)
         {
             Logger = logger;
             var jsonMailSettings = settingsCrudService.GetSettingString(SettingCategory.Mail, SettingKey.MailReceiverConfigs).Result;
@@ -29,16 +27,16 @@ namespace Domain.Services
                     {
                         if (config.Enabled)
                         {
-                            Create(config, dataTransferService);
+                            Create(config, dataTransferService, projectCrudService);
                         }
                     }
                 }
             }
         }
 
-        public MailReceiverService Create(MailReceiverConfig config, IDataTransferService dataTransferService)
+        public MailReceiverService Create(MailReceiverConfig config, IDataTransferService dataTransferService, IProjectCrudService projectCrudService)
         {
-            return new MailReceiverService(Logger, config, dataTransferService);
+            return new MailReceiverService(Logger, config, dataTransferService, projectCrudService);
         }
     }
 }
