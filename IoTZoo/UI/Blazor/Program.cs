@@ -106,6 +106,9 @@ builder.Services.AddSingleton<IRulesCrudService, RulesDatabaseService>(); // set
 
 builder.Services.AddSingleton<IMailReceiverFactory, MailReceiverFactory>();
 
+builder.Services.AddSingleton<ICountDownFactory, CountDownFactory>();
+
+
 builder.Host.UseSerilog((ctx, lc) =>
                      {
                          lc.ReadFrom.Configuration(ctx.Configuration);

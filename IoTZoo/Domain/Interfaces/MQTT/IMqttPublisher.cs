@@ -14,7 +14,7 @@
 using Microsoft.Extensions.Logging;
 using MQTTnet;
 
-namespace Domain.Interfaces
+namespace Domain.Interfaces.MQTT
 {
     public interface IMqttPublisher
     {
