@@ -264,7 +264,7 @@ public class SettingsPageBase : PageBase
             {
                 await Save();
             }
-            await HueBridgeService.ApplySettingsAsync();
+            HueBridgeService.ApplySettings();
         }
         catch (Exception exception)
         {

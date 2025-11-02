@@ -60,30 +60,22 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
             Green = 255
         };
 
-        _ = ApplySettingsAsync();
+        ApplySettings();
     }
 
-
-    public async Task ApplySettingsAsync()
+    public void ApplySettings()
     {
-        try
+        if (!string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Ip) &&
+            !string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Key))
         {
-            if (!string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Ip) &&
-                !string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Key))
-            {
-                HueApi = new LocalHueApi(DataTransferService.PhilipsHueBridgeSettings.Ip, DataTransferService.PhilipsHueBridgeSettings.Key);
+            HueApi = new LocalHueApi(DataTransferService.PhilipsHueBridgeSettings.Ip, DataTransferService.PhilipsHueBridgeSettings.Key);
 
-                HueApi.OnEventStreamMessage -= HueApi_OnEventStreamMessage;
-                HueApi.OnEventStreamMessage += HueApi_OnEventStreamMessage;
-                await HueApi.StartEventStream();
-            }
-            await InitMqttClientAsync();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            HueApi.OnEventStreamMessage -= HueApi_OnEventStreamMessage;
+            HueApi.OnEventStreamMessage += HueApi_OnEventStreamMessage;
+            HueApi.StartEventStream();
         }
     }
+
 
     /// <summary>
     /// Event from Philips-Hue-Bridge. Used to refresh the UI if an Hue Event is triggert from outsite of IotZoo like Amazon Alexa.

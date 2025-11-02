@@ -12,6 +12,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Interfaces;
+using Domain.Interfaces.MQTT;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
 using System.Reflection;

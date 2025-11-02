@@ -18,7 +18,7 @@ public interface IHueBridgeService
 {
    public event Action<EventStreamData> OnLightChanged;
 
-   public Task ApplySettingsAsync();
+   public void ApplySettings();
 
    /// <summary>
    /// Turns on a light or a plug.
