@@ -35,29 +35,39 @@ namespace IotZoo
         Serial.println("Destructor Settings");
     }
 
-    void Settings::saveConfiguration(const String& json)
+    void Settings::saveDeviceConfigurations(const String& json)
+    {
+        saveConfigurationData("devices", json);
+    }
+
+    void Settings::saveConfigurationData(const String& key, const String& json)
     {
         if (json.length() == 0)
         {
             return;
         }
         preferences.begin(NamespaceNameConfig, false);
-        int bytesWritten = preferences.putString("devices", json);
+        int bytesWritten = preferences.putString(key.c_str(), json);
         Serial.println("Bytes:" + String(bytesWritten));
         preferences.end();
     }
 
-    String Settings::loadConfiguration()
+    String Settings::loadConfiguration(const String& key)
     {
         Serial.println("load configuration");
         String json;
 
         preferences.begin(NamespaceNameConfig, true);
-        json = preferences.getString("devices");
+        json = preferences.getString(key.c_str());
 
         preferences.end();
 
         return json;
+    }
+
+    String Settings::loadDeviceConfigurations()
+    {
+        return loadConfiguration("devices");
     }
 
     // gets the interval for sending alive message via mqtt.
