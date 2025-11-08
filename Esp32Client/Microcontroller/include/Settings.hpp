@@ -72,9 +72,11 @@ namespace IotZoo
 
     virtual ~Settings();
 
-    void saveConfiguration(const String &json);
+    void saveConfigurationData(const String& key, const String& json);
+    void saveDeviceConfigurations(const String &json);
 
-    String loadConfiguration();
+    String loadConfiguration(const String& key);
+    String loadDeviceConfigurations();
 
     // gets the interval for sending alive message via mqtt.
     long getAliveIntervalMillis();

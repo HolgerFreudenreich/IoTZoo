@@ -16,18 +16,24 @@
 #define __WS2818_HPP__
 
 #include "DeviceBase.hpp"
-
 #include <Adafruit_NeoPixel.h>
 #include <ArduinoJson.h>
 
 namespace IotZoo
 {
+    struct PixelProperty
+    {
+        int           PixelId            = 0;
+        unsigned long MillisUntilTurnOff = 0;
+    };
+
     class WS2818 : DeviceBase
     {
       protected:
-        Adafruit_NeoPixel* pixels = nullptr;
-        int                dioPin;
-        int                numberOfLeds;
+        Adafruit_NeoPixel*    pixels = nullptr;
+        int                   dioPin;
+        int                   numberOfLeds;
+        vector<PixelProperty> pixelProperties;
 
       public:
         WS2818(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, int pin, int numberOfLeds);
@@ -36,17 +42,11 @@ namespace IotZoo
 
         void setup();
 
-        /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColorRGB
-        /// @param json
-        void setPixelColorRGB(const String& json);
+        void loop();
 
         /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
         /// @param json
         void setPixelColor(const String& json);
-
-        /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
-        /// @param json
-        void setPixelColorHex(const String& json);
 
         /// @brief Let the user know what the device can do.
         /// @param topics
@@ -57,9 +57,9 @@ namespace IotZoo
         /// @param baseTopic
         void onMqttConnectionEstablished() override;
 
-        void setPixelColorRGB(uint8_t r, uint8_t g, uint8_t b, uint16_t index, uint8_t brightness = 20);
+        void setPixelColorRgb(uint8_t r, uint8_t g, uint8_t b, uint16_t index, uint8_t brightness = 20, uint64_t millisUntilTurnOff = 0);
 
-        void setPixelColor(uint32_t color, uint16_t index, uint8_t brightness = 20);
+        void setPixelColor(uint32_t color, uint16_t index, uint8_t brightness = 20, uint64_t millisUntilTurnOff = 0);
     };
 } // namespace IotZoo
 

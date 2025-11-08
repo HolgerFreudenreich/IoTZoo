@@ -15,6 +15,7 @@
 #include "Defines.hpp"
 #ifdef USE_MQTT
 #include "MqttClient.hpp"
+#include <ArduinoJson.h>
 #endif
 #ifdef USE_MQTT2
 #include "MqttClient2.hpp"
@@ -81,6 +82,26 @@ namespace IotZoo
         {
             String topic = getBaseTopic() + "/error";
             mqttClient->publish(topic, errMsg);
+        }
+
+        bool deserializeStaticJsonAndPublishError(JsonDocument& jsonDocument, const String& json)
+        {
+            DeserializationError error = deserializeJson(jsonDocument, json);
+            if (error)
+            {
+                if (DeserializationError::NoMemory == error)
+                {
+                    publishError("Max data length exeeded! (" + String(json.length()) + " > " + String(jsonDocument.capacity()) +
+                                 ") Error: " + String(error.c_str()));
+                }
+                else
+                {
+                    publishError("DeserializeJson() of '" + json + "' failed: " + String(error.c_str()));
+                }
+
+                return false;
+            }
+            return true;
         }
 
       protected:

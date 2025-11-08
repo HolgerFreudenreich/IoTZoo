@@ -1,8 +1,8 @@
-﻿using Domain.Interfaces;
-using Domain.Interfaces.Crud;
+﻿using Domain.Interfaces.Crud;
 using Domain.Pocos;
+using Domain.Services;
 
-namespace Domain.Services
+namespace Domain.Interfaces
 {
     public interface IMailReceiverFactory
     {
