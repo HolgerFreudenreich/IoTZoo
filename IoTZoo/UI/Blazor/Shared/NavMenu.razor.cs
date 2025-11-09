@@ -11,8 +11,11 @@
 // (c) 2025 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
+using Domain.Services;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
+using System.Reflection;
 
 namespace IotZoo.Shared;
 
@@ -28,60 +31,74 @@ public class NavMenuBase : ComponentBase
    [Inject]
    protected IJSRuntime JsRuntime { get; set; } = null!;
 
-   private string selectedMenuItem = string.Empty;
+    [Inject]
+    protected ILogger<NavMenuBase> Logger
+    {
+        get; set;
+    } = null!;
+
+
+    private string selectedMenuItem = string.Empty;
    public string SelectedMenuItem
    {
       get => selectedMenuItem;
       set
       {
-         if (string.IsNullOrEmpty(value))
-         {
-            return;
-         }
-         selectedMenuItem = value;
+            try
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    return;
+                }
+                selectedMenuItem = value;
 
-         switch (value)
-         {
-            case "Philips Hue":
-               NavigationManager.NavigateTo("Hue");
-               break;
-            case "Instructions":
-            case "Component management":
-            case "Example projects":
-               // do nothing
-               break;
+                switch (value.ToUpper())
+                {
+                    case "PHILIPS HUE":
+                        NavigationManager.NavigateTo("Hue");
+                        break;
+                    case "INSTRUCTIONS":
+                    case "COMPONENT MANAGEMENT":
+                    case "EXAMPLE PROJECTS":
+                        // do nothing
+                        break;
 
-            case "Time on a TM1637 4 digits display":
-               NavigationManager.NavigateTo("ExampleProjects01");
-               break;
+                    case "TIME ON A TM1637 4 DIGITS DISPLAY":
+                        NavigationManager.NavigateTo("EXAMPLEPROJECTS01");
+                        break;
 
-            case "Temperature on a TM1637 6 digits display":
-               NavigationManager.NavigateTo("ExampleProjects02");
-               break;
+                    case "TEMPERATURE ON A TM1637 6 DIGITS DISPLAY":
+                        NavigationManager.NavigateTo("EXAMPLEPROJECTS02");
+                        break;
 
-            case "Heart rate on a TM1637 4 digits display":
-               NavigationManager.NavigateTo("ExampleProjects03");
-               break;
+                    case "HEART RATE ON A TM1637 4 DIGITS DISPLAY":
+                        NavigationManager.NavigateTo("EXAMPLEPROJECTS03");
+                        break;
 
-            case "Control a Philips HUE lamp with a rotary encoder":
-               NavigationManager.NavigateTo("ExampleProjects04");
-               break;
+                    case "CONTROL A PHILIPS HUE LAMP WITH A ROTARY ENCODER":
+                        NavigationManager.NavigateTo("EXAMPLEPROJECTS04");
+                        break;
 
-            case "How do Rules work":
-               NavigationManager.NavigateTo("HowDoRulesWork");
-               break;
+                    case "HOW DO RULES WORK":
+                        NavigationManager.NavigateTo("HOWDORULESWORK");
+                        break;
 
-            case "What is a Topic?":
-               NavigationManager.NavigateTo("InstructionsKnownTopics");
-               break;
-            case "Publish Topic":
-               JsRuntime.InvokeVoidAsync("openNewTab", "PublishTopic");
-               break;
+                    case "WHAT IS A TOPIC?":
+                        NavigationManager.NavigateTo("INSTRUCTIONSKNOWNTOPICS");
+                        break;
+                    case "PUBLISH TOPIC":
+                        JsRuntime.InvokeVoidAsync("openNewTab", "PublishTopic");
+                        break;
 
-            default:
-               NavigationManager.NavigateTo(value.Replace(" ", string.Empty));
-               break;
-         }
-      }
+                    default:
+                        NavigationManager.NavigateTo(value.Replace(" ", string.Empty));
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            }
+        }
    }
 }
