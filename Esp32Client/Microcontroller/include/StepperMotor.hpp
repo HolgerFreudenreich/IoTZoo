@@ -80,7 +80,7 @@ namespace IotZoo
     StepperMotor(MqttClient *mqttClient, int deviceIndex, const String &baseTopic,
                  u_int8_t pin1, u_int8_t pin2, u_int8_t pin3, u_int8_t pin4);
 
-    virtual ~StepperMotor();
+    ~StepperMotor() override;
 
     void stop()
     {

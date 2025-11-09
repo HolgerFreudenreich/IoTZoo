@@ -274,23 +274,7 @@
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic="/neo/<display index>/setPixelColor"
-                     ExamplePayload="{'color': 1106052, 'index': 15, 'length': 1, 'brightness': 50}">
-</KnownTopicComponent>
-<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
-                     Topic="/neo/<display index>/setPixelColorRgb"
-                     ExamplePayload="{'r'': 0, 'g': 125, 'b': 0, 'index': 15, 'length': 1, 'brightness': 35}">
-</KnownTopicComponent>
-<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
-                     Topic="/neo/<display index>/setPixelColorHex"
-                     ExamplePayload="{'color': '#10E084','index': 0, 'length': 10, 'brightness': 10}">
-</KnownTopicComponent>
-<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
-                     Topic="/neo/<display index>/setPixelColorHex"
-                     ExamplePayload="{'color': '0x10E084','index': 0, 'length': 10, 'brightness': 10}">
-</KnownTopicComponent>
-<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
-                     Topic="/neo/<display index>/setPixelColorHex"
-                     ExamplePayload="{'color': '10E084','index': 0, 'length': 10, 'brightness': 10}">
+                     ExamplePayload="{\" brightness\":10,\"r\":255,\"g\":2,\"b\":33,\"millisUntilTurnOff\":2000,\"pixels\":[{\"color\":\"#10E084\",\"index\":0,\"length\":10,\"brightness\":10},{\"index\":30,\"length\":8,\"millisUntilTurnOff\":1000},{\"index\":50,\"length\":8,\"millisUntilTurnOff\":1100,\"r\":5,\"g\":211,\"b\":32}]}";>
 </KnownTopicComponent>
 <MudText>"brightness": 0 clears the entire display.</MudText>
 <br />

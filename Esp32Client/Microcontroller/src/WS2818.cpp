@@ -36,148 +36,221 @@ namespace IotZoo
     void WS2818::setup()
     {
         Serial.println("WS2818 setup. DIN Pin is " + String(dioPin));
+
+        pixelProperties.resize(this->numberOfLeds);
+        for (int index = 0; index < this->numberOfLeds; index++)
+        {
+            pixelProperties[index].PixelId            = index;
+            pixelProperties[index].MillisUntilTurnOff = 0;
+        }
+
         pixels->begin();
 
-        setPixelColorRGB(255, 0, 0, 0, 25);
-        delay(125);
-        setPixelColorRGB(0, 255, 0, 1, 25);
-        delay(125);
-        setPixelColorRGB(0, 0, 255, 2, 25);
-        delay(125);
-        setPixelColorRGB(0, 0, 0, 0, 0);
+        for (int index = 0; index < this->numberOfLeds; index++)
+        {
+            setPixelColorRgb(255, 0, 0, index, 10);
+        }
+        pixels->show();
+        for (int index = 0; index < this->numberOfLeds; index++)
+        {
+            setPixelColorRgb(0, 255, 0, index, 10);
+        }
+        pixels->show();
+
+        for (int index = 0; index < this->numberOfLeds; index++)
+        {
+            setPixelColorRgb(0, 0, 255, index, 10);
+        }
+        pixels->show();
+
+        pixels->clear();
+        pixels->show();
+
+        Serial.println("WS2818 setup done.");
     }
 
-    /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColorRGB
-    /// @param json
-    void WS2818::setPixelColorRGB(const String& json)
+    void WS2818::loop()
     {
-        Serial.println("setPixelColorRGB rawData: " + String(json)); // {"r": 0, "g": 125, "b": 0, "index": 15, "length": 1, "brightness": 33}
-        u_int8_t  r          = 0;
-        u_int8_t  g          = 0;
-        u_int8_t  b          = 0;
-        u_int16_t startIndex = 0;
-        u32_t     length     = 1;
-        u_int8_t  brightness = 0;
-
-        StaticJsonDocument<200> jsonDocument;
-
-        DeserializationError error = deserializeJson(jsonDocument, json);
-        if (error)
+        // Reset pixel color
+        for (auto& pixelProperty : pixelProperties)
         {
-            publishError("deserializeJson() of '" + String(json) + "' failed: " + String(error.f_str()));
+            // Serial.println("index:" + String(pixelProperty.PixelId) + ", MillisUntilTurnOff: " +
+            //                String(pixelProperties[pixelProperty.PixelId].MillisUntilTurnOff) + ", CurrentMillis: " + String(millis()));
+
+            if (pixelProperty.MillisUntilTurnOff == 0)
+            {
+                continue;
+            }
+            if (millis() > pixelProperty.MillisUntilTurnOff)
+            {
+                // turn the pixel off.
+                pixels->setPixelColor(pixelProperty.PixelId, 0);
+                pixelProperties[pixelProperty.PixelId].MillisUntilTurnOff = 0;
+            }
         }
-
-        r          = jsonDocument["r"].as<u_int8_t>();
-        g          = jsonDocument["g"].as<u_int8_t>();
-        b          = jsonDocument["b"].as<u_int8_t>();
-        startIndex = jsonDocument["index"].as<u_int16_t>();
-        brightness = jsonDocument["brightness"].as<u32_t>();
-
-        length = jsonDocument["length"].as<u32_t>();
-        if (length < 1)
-        {
-            length = 1;
-        }
-
-        Serial.println("setPixelColor r: " + String(r) + ", g: " + String(g) + ", b, " + String(b) + ", startIndex: " + String(startIndex) +
-                       ", brightness: " + brightness + ", length: " + String(length));
-
-        for (u_int16_t index = startIndex; index < startIndex + length; index++)
-        {
-            setPixelColorRGB(r, g, b, index, brightness);
-        }
+        pixels->show();
     }
 
-    /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
-    /// @param json
+    // @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
+    // @param json
+    //{
+    //                                        "brightness": 10,
+    //                                       "color": "#FFFF00",
+    //                                        "pixels": [
+    //                                           {
+    //                                                "color": "#10E084",
+    //                                                "index": 0,
+    //                                                "length": 10,
+    //                                                "brightness": 10,
+    //                                                "millisUntilTurnOff": 2000
+    //         },
+    //         {
+    //             "color": "#FFFFFF",
+    //             "index": 30,
+    //             "length": 8,
+    //             "millisUntilTurnOff": 1000
+    //         },
+    //         {
+    //             "index": 50,
+    //             "length": 8,
+    //             "millisUntilTurnOff": 3000
+    //         }
+    //     ]
+    // })";
     void WS2818::setPixelColor(const String& json)
     {
-        Serial.println("setPixelColor rawData: " + String(json)); // {"color": 1106052, "index": 15, "length": 1, "brightness": 33}
-        u_int32_t color;
-
-        u_int16_t startIndex;
-        u_int16_t length     = 1;
-        u_int8_t  brightness = 2; // < 2 means off
-
-        StaticJsonDocument<200> jsonDocument;
-
-        DeserializationError error = deserializeJson(jsonDocument, json);
-        if (error)
+        try
         {
-            publishError("deserializeJson() of '" + String(json) + "' failed: " + String(error.f_str()));
+            Serial.println("setPixelColorHex rawData: " + String(json)); // {"color": "0x10E084", "index": 15, "length": 1, "brightness": 33}
+            String colorHexGlobal;
+
+            u_int16_t startIndex;
+            u_int16_t length                   = 1;
+            u_int8_t  brightness               = 2; // 0 means off
+            u32_t     millisUntilTurnOffGlobal = 0;
+
+            StaticJsonDocument<4096> jsonDocument;
+            if (!deserializeStaticJsonAndPublishError(jsonDocument, json))
+            {
+                return;
+            }
+
+            JsonArray elements = jsonDocument["pixels"];
+            if (nullptr == elements)
+            {
+                publishError("\"pixels\":[] missing");
+                return;
+            }
+
+            bool useGlobalRgb = jsonDocument["r"] != nullptr && jsonDocument["g"] != nullptr && jsonDocument["b"] != nullptr;
+
+            auto brightnessProperty = jsonDocument["brightness"];
+            if (nullptr != brightnessProperty)
+            {
+                brightness = brightnessProperty.as<u_int8_t>();
+                if (brightness > 0 and brightness < 2)
+                {
+                    brightness = 2;
+                }
+            }
+            if (useGlobalRgb && jsonDocument["color"] == nullptr)
+            {
+                u8_t r         = jsonDocument["r"].as<u8_t>();
+                u8_t g         = jsonDocument["g"].as<u8_t>();
+                u8_t b         = jsonDocument["b"].as<u8_t>();
+                colorHexGlobal = pixels->Color(r, g, b);
+                Serial.print("using global rgb");
+            }
+            else
+            {
+                colorHexGlobal = jsonDocument["color"].as<String>();
+            }
+            if (colorHexGlobal.startsWith("#"))
+            {
+                colorHexGlobal = colorHexGlobal.substring(1);
+            }
+
+            auto millisUntilTurnOffPropertyGlobal = jsonDocument["millisUntilTurnOff"];
+            if (millisUntilTurnOffPropertyGlobal != nullptr)
+            {
+                millisUntilTurnOffGlobal = millisUntilTurnOffPropertyGlobal.as<uint64_t>();
+            }
+            for (JsonVariant pixel : elements)
+            {
+                Serial.print("New pixel ");
+                String colorHex;
+                auto   colorProperty = pixel["color"];
+
+                bool useRgb = pixel["r"] != nullptr && pixel["g"] != nullptr && pixel["b"] != nullptr;
+
+                if (!useRgb)
+                {
+                    if (nullptr != colorProperty)
+                    {
+                        colorHex = pixel["color"].as<String>();
+                        if (colorHex.startsWith("#"))
+                        {
+                            colorHex = colorHex.substring(1);
+                        }
+                    }
+                    else
+                    {
+                        colorHex = colorHexGlobal;
+                    }
+                }
+                else
+                {
+                    u8_t r   = pixel["r"].as<u8_t>();
+                    u8_t g   = pixel["g"].as<u8_t>();
+                    u8_t b   = pixel["b"].as<u8_t>();
+                    colorHex = pixels->Color(r, g, b);
+                    Serial.print(", r: " + String(r));
+                    Serial.print(", g: " + String(g));
+                    Serial.print(", b: " + String(b));
+                }
+
+                startIndex = pixel["index"].as<u_int16_t>();
+
+                length = pixel["length"].as<u_int16_t>();
+                if (length < 1)
+                {
+                    length = 1;
+                }
+
+                auto     millisUntilTurnOffProperty = pixel["millisUntilTurnOff"];
+                uint64_t millisUntilTurnOff         = 0;
+                if (millisUntilTurnOffProperty != nullptr)
+                {
+                    millisUntilTurnOff = millisUntilTurnOffProperty.as<uint64_t>();
+                }
+                else
+                {
+                    millisUntilTurnOff = millisUntilTurnOffPropertyGlobal;
+                }
+
+                u_int32_t color = stoi(colorHex.c_str(), 0, 16);
+
+                Serial.println("setPixelColor colorHex: " + String(colorHex) + ", color: " + String(color) + ", startIndex: " + String(startIndex) +
+                               ", brightness: " + brightness + ", length: " + String(length) + ", MillisUntilTurnOff: " + String(millisUntilTurnOff));
+
+                for (u_int16_t index = startIndex; index < startIndex + length; index++)
+                {
+                    setPixelColor(color, index, brightness, millisUntilTurnOff);
+                    if (millisUntilTurnOff > 0)
+                    {
+                        pixelProperties[index].MillisUntilTurnOff = millisUntilTurnOff + millis();
+                    }
+                    else
+                    {
+                        pixelProperties[index].MillisUntilTurnOff = 0;
+                    }
+                }
+            }
+            pixels->show();
         }
-
-        color = jsonDocument["color"].as<u_int32_t>();
-
-        startIndex = jsonDocument["index"].as<u_int16_t>();
-        brightness = jsonDocument["brightness"].as<u32_t>();
-
-        length = jsonDocument["length"].as<u_int16_t>();
-        if (length < 1)
+        catch (const std::exception& e)
         {
-            length = 1;
-        }
-        if (brightness > 0 and brightness < 2)
-        {
-            brightness = 2;
-        }
-
-        Serial.println("setPixelColor color: " + String(color) + ", startIndex: " + String(startIndex) + ", brightness: " + brightness +
-                       ", length: " + String(length));
-
-        for (u_int16_t index = startIndex; index < startIndex + length; index++)
-        {
-            setPixelColor(color, index, brightness);
-        }
-    }
-
-    /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
-    /// @param json
-    void WS2818::setPixelColorHex(const String& json)
-    {
-        Serial.println("setPixelColorHex rawData: " + String(json)); // {"color": "0x10E084", "index": 15, "length": 1, "brightness": 33}
-        String colorHex;
-
-        u_int16_t startIndex;
-        u_int16_t length     = 1;
-        u_int8_t  brightness = 2; // 0 means off
-
-        StaticJsonDocument<200> jsonDocument;
-
-        DeserializationError error = deserializeJson(jsonDocument, json);
-        if (error)
-        {
-            publishError("deserializeJson() of '" + String(json) + "' failed: " + String(error.f_str()));
-        }
-
-        colorHex = jsonDocument["color"].as<String>();
-        if (colorHex.startsWith("#"))
-        {
-            colorHex = colorHex.substring(1);
-        }
-
-        startIndex = jsonDocument["index"].as<u_int16_t>();
-        brightness = jsonDocument["brightness"].as<u32_t>();
-
-        if (brightness > 0 and brightness < 2)
-        {
-            brightness = 2;
-        }
-
-        length = jsonDocument["length"].as<u_int16_t>();
-        if (length < 1)
-        {
-            length = 1;
-        }
-
-        u_int32_t color = stoi(colorHex.c_str(), 0, 16);
-
-        Serial.println("setPixelColor colorHex: " + String(colorHex) + ", color: " + String(color) + ", startIndex: " + String(startIndex) +
-                       ", brightness: " + brightness + ", length: " + String(length));
-
-        for (u_int16_t index = startIndex; index < startIndex + length; index++)
-        {
-            setPixelColor(color, index, brightness);
+            publishError(e.what());
         }
     }
 
@@ -185,17 +258,34 @@ namespace IotZoo
     /// @param topics
     void WS2818::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/neo/0/setPixelColorRGB",
-                                     "{\"r\": 0, \"g\": 125, \"b\": 0, \"index\": 15, \"length\": 1, \"brightness\": 35}",
-                                     MessageDirection::IotZooClientOutbound));
+        String jsonExampleColorHex = R"({
+                                            "brightness": 10,
+                                            "color": "#FFFF00",
+                                            "pixels": [
+                                                {
+                                                    "r": "255",
+                                                    "g": "0",
+                                                    "b": 125,
+                                                    "index": 0,
+                                                    "length": 10,
+                                                    "brightness": 10,
+                                                    "millisUntilTurnOff": 2000
+                                                },
+                                                {
+                                                    "color": "#FFFFFF",
+                                                    "index": 30,
+                                                    "length": 8,
+                                                    "millisUntilTurnOff": 1000
+                                                },
+                                                {                       
+                                                    "index": 50,
+                                                    "length": 8,
+                                                    "millisUntilTurnOff": 3000
+                                                }
+                                            ]
+                                        })";
 
-        topics->push_back(*new Topic(getBaseTopic() + "/neo/0/setPixelColorHex",
-                                     "{\"color\": \"#10E084\", \"index\": 0, \"length\": 10, \"brightness\": 10}",
-                                     MessageDirection::IotZooClientOutbound));
-
-        topics->push_back(*new Topic(getBaseTopic() + "/neo/0/setPixelColor",
-                                     "{\"color\": \"1106052\", \"index\": 0, \"length\": 10, \"brightness\": 10}",
-                                     MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(getBaseTopic() + "/neo/0/setPixelColor", jsonExampleColorHex, MessageDirection::IotZooClientOutbound);
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite
@@ -210,38 +300,32 @@ namespace IotZoo
             Serial.println("Reconnection -> nothing to do.");
             return;
         }
-        String topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColorRGB";
-
-        mqttClient->subscribe(topic, [&](const String& json) { setPixelColorRGB(json); });
-
-        Serial.println("LED strip subscribed to topic " + topic);
-
-        topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColor";
-
+        
+        String topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColor";
         mqttClient->subscribe(topic, [&](const String& json) { setPixelColor(json); });
-
-        Serial.println("LED strip subscribed to topic " + topic);
-
-        topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColorHex";
-
-        mqttClient->subscribe(topic, [&](const String& json) { setPixelColorHex(json); });
         Serial.println("LED strip subscribed to topic " + topic);
     }
 
-    void WS2818::setPixelColorRGB(uint8_t r, uint8_t g, uint8_t b, uint16_t index, uint8_t brightness /* = 20*/)
+    void WS2818::setPixelColorRgb(uint8_t r, uint8_t g, uint8_t b, uint16_t index, uint8_t brightness /* = 20*/, uint64_t millisUntilTurnOff /* = 0*/)
     {
-        setPixelColor(pixels->Color(r, g, b), index, brightness);
+        setPixelColor(pixels->Color(r, g, b), index, brightness, millisUntilTurnOff);
     }
 
-    void WS2818::setPixelColor(uint32_t color, uint16_t index, uint8_t brightness /* = 20*/)
+    void WS2818::setPixelColor(uint32_t color, uint16_t index, uint8_t brightness /* = 20*/, uint64_t millisUntilTurnOff /* = 0*/)
     {
-        Serial.println("setPixelColor(color:" + String(color) + ", index: " + String(index) + ", brightness: " + String(brightness) + ")");
-        if (pixels->getBrightness() != brightness)
+        Serial.println("setPixelColor(color:" + String(color) + ", index: " + String(index) + ", brightness: " + String(brightness) +
+                       ", millisUntilTurnOff: " + String(millisUntilTurnOff) + ")");
+        if (index > this->numberOfLeds)
         {
-            pixels->setBrightness(brightness);
+            Serial.println("index out of range");
+            return;
         }
+        if (brightness != 0 && pixels->getBrightness() != brightness)
+        {
+            pixels->setBrightness(brightness); // affects all pixels!!!
+        }
+
         pixels->setPixelColor(index, color);
-        pixels->show();
     }
 } // namespace IotZoo
 #endif // USE_WS2818

@@ -25,6 +25,7 @@ using Domain.Services.MQTT;
 using Domain.Services.RuleEngine;
 using Domain.Services.Timer;
 using Infrastructure;
+using IotZoo;
 using IotZoo.Services;
 using Microsoft.OpenApi.Models;
 using MQTTnet.Exceptions;
@@ -41,8 +42,7 @@ builder.Services.AddSwaggerGen(c =>
                                         });
 
 // Add services to the container.
-builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+
 builder.Services.AddMudServices(config =>
                                        {
                                            config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopCenter;
@@ -54,6 +54,9 @@ builder.Services.AddMudServices(config =>
                                            config.SnackbarConfiguration.ShowTransitionDuration = 500;
                                            config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
                                        });
+
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 
 IConfigurationSection configurationSectionAppSettings = builder.Configuration.GetSection(nameof(AppSettings));
 builder.Services.Configure<AppSettings>(configurationSectionAppSettings);
@@ -169,13 +172,21 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
 
-app.UseRouting();
 
-app.MapBlazorHub();
 
-app.MapControllers();
-app.MapFallbackToPage("/_Host");
+
+//app.UseStaticFiles();
+
+//app.UseRouting();
+
+//app.MapBlazorHub();
+
+//app.MapControllers();
+//app.MapFallbackToPage("/_Host");
+app.UseAntiforgery();
+app.MapStaticAssets();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.Run();

@@ -264,13 +264,33 @@ void publishError(const String& errMsg)
     mqttClient->publish(topic, errMsg);
 }
 
+bool deserializeStaticJsonAndPublishError(JsonDocument& jsonDocument, const String& json)
+{
+    DeserializationError error = deserializeJson(jsonDocument, json);
+    if (error)
+    {
+        if (DeserializationError::NoMemory == error)
+        {
+            publishError("Max data length exeeded! (" + String(json.length()) + " > " + String(jsonDocument.capacity()) +
+                         ") Error: " + String(error.c_str()));
+        }
+        else
+        {
+            publishError("DeserializeJson() of '" + json + "' failed: " + String(error.c_str()));
+        }
+
+        return false;
+    }
+    return true;
+}
+
 #endif
 
 void onReceivedConnectedDevicesConfiguration(const String& json)
 {
     Serial.println("*** onReceivedConfiguration ***");
     Serial.println(json);
-    settings->saveConfiguration(json);
+    settings->saveDeviceConfigurations(json);
 }
 
 bool onReceivedMicrocontrollerConfiguration(const String& json)
@@ -284,12 +304,9 @@ bool onReceivedMicrocontrollerConfiguration(const String& json)
             return false;
         }
         StaticJsonDocument<400> jsonDocument;
-
-        DeserializationError error = deserializeJson(jsonDocument, json);
-        if (error)
+        if (!deserializeStaticJsonAndPublishError(jsonDocument, json))
         {
-            Serial.print(F("deserializeJson() failed: "));
-            Serial.println(error.f_str());
+            return false;
         }
         String namespaceName = jsonDocument["NamespaceName"].as<String>();
         String projectName   = jsonDocument["ProjectName"].as<String>();
@@ -548,7 +565,7 @@ void publishDeviceConfigurations()
     try
     {
         String topicDevices        = getBaseTopic() + "/device_config";
-        String deviceConfiguration = settings->loadConfiguration();
+        String deviceConfiguration = settings->loadDeviceConfigurations();
         Serial.println("publishing device configuration: " + deviceConfiguration);
         mqttClient->publish(topicDevices, deviceConfiguration);
     }
@@ -634,6 +651,27 @@ void onStatusRequested(const String& status)
         publishErrorMessage("Do not know what status you want: " + status);
     }
 }
+
+// publish an answer to getBaseTopic() + "/settings/load".
+void onLoadAndPublishConfigurationByKey(const String& key)
+{
+    String topic = getBaseTopic() + "/settings/key";
+    if (key.length() == 0)
+    {
+        publishError("key missing!");
+        return;
+    }
+
+    try
+    {
+        Serial.println("Loading configuration with key '" + key + "'");
+        mqttClient->publish(topic, settings->loadConfiguration(key));
+    }
+    catch (const std::exception& e)
+    {
+        publishError(String(e.what()));
+    }
+};
 
 #ifdef USE_MQTT2
 /// @brief /esp32/<mac>/status requested (from IoTZooClient) via MQTT.
@@ -793,6 +831,27 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
                               restart();
                           });
 
+    String topicSaveConfiguration = getBaseTopic() + "/settings/save";
+    mqttClient->subscribe(topicSaveConfiguration,
+                          [&](const String& json)
+                          {
+                              Serial.println("Received configuration data -> Save it.");
+
+                              StaticJsonDocument<4096> jsonDocument;
+                              if (!deserializeStaticJsonAndPublishError(jsonDocument, json))
+                              {
+                                  return;
+                              }
+
+                              String key  = jsonDocument["Key"].as<String>();
+                              String data = jsonDocument["Data"].as<String>();
+
+                              settings->saveConfigurationData(key, json);
+                          });
+
+    String topicLoadConfiguration = getBaseTopic() + "/settings/load";
+    mqttClient->subscribe(topicLoadConfiguration, onLoadAndPublishConfigurationByKey);
+
     // Save the project configurations.
     String topicSetMicrocontrollerConfiguration = macAddress + "/save_microcontroller_config"; // macAddress instead of getBaseTopic()!
     mqttClient->subscribe(topicSetMicrocontrollerConfiguration,
@@ -819,9 +878,9 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
  */
 void makeInstanceConfiguredDevices()
 {
-    Serial.println("Loading configuration and instantiate devices...");
+    Serial.println("Loading device configurations and instantiate devices...");
 
-    String jsonDeviceConfigurations = settings->loadConfiguration();
+    String jsonDeviceConfigurations = settings->loadDeviceConfigurations();
     if (0 == jsonDeviceConfigurations.length())
     {
         Serial.println("Not yet configured!");
@@ -831,12 +890,11 @@ void makeInstanceConfiguredDevices()
         Serial.println("Config: " + jsonDeviceConfigurations);
         DynamicJsonDocument jsonDocument(4096);
 
-        DeserializationError error = deserializeJson(jsonDocument, jsonDeviceConfigurations);
-        if (error)
+        if (!deserializeStaticJsonAndPublishError(jsonDocument, jsonDeviceConfigurations))
         {
-            Serial.print(F("deserializeJson() failed: "));
-            Serial.println(error.f_str());
+            return;
         }
+
         JsonArray arrDevices = jsonDocument.as<JsonArray>();
 
         for (JsonVariant value : arrDevices)
@@ -870,7 +928,7 @@ void makeInstanceConfiguredDevices()
                     int pinRx = arrPins[0]["MicrocontrollerGpoPin"];
                     int pinTx = arrPins[1]["MicrocontrollerGpoPin"];
 
-                    gps = new Gps(deviceIndex, mqttClient, getBaseTopic(), pinRx, pinTx);                  
+                    gps = new Gps(deviceIndex, mqttClient, getBaseTopic(), pinRx, pinTx);
                 }
 #endif // USE_BUTTON
 
@@ -1338,7 +1396,7 @@ void handleGetAlive()
 void handleGetDeviceConfig()
 {
     Serial.println("GET device config");
-    String json = settings->loadConfiguration();
+    String json = settings->loadDeviceConfigurations();
     webServer.send(200, "application/json", json.c_str());
 }
 
@@ -1393,7 +1451,7 @@ void handlePostDeviceConfig()
         Serial.println("rest problem");
     }
     String body = webServer.arg("plain");
-    settings->saveConfiguration(body);
+    settings->saveDeviceConfigurations(body);
     Serial.println(body);
     // Respond to the client
     webServer.send(200, "application/json", "{}");
@@ -1413,7 +1471,10 @@ void handlePostMicrocontrollerConfig()
     Serial.println(body);
     // JSON data buffer
     DynamicJsonDocument jsonDocument(1024); // on heap
-    deserializeJson(jsonDocument, body);
+    if (!deserializeStaticJsonAndPublishError(jsonDocument, body))
+    {
+        return;
+    }
 
     String mqttBrokerIp  = jsonDocument["IpMqttBroker"];
     String projectName   = jsonDocument["ProjectName"];
@@ -1734,6 +1795,14 @@ void registerTopics()
     topics.push_back(*new Topic(getBaseTopic() + "/alive_ack", "Alive message of the microcontroller", MessageDirection::IotZooClientOutbound));
 
     topics.push_back(*new Topic(getBaseTopic() + "/terminated", "Microcontroller terminated!", MessageDirection::IotZooClientInbound));
+    // settings
+    topics.push_back(
+        *new Topic(getBaseTopic() + "/settings/load", "Loads data with by the key given in the payload", MessageDirection::IotZooClientOutbound));
+    // answer to /settings/load
+    topics.push_back(
+        *new Topic(getBaseTopic() + "/settings/key", "Answer of /load in json format {\"Key\": \"data\"}", MessageDirection::IotZooClientInbound));
+
+    topics.push_back(*new Topic(getBaseTopic() + "/settings/save", "{\"Key\": \"data\"}", MessageDirection::IotZooClientOutbound));
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
     if (NULL != heartRateSensor)
@@ -1960,6 +2029,13 @@ void loop()
 
 #ifdef USE_BUTTON
     buttonHandling.loop();
+#endif
+
+#ifdef USE_WS2818
+    if (nullptr != ws2812)
+    {
+        ws2812->loop();
+    }
 #endif
 
 #ifdef USE_GPS
