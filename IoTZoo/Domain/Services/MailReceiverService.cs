@@ -30,7 +30,6 @@ namespace Domain.Services
             IProjectCrudService projectCrudService)
             : base(logger, dataTransferService)
         {
-
             MailReceiverConfig = mailReceiverConfig;
             ProjectCrudService = projectCrudService;
             _ = Task.Run(() => StartIdleAsync(serviceCancellationToken.Token));
@@ -212,7 +211,9 @@ namespace Domain.Services
             try
             {
                 if (imapClient?.IsConnected == true)
+                {
                     await imapClient.DisconnectAsync(true);
+                }
                 imapClient?.Dispose();
             }
             finally

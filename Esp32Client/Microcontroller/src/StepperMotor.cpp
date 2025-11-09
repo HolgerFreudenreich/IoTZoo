@@ -36,13 +36,13 @@ namespace IotZoo
     /// @param topics
     void StepperMotor::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/actions",
-                                     "{{ 'degrees': -300, 'rpm': 10 }, { 'degrees': 300, 'rpm': 16 }}", MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/actions",
+                             "{{ 'degrees': -300, 'rpm': 10 }, { 'degrees': 300, 'rpm': 16 }}", MessageDirection::IotZooClientOutbound);
 
-        topics->push_back(*new Topic(topicActionDone, "The action_id of completed action.", MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(topicActionDone, "The action_id of completed action.", MessageDirection::IotZooClientOutbound);
 
-        topics->push_back(*new Topic(getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/abort", "Abort all actions.",
-                                     MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/abort", "Abort all actions.",
+                             MessageDirection::IotZooClientOutbound);
     }
 
     // Example: "actions":[{"degrees": -300, "rpm": 10 }]
