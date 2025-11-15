@@ -16,20 +16,20 @@
 
 namespace IotZoo
 {
-    TM1637::TM1637(Tm1637DisplayType displayType, MqttClient* mqttClient, int deviceIndex, const String& baseTopic, int clkPin, int dioPin,
-                   bool flipDisplay, const String& serverDownText)
-        : TM1637DisplayBase(deviceIndex, mqttClient, baseTopic)
+    TM1637::TM1637(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, 
+        Tm1637DisplayType displayType, int clkPin, int dioPin, bool flipDisplay, const String& serverDownText)
+        : TM1637DisplayBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.println("Constructor TM1637. DisplayType:" + displayType);
 
-        displayTm1637 = new TM1637Display(mqttClient, deviceIndex, baseTopic, displayType, clkPin, dioPin, flipDisplay, serverDownText);
+        displayTm1637 = new TM1637Display(deviceIndex, settings, mqttClient, baseTopic, displayType, clkPin, dioPin, flipDisplay, serverDownText);
     }
 
     TM1637::~TM1637()
     {
         Serial.println("Destructor TM1637 deviceIndex: " + String(deviceIndex));
         delete displayTm1637;
-        displayTm1637 = NULL;
+        displayTm1637 = nullptr;
     }
 
     Tm1637DisplayType TM1637::getDisplayType() const

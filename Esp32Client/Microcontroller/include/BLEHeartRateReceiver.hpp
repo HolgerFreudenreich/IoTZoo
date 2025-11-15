@@ -44,7 +44,7 @@ namespace IotZoo
   public:
     HeartRateMonitor();
 
-    virtual ~HeartRateMonitor()
+    ~HeartRateMonitor() override
     {
       Serial.println("Deleting HeartRateMonitor.");
     }

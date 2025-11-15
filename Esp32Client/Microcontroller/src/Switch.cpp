@@ -14,8 +14,8 @@
 
 namespace IotZoo
 {
-    Switch::Switch(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pin)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    Switch::Switch(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t pin)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         this->pin = pin;
         Serial.println("Constructor Switch. Pin: " + String(pin));
@@ -41,10 +41,10 @@ namespace IotZoo
     /// @param topics
     void Switch::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/switch/" + String(getDeviceIndex()) + "/on",
-                                     "Switch " + String(getDeviceIndex()) + " is on. Payload: millis();", MessageDirection::IotZooClientInbound));
-        topics->push_back(*new Topic(getBaseTopic() + "/switch/" + String(getDeviceIndex()) + "/off",
-                                     "Wwitch " + String(getDeviceIndex()) + " is off. Payload: millis();", MessageDirection::IotZooClientInbound));
+        topics->emplace_back(getBaseTopic() + "/switch/" + String(getDeviceIndex()) + "/on",
+                             "Switch " + String(getDeviceIndex()) + " is on. Payload: millis();", MessageDirection::IotZooClientInbound);
+        topics->emplace_back(getBaseTopic() + "/switch/" + String(getDeviceIndex()) + "/off",
+                             "Switch " + String(getDeviceIndex()) + " is off. Payload: millis();", MessageDirection::IotZooClientInbound);
     }
 
     bool Switch::hasStateChanged()

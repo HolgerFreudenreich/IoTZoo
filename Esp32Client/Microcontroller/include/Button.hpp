@@ -29,7 +29,7 @@ namespace IotZoo
         String        topicButtonSetCounter;
 
       public:
-        Button(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pin);
+        Button(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t pin);
 
         ~Button() override;
 

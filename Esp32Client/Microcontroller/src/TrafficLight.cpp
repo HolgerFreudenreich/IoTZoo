@@ -15,9 +15,9 @@
 
 namespace IotZoo
 {
-    TrafficLight::TrafficLight(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, u_int8_t pinRedLed, u_int8_t pinYellowLed,
-                               u_int8_t pinGreenLed)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    TrafficLight::TrafficLight(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, u_int8_t pinRedLed,
+                               u_int8_t pinYellowLed, u_int8_t pinGreenLed)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         this->pinRedLed    = pinRedLed;
         this->pinYellowLed = pinYellowLed;
@@ -70,10 +70,10 @@ namespace IotZoo
     /// @param topics
     void TrafficLight::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/traffic_light/" + String(getDeviceIndex()),
+        topics->emplace_back(getBaseTopic() + "/traffic_light/" + String(getDeviceIndex()),
                                      "Payload: To turn green led on (and yellow and red off): g, 0, green, To turn yellow led on (and "
                                      "green and red off): y, 1, yellow, To turn red led on (and green and yellow off): r, 2, red",
-                                     MessageDirection::IotZooClientOutbound));
+                                     MessageDirection::IotZooClientOutbound);
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite

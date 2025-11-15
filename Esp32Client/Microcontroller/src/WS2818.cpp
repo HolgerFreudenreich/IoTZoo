@@ -16,8 +16,8 @@
 
 namespace IotZoo
 {
-    WS2818::WS2818(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, int pin, int numberOfLeds)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    WS2818::WS2818(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, int pin, int numberOfLeds)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.println("Constructor WS2818");
         dioPin             = pin;
@@ -254,6 +254,33 @@ namespace IotZoo
         }
     }
 
+    void WS2818::setPixelsByPreset(const String& presetName)
+    {
+        try
+        {
+            Serial.println("setPixelsByPreset(presetName: " + presetName + ")");
+            if (nullptr == settings)
+            {
+                Serial.println("settings is null!");
+                return;
+            }
+            String json = settings->loadConfiguration(presetName);
+
+            if (json.length())
+            {
+                setPixelColor(json);
+            }
+            else
+            {
+                publishError("no data for preset " + presetName + " found!");
+            }
+        }
+        catch (const std::exception& e)
+        {
+            publishError(e.what());
+        }
+    }
+
     /// @brief Let the user know what the device can do.
     /// @param topics
     void WS2818::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
@@ -286,6 +313,8 @@ namespace IotZoo
                                         })";
 
         topics->emplace_back(getBaseTopic() + "/neo/0/setPixelColor", jsonExampleColorHex, MessageDirection::IotZooClientOutbound);
+
+        topics->emplace_back(getBaseTopic() + "/neo/0/setPixelsByPreset", "Smiley", MessageDirection::IotZooClientOutbound);
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite
@@ -300,9 +329,13 @@ namespace IotZoo
             Serial.println("Reconnection -> nothing to do.");
             return;
         }
-        
+
         String topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColor";
         mqttClient->subscribe(topic, [&](const String& json) { setPixelColor(json); });
+        Serial.println("LED strip subscribed to topic " + topic);
+
+        topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelsByPreset";
+        mqttClient->subscribe(topic, [&](const String& presetName) { setPixelsByPreset(presetName); });
         Serial.println("LED strip subscribed to topic " + topic);
     }
 

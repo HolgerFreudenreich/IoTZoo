@@ -28,7 +28,7 @@ namespace IotZoo
         }
 
         this->mqttClient = mqttClient;
-        if (NULL != mqttClient)
+        if (nullptr != mqttClient)
         {
             for (auto& display : displays1637)
             {

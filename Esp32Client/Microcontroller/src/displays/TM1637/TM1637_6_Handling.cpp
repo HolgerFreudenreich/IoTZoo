@@ -19,7 +19,7 @@ namespace IotZoo
     {
     }
 
-    void TM1637_6_Handling::onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic)
+    void TM1637_6_Handling::onMqttConnectionEstablished(Settings* const settings, MqttClient* mqttClient, const String& baseTopic)
     {
         Serial.println("TM1637_6_Handling::onMqttConnectionEstablished");
         if (callbacksAreRegistered)
@@ -29,7 +29,8 @@ namespace IotZoo
         }
 
         this->mqttClient = mqttClient;
-        if (NULL != mqttClient)
+        this->settings = settings;
+        if (nullptr != mqttClient)
         {
             for (auto& display : displays1637)
             {

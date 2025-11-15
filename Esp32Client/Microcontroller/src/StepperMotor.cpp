@@ -17,9 +17,9 @@
 
 namespace IotZoo
 {
-    StepperMotor::StepperMotor(MqttClient* mqttClient, int deviceIndex, const String& baseTopic, u_int8_t pin1, u_int8_t pin2, u_int8_t pin3,
+    StepperMotor::StepperMotor(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, u_int8_t pin1, u_int8_t pin2, u_int8_t pin3,
                                u_int8_t pin4)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.println("Constructor StepperMotor");
         stepperControl = new StepperControl(StepperControl::DefaultStepCount, pin1, pin2, pin3, pin4);
@@ -71,9 +71,7 @@ namespace IotZoo
 
         for (JsonVariant value : arrActions)
         {
-            StepperAction* stepperAction =
-                new StepperAction(value["id"].as<int>(), value["degrees"].as<double>(), value["rpm"].as<double>(), value["start_delay"].as<double>());
-            stepperActions.push_back(*stepperAction);
+            stepperActions.emplace_back(value["id"].as<int>(), value["degrees"].as<double>(), value["rpm"].as<double>(), value["start_delay"].as<double>());
         }
     }
 

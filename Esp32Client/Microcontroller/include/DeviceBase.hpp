@@ -21,7 +21,9 @@
 #include "MqttClient2.hpp"
 #endif
 #include "./pocos/Topic.hpp"
-
+#ifdef ARDUINO_ESP32_DEV
+#include "Settings.hpp"
+#endif
 using namespace std;
 
 namespace IotZoo
@@ -30,8 +32,8 @@ namespace IotZoo
     class DeviceBase
     {
       public:
-        DeviceBase(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic)
-            : deviceIndex(deviceIndex), mqttClient(mqttClient), baseTopic(baseTopic)
+        DeviceBase(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic)
+            : deviceIndex(deviceIndex), settings(settings), mqttClient(mqttClient), baseTopic(baseTopic)
         {
             Serial.println("Constructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
         }
@@ -105,7 +107,8 @@ namespace IotZoo
         }
 
       protected:
-        MqttClient* mqttClient;
+        MqttClient* mqttClient = nullptr;
+        Settings*   settings = nullptr;
         int         deviceIndex = -1;
         String      baseTopic;
         bool        mqttCallbacksAreRegistered = false;

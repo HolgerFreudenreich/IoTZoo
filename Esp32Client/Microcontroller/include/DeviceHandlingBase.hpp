@@ -19,6 +19,7 @@
 #include "MqttClient2.hpp"
 #endif
 #include "./pocos/Topic.hpp"
+#include "Settings.hpp"
 
 using namespace std;
 
@@ -54,7 +55,8 @@ namespace IotZoo
         }
 
       protected:
-        MqttClient* mqttClient = nullptr;
+        MqttClient* mqttClient             = nullptr;
+        Settings*   settings               = nullptr;
         bool        callbacksAreRegistered = false;
     };
 } // namespace IotZoo

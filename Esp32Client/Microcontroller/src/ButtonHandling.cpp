@@ -39,11 +39,10 @@ namespace IotZoo
         }
     }
 
-    void ButtonHandling::addDevice(MqttClient* mqttClient, const String& baseTopic, int deviceIndex, u_int8_t buttonPin)
+    void ButtonHandling::addDevice(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic,
+         u_int8_t buttonPin)
     {
-        Button* button = new Button(deviceIndex, mqttClient, baseTopic, buttonPin);
-
-        ButtonHelper::buttons.push_back(*button);
+        ButtonHelper::buttons.emplace_back(deviceIndex, settings, mqttClient, baseTopic, buttonPin);
     }
 
     void ButtonHandling::loop()

@@ -665,7 +665,10 @@ void onLoadAndPublishConfigurationByKey(const String& key)
     try
     {
         Serial.println("Loading configuration with key '" + key + "'");
-        mqttClient->publish(topic, settings->loadConfiguration(key));
+
+        String value = settings->loadConfiguration(key);
+        String json  = "{ \"key\": \"" + key + "\", \"data\": \"" + value + "\" }";
+        mqttClient->publish(topic, json);
     }
     catch (const std::exception& e)
     {
@@ -718,7 +721,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     }
     else
     {
-        Serial.println("ws2812 is NULL!");
+        Serial.println("ws2812 is nullptr!");
     }
 
 #endif
@@ -771,7 +774,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 #endif
 
 #ifdef USE_TM1637_6
-    tm1637_6Handling.onMqttConnectionEstablished(mqttClient, getBaseTopic());
+    tm1637_6Handling.onMqttConnectionEstablished(settings, mqttClient, getBaseTopic());
 #endif
 
 #ifdef USE_LED_AND_KEY
@@ -835,18 +838,25 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     mqttClient->subscribe(topicSaveConfiguration,
                           [&](const String& json)
                           {
-                              Serial.println("Received configuration data -> Save it.");
-
-                              StaticJsonDocument<4096> jsonDocument;
-                              if (!deserializeStaticJsonAndPublishError(jsonDocument, json))
+                              try
                               {
-                                  return;
+                                  Serial.print("Received configuration data -> Save it. ");
+
+                                  StaticJsonDocument<4096> jsonDocument;
+                                  if (!deserializeStaticJsonAndPublishError(jsonDocument, json))
+                                  {
+                                      return;
+                                  }
+
+                                  String key  = jsonDocument["key"].as<String>();
+                                  String data = jsonDocument["data"].as<String>();
+                                  Serial.println("key:" + key + ", date: " + data);
+                                  settings->saveConfigurationData(key, data);
                               }
-
-                              String key  = jsonDocument["Key"].as<String>();
-                              String data = jsonDocument["Data"].as<String>();
-
-                              settings->saveConfigurationData(key, json);
+                              catch (const std::exception& e)
+                              {
+                                  publishError(String(e.what()));
+                              }
                           });
 
     String topicLoadConfiguration = getBaseTopic() + "/settings/load";
@@ -915,7 +925,7 @@ void makeInstanceConfiguredDevices()
                 {
                     int buttonPin = arrPins[0]["MicrocontrollerGpoPin"];
 
-                    buttonHandling.addDevice(mqttClient, getBaseTopic(), deviceIndex, buttonPin);
+                    buttonHandling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), buttonPin);
 
                     Serial.println("Button initialized.");
                 }
@@ -928,7 +938,7 @@ void makeInstanceConfiguredDevices()
                     int pinRx = arrPins[0]["MicrocontrollerGpoPin"];
                     int pinTx = arrPins[1]["MicrocontrollerGpoPin"];
 
-                    gps = new Gps(deviceIndex, mqttClient, getBaseTopic(), pinRx, pinTx);
+                    gps = new Gps(deviceIndex, settings, mqttClient, getBaseTopic(), pinRx, pinTx);
                 }
 #endif // USE_BUTTON
 
@@ -938,7 +948,7 @@ void makeInstanceConfiguredDevices()
                     uint8_t buzzerPin = arrPins[0]["MicrocontrollerGpoPin"];
                     uint8_t ledPin    = arrPins[1]["MicrocontrollerGpoPin"];
 
-                    buzzer = new IotZoo::Buzzer(deviceIndex, mqttClient, getBaseTopic(), buzzerPin, ledPin);
+                    buzzer = new IotZoo::Buzzer(deviceIndex, settings, mqttClient, getBaseTopic(), buzzerPin, ledPin);
 
                     Serial.println("Buzzer initialized.");
                 }
@@ -952,7 +962,7 @@ void makeInstanceConfiguredDevices()
                     uint8_t dataPin      = arrPins[2]["MicrocontrollerGpoPin"];
                     uint8_t backlightPin = arrPins[3]["MicrocontrollerGpoPin"];
 
-                    ht1621 = new IotZoo::HT1621(csPin, wsPin, dataPin, backlightPin, deviceIndex, mqttClient, getBaseTopic());
+                    ht1621 = new IotZoo::HT1621(deviceIndex, settings, mqttClient, getBaseTopic(), csPin, wsPin, dataPin, backlightPin);
 
                     Serial.println("HT1621 6 digit LED Display initialized.");
                 }
@@ -962,9 +972,7 @@ void makeInstanceConfiguredDevices()
                 if (deviceType == "Switch")
                 {
                     int switchPin = arrPins[0]["MicrocontrollerGpoPin"];
-
-                    Switch* switchBtn = new Switch(deviceIndex, mqttClient, getBaseTopic(), switchPin);
-                    switches.push_back(*switchBtn);
+                    switches.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), switchPin);
                     Serial.println("Switch initialized.");
                 }
 #endif // USE_SWITCH
@@ -981,7 +989,7 @@ void makeInstanceConfiguredDevices()
                     int row2Pin    = arrPins[6]["MicrocontrollerGpoPin"];
                     int row3Pin    = arrPins[7]["MicrocontrollerGpoPin"];
 
-                    ButtonMatrix* buttonMatrix = new ButtonMatrix(mqttClient, deviceIndex, getBaseTopic());
+                    ButtonMatrix* buttonMatrix = new ButtonMatrix(deviceIndex, settings, mqttClient, getBaseTopic());
                     buttonMatrix->setRowPins(row0Pin, row1Pin, row2Pin, row3Pin);
                     buttonMatrix->setColPins(column0Pin, column1Pin, column2Pin, column3Pin);
 
@@ -999,7 +1007,7 @@ void makeInstanceConfiguredDevices()
                     int pin3 = arrPins[2]["MicrocontrollerGpoPin"];
                     int pin4 = arrPins[3]["MicrocontrollerGpoPin"];
 
-                    stepperMotor = new StepperMotor(mqttClient, deviceIndex, getBaseTopic(), pin1, pin2, pin3, pin4);
+                    stepperMotor = new StepperMotor(deviceIndex, settings, mqttClient, getBaseTopic(), pin1, pin2, pin3, pin4);
 
                     Serial.println("28BY48 Stepper initialized.");
                 }
@@ -1010,7 +1018,7 @@ void makeInstanceConfiguredDevices()
                 if (deviceType == "HC-SR501")
                 {
                     int pinMotionDetector = arrPins[0]["MicrocontrollerGpoPin"];
-                    motionDetectorsHrsc501Handling.addDevice(deviceIndex, mqttClient, getBaseTopic(), pinMotionDetector);
+                    motionDetectorsHrsc501Handling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), pinMotionDetector);
                 }
 #endif // USE_HC_SR501
 
@@ -1041,7 +1049,8 @@ void makeInstanceConfiguredDevices()
                         }
                     }
 
-                    rd03d = new Rd03D(deviceIndex, mqttClient, getBaseTopic(), pinRx, pinTx, timeoutMillis, maxDistanceMillimeters, multiTargetMode);
+                    rd03d = new Rd03D(deviceIndex, settings, mqttClient, getBaseTopic(), pinRx, pinTx, timeoutMillis, maxDistanceMillimeters,
+                                      multiTargetMode);
                     Serial.print("Rd-03d configuration added! pinRx: " + String(pinRx) + ", pinTx: " + String(pinTx));
                     Serial.println(", TimeOutMillis: " + String(timeoutMillis) + ", MaxDistanceMillimeters: " + String(maxDistanceMillimeters));
                 }
@@ -1074,8 +1083,9 @@ void makeInstanceConfiguredDevices()
                         }
                     }
 
-                    lcdDisplay = new LcdDisplay(i2cAddress, // set the LCD address to 0x27
-                                                columns, rows, deviceIndex, mqttClient, getBaseTopic());
+                    lcdDisplay = new LcdDisplay(deviceIndex, settings, mqttClient, getBaseTopic(),
+                                                i2cAddress, // set the LCD address to 0x27
+                                                columns, rows);
 
                     Serial.println("LCD160x configuration added! I2C-Address: " + String(i2cAddress));
                 }
@@ -1091,7 +1101,7 @@ void makeInstanceConfiguredDevices()
                     // u_int8_t sdaPin = arrPins[1]["MicrocontrollerGpoPin"];
                     u_int8_t i2cAddress = 0x3C;
 
-                    oled1306 = new OledSsd1306Display(i2cAddress, deviceIndex, mqttClient, getBaseTopic());
+                    oled1306 = new OledSsd1306Display(deviceIndex, settings, mqttClient, getBaseTopic(), i2cAddress);
                     Serial.println("Oled display SSD1306 initialized! I2C-Address: " + String(i2cAddress));
                 }
 #endif // USE_OLED_SSD1306
@@ -1162,7 +1172,7 @@ void makeInstanceConfiguredDevices()
                             numberOfLeds = std::stoi(propertyValue.c_str());
                         }
                     }
-                    ws2812 = new WS2818(deviceIndex, mqttClient, getBaseTopic(), dioPin, numberOfLeds);
+                    ws2812 = new WS2818(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLeds);
                     Serial.println("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
                 }
 #endif // USE_WS2818
@@ -1242,7 +1252,7 @@ void makeInstanceConfiguredDevices()
                     int clkPin    = arrPins[1]["MicrocontrollerGpoPin"];
                     int dioPin    = arrPins[2]["MicrocontrollerGpoPin"];
 
-                    tm1638 = new TM1638(deviceIndex, mqttClient, getBaseTopic(), strobePin, clkPin, dioPin);
+                    tm1638 = new TM1638(deviceIndex, settings, mqttClient, getBaseTopic(), strobePin, clkPin, dioPin);
 
                     Serial.println("TM1638 display initialized! Strobe Pin is " + String(strobePin) + ", CLK Pin is " + String(clkPin) +
                                    ", DIO Pin is " + String(dioPin));
@@ -1255,9 +1265,7 @@ void makeInstanceConfiguredDevices()
                     Serial.println("Remote GPIO");
 
                     int gpioPin = arrPins[0]["MicrocontrollerGpoPin"];
-
-                    RemoteGpio* remoteGpio = new RemoteGpio(deviceIndex, mqttClient, getBaseTopic(), gpioPin);
-                    remoteGpios.push_back(*remoteGpio);
+                    remoteGpios.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), gpioPin);
                     Serial.println("Remote GPIO PIN configuration loaded! Pin is " + String(gpioPin) + ". Size remoteGpios: " + remoteGpios.size());
                 }
 #endif // USE_REMOTE_GPIOS
@@ -1296,9 +1304,7 @@ void makeInstanceConfiguredDevices()
 
                     if (gpioLedRed != -1 && gpioLedYellow != -1 && gpioLedGreen != -1)
                     {
-                        TrafficLight* trafficLight =
-                            new TrafficLight(deviceIndex, mqttClient, getBaseTopic(), gpioLedRed, gpioLedYellow, gpioLedGreen);
-                        trafficLightLeds.push_back(*trafficLight);
+                        trafficLightLeds.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), gpioLedRed, gpioLedYellow, gpioLedGreen);
                     }
                 }
 #endif // USE_TRAFFIC_LIGHT_LEDS
@@ -1347,8 +1353,8 @@ void makeInstanceConfiguredDevices()
                         }
                     }
 
-                    hw040Handling.addDevice(mqttClient, getBaseTopic(), deviceIndex, boundaryMinValue, boundaryMaxValue, circleValues, acceleration,
-                                            encoderSteps, clkPin, dtPin, swPin, -1);
+                    hw040Handling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), boundaryMinValue, boundaryMaxValue, circleValues,
+                                            acceleration, encoderSteps, clkPin, dtPin, swPin, -1);
                     Serial.println("HW-040 rotary encoder initialized! CLK Pin is " + String(clkPin) + ", DT Pin is " + String(dtPin) +
                                    ", MS Pin is " + String(swPin) + ", boundaryMinValue is " + String(boundaryMinValue) + ", boundaryMaxValue is " +
                                    String(boundaryMaxValue) + ", acceleration is " + String(acceleration) + ", circleValues is " +
@@ -1370,7 +1376,7 @@ void makeInstanceConfiguredDevices()
                         }
                     }
 
-                    heartRateSensor = new HeartRateSensor(deviceIndex, mqttClient, getBaseTopic(), advertisingTimeoutSeconds);
+                    heartRateSensor = new HeartRateSensor(deviceIndex, settings, mqttClient, getBaseTopic(), advertisingTimeoutSeconds);
                     connectToHeartRateSensor(advertisingTimeoutSeconds);
                 }
 #endif // USE_BLE_HEART_RATE_SENSOR
@@ -1616,7 +1622,7 @@ void connectToHeartRateSensor(int advertisingTimeout)
 #ifdef USE_MQTT2
     mqttClient->publish(topic, "BLE scan started to find advertising heart rate sensor. Timeout is set to " + String(timeOut) + " s.");
 #endif
-    if (NULL != heartRateSensor)
+    if (nullptr != heartRateSensor)
     {
         heartRateSensor->setup(notifyCallbackHeartRate, // Callback method, called on heart rate received
                                advertisingTimeout);     // Scan duration
@@ -1691,7 +1697,7 @@ void setup()
         mqttBrokerIp[i] = strMqttBrokerIp[i];
     }
 
-    mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, NULL, NULL, 1883);
+    mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, nullptr, nullptr, 1883);
 
     Serial.println("BaseTopic: " + getBaseTopic());
 #ifdef USE_MQTT2
@@ -1782,37 +1788,38 @@ void registerTopics()
     // ... let's tell it more about the connected devices and what you can do with it...
     std::vector<Topic> topics{};
 
-    topics.push_back(*new Topic(getBaseTopic() + "/register_microcontroller", "Registers all the known topics of the microcontroller.",
-                                MessageDirection::IotZooClientInbound));
-
+    topics.emplace_back(getBaseTopic() + "/register_microcontroller", "Registers all the known topics of the microcontroller.",
+                        MessageDirection::IotZooClientInbound);
     // necessary? register_microcontroller should be enough.
-    topics.push_back(*new Topic(getBaseTopic() + "/started", "Microcontroller started", MessageDirection::IotZooClientInbound));
+    topics.emplace_back(getBaseTopic() + "/started", "Microcontroller started", MessageDirection::IotZooClientInbound);
 
     // Alive message of the microcontroller
-    topics.push_back(*new Topic(getBaseTopic() + "/alive", "Alive message of the microcontroller", MessageDirection::IotZooClientInbound));
+    topics.emplace_back(getBaseTopic() + "/alive", "Alive message of the microcontroller", MessageDirection::IotZooClientInbound);
 
     // Acknowledge fo the alive message from the IotZooClient.
-    topics.push_back(*new Topic(getBaseTopic() + "/alive_ack", "Alive message of the microcontroller", MessageDirection::IotZooClientOutbound));
+    topics.emplace_back(getBaseTopic() + "/alive_ack", "Alive message of the microcontroller", MessageDirection::IotZooClientOutbound);
 
-    topics.push_back(*new Topic(getBaseTopic() + "/terminated", "Microcontroller terminated!", MessageDirection::IotZooClientInbound));
+    topics.emplace_back(getBaseTopic() + "/terminated", "Microcontroller terminated!", MessageDirection::IotZooClientInbound);
     // settings
-    topics.push_back(
-        *new Topic(getBaseTopic() + "/settings/load", "Loads data with by the key given in the payload", MessageDirection::IotZooClientOutbound));
-    // answer to /settings/load
-    topics.push_back(
-        *new Topic(getBaseTopic() + "/settings/key", "Answer of /load in json format {\"Key\": \"data\"}", MessageDirection::IotZooClientInbound));
+    if (settings != nullptr)
+    {
+        topics.emplace_back(getBaseTopic() + "/settings/load", "Loads data with by the key given in the payload",
+                            MessageDirection::IotZooClientOutbound);
+        // answer to /settings/load
+        topics.emplace_back(getBaseTopic() + "/settings/key", "Answer of /load in json format {\"key\": \"data\"}",
+                            MessageDirection::IotZooClientInbound);
 
-    topics.push_back(*new Topic(getBaseTopic() + "/settings/save", "{\"Key\": \"data\"}", MessageDirection::IotZooClientOutbound));
-
+        topics.emplace_back(getBaseTopic() + "/settings/save", "{\"key\": \"data\"}", MessageDirection::IotZooClientOutbound);
+    }
 #ifdef USE_BLE_HEART_RATE_SENSOR
-    if (NULL != heartRateSensor)
+    if (nullptr != heartRateSensor)
     {
         heartRateSensor->addMqttTopicsToRegister(&topics);
     }
 #endif
 
 #ifdef USE_STEPPER_MOTOR
-    if (NULL != stepperMotor)
+    if (nullptr != stepperMotor)
     {
         stepperMotor->addMqttTopicsToRegister(&topics);
     }
@@ -1823,7 +1830,7 @@ void registerTopics()
 #endif
 
 #ifdef USE_BUZZER
-    if (NULL != buzzer)
+    if (nullptr != buzzer)
     {
         buzzer->addMqttTopicsToRegister(&topics);
     }
@@ -1844,14 +1851,14 @@ void registerTopics()
 #endif
 
 #ifdef USE_LCD_160X
-    if (NULL != lcdDisplay)
+    if (nullptr != lcdDisplay)
     {
         lcdDisplay->addMqttTopicsToRegister(&topics);
     }
 #endif
 
 #ifdef USE_OLED_SSD1306
-    if (NULL != oled1306)
+    if (nullptr != oled1306)
     {
         oled1306->addMqttTopicsToRegister(&topics);
     }
@@ -1907,8 +1914,8 @@ void registerTopics()
         // for (auto &temperature : temperatures)
         for (int index = 0; index < 10; index++)
         {
-            topics.push_back(*new Topic(getBaseTopic() + "/ds18b20_manager/0/sensor/" + String(index) + "/celsius",
-                                        "The Temperature in °C of Sensor " + String(index), MessageDirection::IotZooClientInbound));
+            topics.emplace_back(getBaseTopic() + "/ds18b20_manager/0/sensor/" + String(index) + "/celsius",
+                                "The Temperature in °C of Sensor " + String(index), MessageDirection::IotZooClientInbound);
         }
     }
 #endif
@@ -1990,227 +1997,236 @@ void onIotZooClientUnavailable()
 // ------------------------------------------------------------------------------------------------
 void loop()
 {
-    lastLoopStartTime = millis();
-    loopCounter++;
-
-    if (doRestart)
+    try
     {
-        restart();
-    }
+
+        lastLoopStartTime = millis();
+        loopCounter++;
+
+        if (doRestart)
+        {
+            restart();
+        }
 
 #if defined(USE_MQTT) || defined(USE_MQTT2)
-    mqttClient->loop();
-    if (millis() - lastLoopStartTime > 10000)
-    {
-        Serial.print("BROKEN MQTT");
-        restart();
-    }
-    if (!mqttClient->isConnected())
-    {
-        Serial.print(".");
-        delay(50);
-        return;
-    }
+        mqttClient->loop();
+        if (millis() - lastLoopStartTime > 10000)
+        {
+            Serial.print("BROKEN MQTT");
+            restart();
+        }
+        if (!mqttClient->isConnected())
+        {
+            Serial.print(".");
+            delay(50);
+            return;
+        }
 
-    if (!topicsRegistered)
-    {
-        registerTopics();
-        String topic = getBaseTopic() + "/started";
-        mqttClient->publish(topic, "STARTED");
-    }
+        if (!topicsRegistered)
+        {
+            registerTopics();
+            String topic = getBaseTopic() + "/started";
+            mqttClient->publish(topic, "STARTED");
+        }
 #endif
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
-    if (NULL != heartRateSensor)
-    {
-        heartRateSensor->loop();
-    }
+        if (nullptr != heartRateSensor)
+        {
+            heartRateSensor->loop();
+        }
 #endif // USE_BLE_HEART_RATE_SENSOR
 
 #ifdef USE_BUTTON
-    buttonHandling.loop();
+        buttonHandling.loop();
 #endif
 
 #ifdef USE_WS2818
-    if (nullptr != ws2812)
-    {
-        ws2812->loop();
-    }
+        if (nullptr != ws2812)
+        {
+            ws2812->loop();
+        }
 #endif
 
 #ifdef USE_GPS
-    if (nullptr != gps)
-    {
-        gps->loop();
-    }
+        if (nullptr != gps)
+        {
+            gps->loop();
+        }
 #endif
 
 #ifdef USE_SWITCH
-    for (auto& buttonSwitch : switches)
-    {
-        buttonSwitch.loop();
-    }
+        for (auto& buttonSwitch : switches)
+        {
+            buttonSwitch.loop();
+        }
 #endif
 
 #ifdef USE_LED_AND_KEY
-    if (NULL != tm1638)
-    {
-        tm1638->loop();
-    }
+        if (nullptr != tm1638)
+        {
+            tm1638->loop();
+        }
 #endif // USE_LED_AND_KEY
 
 #ifdef USE_KY025
-    if (millis() - lastRotationMillis < 10000)
-    {
-        Serial.println(reedContactCounter);
-    }
+        if (millis() - lastRotationMillis < 10000)
+        {
+            Serial.println(reedContactCounter);
+        }
 
 #ifdef USE_TM1637_4
-    TM1637* tm1637 = tm1637_4Handling.getDisplayByDeviceIndex(2);
-    if (NULL != tm1637)
-    {
-        tm1637->showNumber(reedContactCounter, true);
-    }
+        TM1637* tm1637 = tm1637_4Handling.getDisplayByDeviceIndex(2);
+        if (nullptr != tm1637)
+        {
+            tm1637->showNumber(reedContactCounter, true);
+        }
 #if defined(USE_MQTT) || defined(USE_MQTT2)
-    String topic = getBaseTopic() + "/rpm/0";
-    if (rpm > 0)
-    {
-        Serial.println(String(rpm) + " rpm");
-    }
-    mqttClient->publish(topic.c_str(), String(rpm, 0).c_str());
+        String topic = getBaseTopic() + "/rpm/0";
+        if (rpm > 0)
+        {
+            Serial.println(String(rpm) + " rpm");
+        }
+        mqttClient->publish(topic.c_str(), String(rpm, 0).c_str());
 #endif
 #endif // USE_KY025
 
 #ifdef USE_EXERCISE_BIKE_STANDALONE
-    if (millis() - lastRotationMillis > 3000)
-    {
-        rpm = 0.0;
-    }
+        if (millis() - lastRotationMillis > 3000)
+        {
+            rpm = 0.0;
+        }
 
 #ifdef USE_TM1637_4
-    auto displayRpm = tm1637_4Handling.displays1637.begin();
-    std::advance(displayRpm, 1);
-    // displayRpm->showNumber(reedContactCounter);
-    displayRpm->showNumber((int)rpm);
+        auto displayRpm = tm1637_4Handling.displays1637.begin();
+        std::advance(displayRpm, 1);
+        // displayRpm->showNumber(reedContactCounter);
+        displayRpm->showNumber((int)rpm);
 #endif
 #endif
 
 #if defined(USE_MQTT) || defined(USE_MQTT2)
-    if (oldRpm != rpm)
-    {
-        String topic = getBaseTopic() + "/reed_contact_counter/0";
-        mqttClient->publish(topic.c_str(), String(reedContactCounter).c_str());
-    }
+        if (oldRpm != rpm)
+        {
+            String topic = getBaseTopic() + "/reed_contact_counter/0";
+            mqttClient->publish(topic.c_str(), String(reedContactCounter).c_str());
+        }
 #endif
 
 #endif
 
 #ifdef USE_REST_SERVER
-    webServer.handleClient();
+        webServer.handleClient();
 #endif
 
 #ifdef USE_MQTT2
-    if (!mqttClient->isConnected())
-    {
-        mqttClient->connectToBroker(macAddress);
-    }
+        if (!mqttClient->isConnected())
+        {
+            mqttClient->connectToBroker(macAddress);
+        }
 #endif
 
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    // The preconditions are fulfilled (MQTT connected).
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        // The preconditions are fulfilled (MQTT connected).
 
 #ifdef USE_HW040
-    hw040Handling.loop();
+        hw040Handling.loop();
 #endif
 
 #ifdef USE_STEPPER_MOTOR
-    if (nullptr != stepperMotor)
-    {
-        stepperMotor->loop();
-    }
+        if (nullptr != stepperMotor)
+        {
+            stepperMotor->loop();
+        }
 #endif
 
 #ifdef USE_DS18B20
-    loopDS18B20();
+        loopDS18B20();
 #endif // USE_DS18B20
 
 #ifdef USE_HB0014
-    digitalValueInfrared = digitalRead(digitalPinInfraredLed);
-    // Serial.println(String(millis()) + " Reed contact: " + String(digitalValueReedContact));
-    if (digitalValueInfrared == HIGH && digitalValueOldInfrared == LOW)
-    {
-        long diff = millis() - lastMillisInfrared;
-#ifdef USE_OLED_SSD1306
-        if (nullptr != oled1306)
+        digitalValueInfrared = digitalRead(digitalPinInfraredLed);
+        // Serial.println(String(millis()) + " Reed contact: " + String(digitalValueReedContact));
+        if (digitalValueInfrared == HIGH && digitalValueOldInfrared == LOW)
         {
-            oled1306->setTextLine(3, String(diff) + " ms");
-        }
-#endif
-        if (diff > 30)
-        {
-            // Umrechnen in Watt
-
-            // 10000 Impulse entsprechen 1 KW/h.
-
-            // Hochrechnen auf 10000 Impulse = 1000 Watt pro Stunde
-            double watt = 360000.0 / diff;
-            Serial.println(String(watt) + " watt");
+            long diff = millis() - lastMillisInfrared;
 #ifdef USE_OLED_SSD1306
             if (nullptr != oled1306)
             {
-                oled1306->setTextLine(1, String(watt, 0));
+                oled1306->setTextLine(3, String(diff) + " ms");
             }
 #endif
-            String topic = getBaseTopic() + "/power/0";
-            mqttClient->publish(topic, String(watt, 0));
-            lastMillisInfrared = millis();
+            if (diff > 30)
+            {
+                // Umrechnen in Watt
+
+                // 10000 Impulse entsprechen 1 KW/h.
+
+                // Hochrechnen auf 10000 Impulse = 1000 Watt pro Stunde
+                double watt = 360000.0 / diff;
+                Serial.println(String(watt) + " watt");
+#ifdef USE_OLED_SSD1306
+                if (nullptr != oled1306)
+                {
+                    oled1306->setTextLine(1, String(watt, 0));
+                }
+#endif
+                String topic = getBaseTopic() + "/power/0";
+                mqttClient->publish(topic, String(watt, 0));
+                lastMillisInfrared = millis();
+            }
         }
-    }
-    digitalValueOldInfrared = digitalValueInfrared;
+        digitalValueOldInfrared = digitalValueInfrared;
 #endif
 
 #ifdef USE_KEYPAD
-    buttonMatrixHandling.loop();
+        buttonMatrixHandling.loop();
 #endif
 
 #ifdef USE_HC_SR501
-    motionDetectorsHrsc501Handling.loop();
+        motionDetectorsHrsc501Handling.loop();
 #endif
 
 #ifdef USE_RD_03D
-    if (nullptr != rd03d)
-    {
-        rd03d->loop();
-    }
+        if (nullptr != rd03d)
+        {
+            rd03d->loop();
+        }
 #endif // USE_RD_03D
 
 #if defined(USE_MQTT) || defined(USE_MQTT2) && !defined(USE_BLE_HEART_RATE_SENSOR)
-    try
-    {
-        if (millis() - lastAliveTime > settings->getAliveIntervalMillis())
+        try
         {
-            publishAliveMessage();
+            if (millis() - lastAliveTime > settings->getAliveIntervalMillis())
+            {
+                publishAliveMessage();
+            }
         }
+        catch (const std::exception& e)
+        {
+            Serial.println(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
+        }
+#endif // USE_HC_SR501
+
+        loopDurationMs = millis() - lastLoopStartTime;
+
+        if (millis() - lastServerAliveMillis > (settings->getAliveIntervalMillis() * 2))
+        {
+            onIotZooClientUnavailable();
+            lastServerAliveMillis = millis();
+        }
+
+        if (loopDurationMs < 100)
+        {
+            delay(100 - loopDurationMs);
+        }
+        digitalWrite(LED_BUILTIN, LOW); // turn the LED off to indicate that the device is offline.
     }
     catch (const std::exception& e)
     {
-        Serial.println(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
+        publishError(e.what());
+        delay(1000);
     }
-#endif // USE_HC_SR501
-
-    loopDurationMs = millis() - lastLoopStartTime;
-
-    if (millis() - lastServerAliveMillis > (settings->getAliveIntervalMillis() * 2))
-    {
-        onIotZooClientUnavailable();
-        lastServerAliveMillis = millis();
-    }
-
-    if (loopDurationMs < 100)
-    {
-        delay(100 - loopDurationMs);
-    }
-    digitalWrite(LED_BUILTIN, LOW); // turn the LED off to indicate that the device is offline.
 }
 
 // --- end of main.cpp

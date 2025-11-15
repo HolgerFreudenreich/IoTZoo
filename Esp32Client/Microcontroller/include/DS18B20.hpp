@@ -23,7 +23,7 @@ namespace IotZoo
     class DS18B20
     {
       protected:
-        OneWire*           oneWire = nullptr;
+        OneWire*           oneWire                  = nullptr;
         DallasTemperature* dallasTemperatureSensors = nullptr;
 
         int numberOfDevices = 0;
@@ -38,6 +38,7 @@ namespace IotZoo
         DS18B20();
 
         virtual ~DS18B20();
+
         /// @brief
         /// @param gpioNumber GPIO where the DS18B20 is connected to.
         /// @param resolution resolution of a device to 9, 10, 11, or 12 bits.

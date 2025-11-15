@@ -16,6 +16,7 @@
 #define __WS2818_HPP__
 
 #include "DeviceBase.hpp"
+
 #include <Adafruit_NeoPixel.h>
 #include <ArduinoJson.h>
 
@@ -36,9 +37,9 @@ namespace IotZoo
         vector<PixelProperty> pixelProperties;
 
       public:
-        WS2818(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, int pin, int numberOfLeds);
+        WS2818(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, int pin, int numberOfLeds);
 
-        virtual ~WS2818();
+        ~WS2818() override;
 
         void setup();
 
@@ -47,6 +48,8 @@ namespace IotZoo
         /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
         /// @param json
         void setPixelColor(const String& json);
+
+        void setPixelsByPreset(const String& presetName);
 
         /// @brief Let the user know what the device can do.
         /// @param topics
