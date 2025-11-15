@@ -75,11 +75,11 @@ public class ProjectDatabaseService : DataServiceBase, IProjectCrudService
 
          // update the dependent objects (KnownTopics, Rules).
 
-         var knownTopics = await KnownTopicsCrudService.GetKnownTopicsByProjectName(project.ProjectName, null);
-         foreach (var knownTopic in knownTopics)
-         {
-            //knownTopic.Topic = 
-         }
+         //var knownTopics = await KnownTopicsCrudService.GetKnownTopicsByProjectName(project.ProjectName, null);
+         //foreach (var knownTopic in knownTopics)
+         //{
+         //   //knownTopic.Topic = 
+         //}
 
       }
       catch (Exception ex)

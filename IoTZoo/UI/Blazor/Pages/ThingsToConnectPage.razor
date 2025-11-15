@@ -9,7 +9,7 @@
 <MudText Typo="Typo.h5">Presentation of things that can be connected</MudText>
 <br />
 <br />
-<MudText Typo="Typo.h6">Button</MudText>
+ <MudText Typo="Typo.h6">Button</MudText>
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
                      Topic="/button/<index>/push_counter"
@@ -24,6 +24,9 @@
 <MudDivider />
 <br />
 <br />
+
+
+
 <MudText Typo="Typo.h6">Buzzer</MudText>
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
@@ -273,8 +276,11 @@
 <br />
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
-                     Topic="/neo/<display index>/setPixelColor"
-                     ExamplePayload="{\" brightness\":10,\"r\":255,\"g\":2,\"b\":33,\"millisUntilTurnOff\":2000,\"pixels\":[{\"color\":\"#10E084\",\"index\":0,\"length\":10,\"brightness\":10},{\"index\":30,\"length\":8,\"millisUntilTurnOff\":1000},{\"index\":50,\"length\":8,\"millisUntilTurnOff\":1100,\"r\":5,\"g\":211,\"b\":32}]}";>
+                     Topic="/neo/<display index>/setPixelColor">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/neo/<display index>/setPixelsByPreset"
+                     ExamplePayload="Smiley">
 </KnownTopicComponent>
 <MudText>"brightness": 0 clears the entire display.</MudText>
 <br />
@@ -554,7 +560,6 @@
 <MudText>Read('IS_DAY_MODE'). 0 = Night; 1 = Day</MudText>
 <br />
 <br />
-
 <MudText Typo="Typo.h6">Mail receiver</MudText>
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
@@ -567,4 +572,25 @@
                      Topic=@($"{DataTransferService.NamespaceName}/mail_receiver/<MailAddress>/subject")
                      Description="subject of the new mail"
                      ExamplePayload=@("[Camera 17] has detected a person at 2025/10/29 19:45:41")>
+</KnownTopicComponent>
+<br />
+<br />
+<MudText Typo="Typo.h6">Persist settings in the Flash Memory</MudText>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic=@($"/settings/save")
+                     Description="string to save on the microcontroller"
+                     ExamplePayload=@("{\"key\": \"b\", \"data\": \"{\"brightness\":15,\"r\":255,\"g\":0,\"b\":0,\"millisUntilTurnOff\":2000,\"pixels\":[{\"index\":19,\"length\":2},{\"index\":27,\"length\":2},{\"index\":35,\"length\":2}]}\"}")>
+</KnownTopicComponent>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"/settings/load")
+                     Description="string to load from the microcontroller"
+                     ExamplePayload=@("b")>
+</KnownTopicComponent>
+Response:
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic=@($"/settings/key")
+                     Description="string to load from the microcontroller"
+                     ExamplePayload=@("{\"key\": \"b\", \"data\": \"{\"brightness\":15,\"r\":255,\"g\":0,\"b\":0,\"millisUntilTurnOff\":2000,\"pixels\":[{\"index\":19,\"length\":2},{\"index\":27,\"length\":2},{\"index\":35,\"length\":2}]}\"}")>
 </KnownTopicComponent>
