@@ -30,7 +30,7 @@ namespace IotZoo
         /// @brief Subscribe to topics after the mqtt connection is established.
         /// @param mqttClient 
         /// @param baseTopic 
-        void onMqttConnectionEstablished(MqttClient *mqttClient, const String &baseTopic);
+        void onMqttConnectionEstablished(Settings* const settings, MqttClient *mqttClient, const String &baseTopic);
         
         /// @brief A temperature value should be displayed.
         /// @param topic 

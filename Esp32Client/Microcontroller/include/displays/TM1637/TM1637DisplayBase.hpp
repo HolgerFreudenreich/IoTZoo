@@ -14,6 +14,7 @@
 #define __TM1637_DISPLAY_BASE_HPP__
 
 #include "DeviceBase.hpp"
+
 #include <ArduinoJson.h>
 
 using namespace IotZoo;
@@ -30,10 +31,9 @@ namespace IotZoo
 
     class TM1637DisplayBase : public DeviceBase
     {
-    public:
-        TM1637DisplayBase(int deviceIndex,
-                          MqttClient *mqttClient,                          
-                          const String &baseTopic) : DeviceBase(deviceIndex, mqttClient , baseTopic)
+      public:
+        TM1637DisplayBase(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic)
+            : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
         {
             Serial.println("Constructor TM1637DisplayBase");
         }
@@ -45,7 +45,8 @@ namespace IotZoo
         virtual void begin() = 0;
 
         /// @brief Sets the orientation of the display.
-        /// @param flip flip Flip display upside down true/false. Setting this parameter to true will cause the rendering on digits to be displayed upside down.
+        /// @param flip flip Flip display upside down true/false. Setting this parameter to true will cause the rendering on digits to be displayed
+        /// upside down.
         virtual void flipDisplay(bool flip = true) = 0;
 
         /// @brief Returns the orientation of the display.
@@ -134,21 +135,21 @@ namespace IotZoo
         //! @param horizontal Boolean (true/false) where true = horizontal, false = vertical
         virtual void showLevel(unsigned int level = 100, bool horizontal = true) = 0;
 
-        void setServerDownText(const String &serverDownText)
+        void setServerDownText(const String& serverDownText)
         {
             this->serverDownText = serverDownText;
         }
 
-        const String &getServerDownText() const
+        const String& getServerDownText() const
         {
             return serverDownText;
         }
 
-    protected:
+      protected:
         String serverDownText = "-";
     };
 
-}
+} // namespace IotZoo
 
 #endif
 #endif

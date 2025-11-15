@@ -26,9 +26,9 @@ namespace IotZoo
     int index;
 
   public:
-    HCSC501(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic, uint8_t pinMotionDetector);
+    HCSC501(int deviceIndex, Settings* const settings, MqttClient *const mqttClient, const String &baseTopic, uint8_t pinMotionDetector);
 
-    virtual ~HCSC501();
+    ~HCSC501() override;
 
     void setup(void (*ISR_callback)(void));
 
@@ -36,7 +36,7 @@ namespace IotZoo
 
     /// @brief Let the user know what the device can do.
     /// @param topics
-    virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+    void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
 
     int getIndex() const;
 

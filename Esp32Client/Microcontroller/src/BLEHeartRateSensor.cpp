@@ -15,8 +15,9 @@
 
 namespace IotZoo
 {
-    HeartRateSensor::HeartRateSensor(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t advertisingTimeOut)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    HeartRateSensor::HeartRateSensor(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic,
+                                     uint8_t advertisingTimeOut)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.println("Constructor HeartRateSensor. advertisingTimeOut: " + String(advertisingTimeOut) + " s");
         charUUID = (NimBLEUUID((uint16_t)0x2A37));
@@ -31,7 +32,7 @@ namespace IotZoo
     /// @param topics
     void HeartRateSensor::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/pulse/0", "Heart rate of BLE Heart-Rate-Sensor 0.", MessageDirection::IotZooClientInbound));
+        topics->emplace_back(getBaseTopic() + "/pulse/0", "Heart rate of BLE Heart-Rate-Sensor 0.", MessageDirection::IotZooClientInbound);
     }
 
     bool HeartRateSensor::connectToServer(NimBLEAddress pAddress)

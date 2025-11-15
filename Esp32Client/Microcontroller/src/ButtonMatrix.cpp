@@ -16,7 +16,8 @@
 
 namespace IotZoo
 {
-    ButtonMatrix::ButtonMatrix(MqttClient* mqttClient, int deviceIndex, const String& baseTopic) : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    ButtonMatrix::ButtonMatrix(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic) :
+     DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         keyMap       = makeKeymap(hexaKeys);
         customKeypad = new Keypad(keyMap, rowPins, colPins, ROWS, COLS);
@@ -38,19 +39,19 @@ namespace IotZoo
                 // char* keypadChar = hexaKeys[row, col];
                 char keyChar = getKeyMap()[row * getCountOfRows() + col]; // hmm
 
-                topics->push_back(*new Topic(getBaseTopic() + "/button_matrix/" + String(deviceIndex) + "/button/" + keyChar,
-                                             "Button " + String(keyChar) + " status changed.", MessageDirection::IotZooClientInbound));
+                topics->emplace_back(getBaseTopic() + "/button_matrix/" + String(deviceIndex) + "/button/" + keyChar,
+                                             "Button " + String(keyChar) + " status changed.", MessageDirection::IotZooClientInbound);
 
-                topics->push_back(*new Topic(getBaseTopic() + "/button_matrix/" + String(deviceIndex) + "/button/" + keyChar + "/pressed",
+                topics->emplace_back(getBaseTopic() + "/button_matrix/" + String(deviceIndex) + "/button/" + keyChar + "/pressed",
                                              "Button " + String(keyChar) + " was pressed. Payload: millis() of the ESP32.",
-                                             MessageDirection::IotZooClientInbound));
+                                             MessageDirection::IotZooClientInbound);
 
-                topics->push_back(*new Topic(getBaseTopic() + "/button_matrix/" + String(deviceIndex) + "/button/" + keyChar + "/hold",
+                topics->emplace_back(getBaseTopic() + "/button_matrix/" + String(deviceIndex) + "/button/" + keyChar + "/hold",
                                              "Button " + String(keyChar) + " was hold. Payload: millis() of the ESP32.",
-                                             MessageDirection::IotZooClientInbound));
-                topics->push_back(*new Topic(getBaseTopic() + "/button_matrix/" + String(deviceIndex) + "/button/" + keyChar + "/released",
+                                             MessageDirection::IotZooClientInbound);
+                topics->emplace_back(getBaseTopic() + "/button_matrix/" + String(deviceIndex) + "/button/" + keyChar + "/released",
                                              "Button " + String(keyChar) + " was released. Payload: millis() of the ESP32.",
-                                             MessageDirection::IotZooClientInbound));
+                                             MessageDirection::IotZooClientInbound);
             }
         }
     }

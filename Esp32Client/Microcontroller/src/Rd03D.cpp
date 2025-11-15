@@ -18,9 +18,9 @@
 
 namespace IotZoo
 {
-    Rd03D::Rd03D(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pinRx, uint8_t pinTx, u_int16_t timeoutMillis,
-                 u_int16_t maxDistanceMillimeters, bool multiTargetMode)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    Rd03D::Rd03D(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t pinRx, uint8_t pinTx,
+                 u_int16_t timeoutMillis, u_int16_t maxDistanceMillimeters, bool multiTargetMode)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.print("Constructor Rd03D, pinRx: " + String(pinRx) + ", pinTx: " + String(pinTx));
         Serial.println("timeoutMillis: " + String(timeoutMillis) + ", maxDistanceMillimeters: " + String(maxDistanceMillimeters) +
@@ -34,9 +34,9 @@ namespace IotZoo
             this->timeoutMillis = 1000;
         }
         this->maxDistanceMillimeters = maxDistanceMillimeters;
-        if (this->maxDistanceMillimeters > 6000)
+        if (this->maxDistanceMillimeters > 7000)
         {
-            // this->maxDistanceMillimeters = 6000;
+            this->maxDistanceMillimeters = 7000;
         }
         topicDistanceTarget1       = baseTopic + "/rd03d/0/target/0/distance_mm";
         topicMovementChangeTarget1 = baseTopic + "/rd03d/0/target/0";
@@ -62,28 +62,28 @@ namespace IotZoo
     /// @param topics
     void Rd03D::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(topicDistanceTarget1, "Sends the distance to human 1 in mm.", MessageDirection::IotZooClientInbound));
+        topics->emplace_back(topicDistanceTarget1, "Sends the distance to human 1 in mm.", MessageDirection::IotZooClientInbound);
         if (multiTargetMode)
         {
-            topics->push_back(*new Topic(topicDistanceTarget2, "Sends the distance to human 2 in mm.", MessageDirection::IotZooClientInbound));
+            topics->emplace_back(topicDistanceTarget2, "Sends the distance to human 2 in mm.", MessageDirection::IotZooClientInbound);
 
-            topics->push_back(*new Topic(topicDistanceTarget3, "Sends the distance to human 3 in mm.", MessageDirection::IotZooClientInbound));
+            topics->emplace_back(topicDistanceTarget3, "Sends the distance to human 3 in mm.", MessageDirection::IotZooClientInbound);
         }
-        topics->push_back(
-            *new Topic(topicMovementChangeTarget1, "Sends movement change data in json format for target 1.", MessageDirection::IotZooClientInbound));
+        topics->emplace_back(topicMovementChangeTarget1, "Sends movement change data in json format for target 1.",
+                             MessageDirection::IotZooClientInbound);
         if (multiTargetMode)
         {
-            topics->push_back(*new Topic(topicMovementChangeTarget2, "Sends movement change data in json format for target 2.",
-                                         MessageDirection::IotZooClientInbound));
+            topics->emplace_back(topicMovementChangeTarget2, "Sends movement change data in json format for target 2.",
+                                 MessageDirection::IotZooClientInbound);
 
-            topics->push_back(*new Topic(topicMovementChangeTarget3, "Sends movement change data in json format for target 3.",
-                                         MessageDirection::IotZooClientInbound));
+            topics->emplace_back(topicMovementChangeTarget3, "Sends movement change data in json format for target 3.",
+                                 MessageDirection::IotZooClientInbound);
         }
 
-        topics->push_back(*new Topic(topicMovementDetected, "1 = movement detected, 2 = no movement detected past 30 seconds.",
-                                     MessageDirection::IotZooClientInbound));
+        topics->emplace_back(topicMovementDetected, "1 = movement detected, 2 = no movement detected past 30 seconds.",
+                             MessageDirection::IotZooClientInbound);
 
-        topics->push_back(*new Topic(topicCountOfDetectedPeopleInRange, "Number of people in range [0-3].", MessageDirection::IotZooClientInbound));
+        topics->emplace_back(topicCountOfDetectedPeopleInRange, "Number of people in range [0-3].", MessageDirection::IotZooClientInbound);
     }
 
     void Rd03D::loop()

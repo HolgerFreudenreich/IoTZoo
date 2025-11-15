@@ -17,11 +17,11 @@
 
 namespace IotZoo
 {
-    RotaryEncoder::RotaryEncoder(MqttClient* mqttClient, int deviceIndex, const String& baseTopic, int boundaryMinValue, int boundaryMaxValue,
-                                 bool circleValues, int acceleration, uint8_t encoderSteps, uint8_t encoderAPin, uint8_t encoderBPin,
-                                 int encoderButtonPin, int encoderVccPin)
+    RotaryEncoder::RotaryEncoder(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, int boundaryMinValue,
+                                 int boundaryMaxValue, bool circleValues, int acceleration, uint8_t encoderSteps, uint8_t encoderAPin,
+                                 uint8_t encoderBPin, int encoderButtonPin, int encoderVccPin)
         : AiEsp32RotaryEncoder(encoderAPin, encoderBPin, encoderButtonPin, encoderVccPin, encoderSteps),
-          DeviceBase(deviceIndex, mqttClient, baseTopic)
+          DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
 
     {
         Serial.println("constructor RotaryEncoder");
@@ -78,15 +78,14 @@ namespace IotZoo
     /// @param topics
     void RotaryEncoder::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/rotary_encoder/" + String(deviceIndex) + "/set_value",
-                                     "Sets the value of the rotary encoder " + String(deviceIndex) + ".", MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(getBaseTopic() + "/rotary_encoder/" + String(deviceIndex) + "/set_value",
+                             "Sets the value of the rotary encoder " + String(deviceIndex) + ".", MessageDirection::IotZooClientOutbound);
 
-        topics->push_back(*new Topic(getBaseTopic() + "/rotary_encoder/" + String(deviceIndex) + "/button_pressed",
-                                     "Button of rotary encoder " + String(deviceIndex) + " has been pressed.",
-                                     MessageDirection::IotZooClientInbound));
+        topics->emplace_back(getBaseTopic() + "/rotary_encoder/" + String(deviceIndex) + "/button_pressed",
+                             "Button of rotary encoder " + String(deviceIndex) + " has been pressed.", MessageDirection::IotZooClientInbound);
 
-        topics->push_back(*new Topic(getBaseTopic() + "/rotary_encoder/" + String(deviceIndex) + "/value",
-                                     "Value of Rotary encoder " + String(deviceIndex) + " changed.", MessageDirection::IotZooClientInbound));
+        topics->emplace_back(getBaseTopic() + "/rotary_encoder/" + String(deviceIndex) + "/value",
+                             "Value of Rotary encoder " + String(deviceIndex) + " changed.", MessageDirection::IotZooClientInbound);
     }
 
     void RotaryEncoder::setLastTimeButtonDown(unsigned long lastTimeButtonDown)
@@ -114,9 +113,9 @@ namespace IotZoo
     {
         try
         {
-            if (NULL == mqttClient)
+            if (nullptr == mqttClient)
             {
-                Serial.println("mqttClient is NULL!");
+                Serial.println("mqttClient is nullptr!");
                 return;
             }
 

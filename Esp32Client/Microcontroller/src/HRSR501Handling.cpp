@@ -6,6 +6,8 @@
 //  /___/\____/_/       /____|____/\____/   (c) 2025 Holger Freudenreich under the MIT licence.
 //
 // --------------------------------------------------------------------------------------------------------------------
+// Connect HC SR501 Motion detectors with microcontrollers in a simple way.
+// --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
 #ifdef USE_HC_SR501
 
@@ -23,10 +25,9 @@ namespace IotZoo
         Serial.println("Destructor HRSR501Handling");
     }
 
-    void HRSR501Handling::addDevice(int deviceIndex, MqttClient* mqttClient, const String& baseTopic, uint8_t pin1)
+    void HRSR501Handling::addDevice(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, uint8_t pin1)
     {
-        HCSC501* motionSensor = new HCSC501(deviceIndex, mqttClient, baseTopic, pin1);
-        HRSR501Helper::motionSensors.push_back(*motionSensor);
+        HRSR501Helper::motionSensors.emplace_back(deviceIndex, settings, mqttClient, baseTopic, pin1);
     }
 
     /// @brief Let the user know what the device can do.

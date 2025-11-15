@@ -54,14 +54,13 @@ namespace IotZoo
         callbacksAreRegistered = true;
     }
 
-    void HW040Handling::addDevice(MqttClient* mqttClient, const String& baseTopic, int deviceIndex, int boundaryMinValue, int boundaryMaxValue,
-                                  bool circleValues, int acceleration, uint8_t encoderSteps, uint8_t encoderAPin, uint8_t encoderBPin,
-                                  int encoderButtonPin, int encoderVccPin)
+    void HW040Handling::addDevice(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, int boundaryMinValue,
+                                  int boundaryMaxValue, bool circleValues, int acceleration, uint8_t encoderSteps, uint8_t encoderAPin,
+                                  uint8_t encoderBPin, int encoderButtonPin, int encoderVccPin)
     {
-        RotaryEncoder* rotaryEncoder =
-            new IotZoo::RotaryEncoder(mqttClient, deviceIndex, baseTopic, boundaryMinValue, boundaryMaxValue, circleValues, acceleration,
-                                      encoderSteps, encoderAPin, encoderBPin, encoderButtonPin, encoderVccPin);
-        HW040Helper::rotaryEncoders.push_back(*rotaryEncoder);
+
+        HW040Helper::rotaryEncoders.emplace_back(deviceIndex, settings, mqttClient, baseTopic, boundaryMinValue, boundaryMaxValue, circleValues,
+                                                 acceleration, encoderSteps, encoderAPin, encoderBPin, encoderButtonPin, encoderVccPin);
     }
 
     void HW040Handling::loop()

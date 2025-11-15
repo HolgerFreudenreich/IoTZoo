@@ -17,8 +17,9 @@
 
 namespace IotZoo
 {
-    HCSC501::HCSC501(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pinMotionDetector)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    HCSC501::HCSC501(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, 
+        uint8_t pinMotionDetector)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.println("Constructor HCSC501 pinMotionDetector: " + String(pinMotionDetector));
         this->pinMotionDetector = pinMotionDetector;
@@ -67,8 +68,8 @@ namespace IotZoo
     /// @param topics
     void HCSC501::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/motion_detector/" + String(getDeviceIndex()) + "/triggered",
-                                     "Motion detector " + String(getDeviceIndex()) + "triggered", MessageDirection::IotZooClientInbound));
+        topics->emplace_back(getBaseTopic() + "/motion_detector/" + String(getDeviceIndex()) + "/triggered",
+                             "Motion detector " + String(getDeviceIndex()) + "triggered", MessageDirection::IotZooClientInbound);
     }
 
     int HCSC501::getIndex() const

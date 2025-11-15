@@ -15,9 +15,9 @@
 
 namespace IotZoo
 {
-    HT1621::HT1621(u_int8_t csPin, u_int8_t wrPin, u_int8_t dataPin, u_int8_t backlightPin, int deviceIndex, MqttClient* mqttClient,
-                   const String& baseTopic)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    HT1621::HT1621(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic,
+                    u_int8_t csPin, u_int8_t wrPin, u_int8_t dataPin, u_int8_t backlightPin)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.println("Constructor HT1621 csPin: " + String(csPin) + ", wrPin: " + String(wrPin) + ", dataPin: " + String(dataPin) +
                        ", backlightPin: " + String(backlightPin) + ", deviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
@@ -35,11 +35,9 @@ namespace IotZoo
     /// @param topics
     void HT1621::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(
-            *new Topic(baseTopic + "/ht1621/" + String(deviceIndex) + "/temperature", "Temperature", MessageDirection::IotZooClientOutbound));
-        topics->push_back(*new Topic(baseTopic + "/ht1621/" + String(deviceIndex) + "/number", "Number", MessageDirection::IotZooClientOUtbound));
-        topics->push_back(
-            *new Topic(baseTopic + "/ht1621/" + String(deviceIndex) + "/batteryLevel", "Battery level [0-2]", MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(baseTopic + "/ht1621/" + String(deviceIndex) + "/temperature", "Temperature", MessageDirection::IotZooClientOutbound);
+        topics->emplace_back(baseTopic + "/ht1621/" + String(deviceIndex) + "/number", "Number", MessageDirection::IotZooClientOutbound);
+        topics->emplace_back(baseTopic + "/ht1621/" + String(deviceIndex) + "/batteryLevel", "Battery level [0-2]", MessageDirection::IotZooClientOutbound);
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a
