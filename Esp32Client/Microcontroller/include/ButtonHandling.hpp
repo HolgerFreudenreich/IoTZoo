@@ -33,7 +33,7 @@ namespace IotZoo
         /// @param baseTopic
         void onMqttConnectionEstablished();
 
-        void addDevice(MqttClient *mqttClient, const String &baseTopic, int deviceIndex, u_int8_t buttonPin);
+        void addDevice(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String &baseTopic, u_int8_t buttonPin);
 
         void loop();
     };

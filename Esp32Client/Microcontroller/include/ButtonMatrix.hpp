@@ -23,15 +23,15 @@ namespace IotZoo
     class ButtonMatrix : public DeviceBase
     {
       public:
-        ButtonMatrix(MqttClient* mqttClient, int deviceIndex, const String& baseTopic);
+        ButtonMatrix(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic);
 
-        virtual ~ButtonMatrix();
+        ~ButtonMatrix() override;
 
         /// @brief Let the user know what the device can do.
         /// @param topics
         void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
-        virtual void loop() override;
+        void loop() override;
 
         char* getKeyMap() const
         {

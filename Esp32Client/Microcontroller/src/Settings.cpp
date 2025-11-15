@@ -40,29 +40,39 @@ namespace IotZoo
         saveConfigurationData("devices", json);
     }
 
-    void Settings::saveConfigurationData(const String& key, const String& json)
+    void Settings::saveConfigurationData(const String& key, const String& data)
     {
-        if (json.length() == 0)
+        Serial.println("save configuration. key: " + key + ", NamespaceNameConfig: " + NamespaceNameConfig + ", data: " + data);
+        if (key.length() == 0)
         {
             return;
         }
         preferences.begin(NamespaceNameConfig, false);
-        int bytesWritten = preferences.putString(key.c_str(), json);
-        Serial.println("Bytes:" + String(bytesWritten));
+        int bytesWritten = preferences.putString(key.c_str(), data);
+        Serial.print("Bytes written: " + String(bytesWritten));
+        if (bytesWritten == data.length())
+        {
+            Serial.println(" (ok)");
+        }
         preferences.end();
+        Serial.println("Check: " + loadConfiguration(key));
     }
 
     String Settings::loadConfiguration(const String& key)
     {
-        Serial.println("load configuration");
-        String json;
+        Serial.println("load configuration. key: " + key + ", NamespaceNameConfig: " + NamespaceNameConfig);
 
-        preferences.begin(NamespaceNameConfig, true);
-        json = preferences.getString(key.c_str());
+        if (!preferences.begin(NamespaceNameConfig, true))
+        {
+            Serial.println("namespace not found in config");
+            return "";
+        }
+
+        String data = preferences.getString(key.c_str(), "");
+        Serial.println("Loaded data: " + data);
 
         preferences.end();
-
-        return json;
+        return data;
     }
 
     String Settings::loadDeviceConfigurations()
@@ -86,15 +96,15 @@ namespace IotZoo
         preferences.end();
     }
 
-    bool Settings::storeData(const String& name, const String& data)
+    bool Settings::storeData(const String& key, const String& data)
     {
         try
         {
-            Serial.println("storeData to '" + name + "' data: '" + data + "'");
+            Serial.println("storeData to '" + key + "' data: '" + data + "'");
             int size = 0;
             if (preferences.begin(NamespaceNameConfig, false))
             {
-                size = preferences.putString(name.c_str(), data);
+                size = preferences.putString(key.c_str(), data);
                 preferences.end();
             }
             return size == data.length();

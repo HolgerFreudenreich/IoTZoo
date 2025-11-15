@@ -20,21 +20,20 @@ namespace IotZoo
 {
     class Switch : public DeviceBase
     {
-    private:
+      private:
         uint8_t pin;
-        bool isButtonPressed = false;
-        bool oldIsButtonPressed = false;
-        bool buttonStateHasChanged = false;
+        bool    isButtonPressed       = false;
+        bool    oldIsButtonPressed    = false;
+        bool    buttonStateHasChanged = false;
 
-    public:
-        Switch(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
-               uint8_t pin);
+      public:
+        Switch(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t pin);
 
-        virtual ~Switch();
+        ~Switch() override;
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
         uint8_t getPin() const;
 
@@ -44,7 +43,7 @@ namespace IotZoo
 
         void loop() override;
     };
-}
+} // namespace IotZoo
 
 #endif // __SWITCH_HPP__
 #endif // USE_SWITCH

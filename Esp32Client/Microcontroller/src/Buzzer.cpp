@@ -15,8 +15,9 @@
 
 namespace IotZoo
 {
-    Buzzer::Buzzer(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pinBuzzer, uint8_t pinLed)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    Buzzer::Buzzer(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, 
+        uint8_t pinBuzzer, uint8_t pinLed)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.print("Constructor Buzzer ");
         Serial.println(toString());
@@ -47,10 +48,9 @@ namespace IotZoo
     /// @param topics
     void Buzzer::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(topicBeep,
-                                     "[{'FrequencyHz': 1000, 'DurationMs': 100}, {'FrequencyHz': 0, 'DurationMs': "
-                                     "100}, {'FrequencyHz': 2000, 'DurationMs': 100}]",
-                                     MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(topicBeep, "[{'FrequencyHz': 1000, 'DurationMs': 100}, {'FrequencyHz': 0, 'DurationMs': "
+                             "100}, {'FrequencyHz': 2000, 'DurationMs': 100}]",
+                             MessageDirection::IotZooClientOutbound);
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a

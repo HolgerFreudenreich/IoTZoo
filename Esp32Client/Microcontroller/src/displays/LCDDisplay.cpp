@@ -17,8 +17,9 @@
 
 namespace IotZoo
 {
-    LcdDisplay::LcdDisplay(u_int8_t address, u_int8_t cols, u_int8_t rows, int deviceIndex, MqttClient* mqttClient, const String& baseTopic)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    LcdDisplay::LcdDisplay(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, u_int8_t address,
+                           u_int8_t cols, u_int8_t rows)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.println("Constructor LcdDisplay");
         uint8_t heart[8] = {0x0, 0xa, 0x1f, 0x1f, 0xe, 0x4, 0x0};
@@ -58,7 +59,7 @@ namespace IotZoo
         Serial.println("Destructor LcdDisplay");
 
         delete lcd;
-        lcd = NULL;
+        lcd = nullptr;
     }
 
     void LcdDisplay::turnBacklightOn()
@@ -85,11 +86,11 @@ namespace IotZoo
     /// @param topics
     void LcdDisplay::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/lcd160x/" + getDeviceIndex(), "Payload: {'text': 'IoT Zoo', 'clear': true, 'x':1, 'y': 0}",
-                                     MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(getBaseTopic() + "/lcd160x/" + getDeviceIndex(), "Payload: {'text': 'IoT Zoo', 'clear': true, 'x':1, 'y': 0}",
+                                     MessageDirection::IotZooClientOutbound);
 
-        topics->push_back(*new Topic(getBaseTopic() + "/lcd160x/ " + getDeviceIndex() + "/backlight", "Payload : 0 (off); 1 (on)",
-                                     MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(getBaseTopic() + "/lcd160x/ " + getDeviceIndex() + "/backlight", "Payload : 0 (off); 1 (on)",
+                                     MessageDirection::IotZooClientOutbound);
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.

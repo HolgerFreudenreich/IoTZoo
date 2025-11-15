@@ -14,10 +14,11 @@
 
 namespace IotZoo
 {
-    Gps::Gps(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pinRx, uint8_t pinTx, uint32_t baud)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    Gps::Gps(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t pinRx, uint8_t pinTx,
+             uint32_t baud)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
-        Serial.println("Constructor Gps. Rx: " + String(pinRx) + ", Tx: " + String(pinTx) + ", baud: " + String(baud));
+        Serial.println("Constructor Gps. pinRx: " + String(pinRx) + ", pinTx: " + String(pinTx) + ", baud: " + String(baud));
         this->pinRx    = pinRx;
         this->pinTx    = pinTx;
         softwareSerial = new SoftwareSerial(pinRx, pinTx);
@@ -36,8 +37,7 @@ namespace IotZoo
     {
         String examplePayload = "{\"Lat\": 52.63, \"Lon\": 9.61, \"Alt\": 32.1, \"DateTimeUtc\": \"2025-10-05 17:30:36\"}";
 
-        topics->push_back(*new Topic(getBaseTopic() + "/gps/position" + String(deviceIndex), examplePayload,
-                                     MessageDirection::IotZooClientInbound));
+        topics->emplace_back(getBaseTopic() + "/gps/position" + String(deviceIndex), examplePayload, MessageDirection::IotZooClientInbound);
     }
 
     void Gps::loop()

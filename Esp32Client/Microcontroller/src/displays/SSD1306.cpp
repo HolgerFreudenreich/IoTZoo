@@ -14,8 +14,8 @@
 
 namespace IotZoo
 {
-    OledSsd1306Display::OledSsd1306Display(u_int8_t i2cAddress, int deviceIndex, MqttClient* mqttClient, const String& baseTopic)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    OledSsd1306Display::OledSsd1306Display(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, u_int8_t i2cAddress)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.println("Constructor OledSsd1306Display, deviceIndex: " + String(deviceIndex));
         oled = new SSD1306AsciiWire();
@@ -34,12 +34,12 @@ namespace IotZoo
         for (int line = 0; line < 6; line++)
         {
             String topicLine = getBaseTopic() + "/oled/" + String(getDeviceIndex()) + "/line/" + String(line) + "/text";
-            topics->push_back(*new Topic(topicLine, "Payload: text", MessageDirection::IotZooClientOutbound));
+            topics->emplace_back(topicLine, "Payload: text", MessageDirection::IotZooClientOutbound);
         }
         String topicInvertDisplay = getBaseTopic() + "/oled/" + String(getDeviceIndex()) + "/invert";
-        topics->push_back(*new Topic(topicInvertDisplay, "Payload: 1: invert; 0: normal", MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(topicInvertDisplay, "Payload: 1: invert; 0: normal", MessageDirection::IotZooClientOutbound);
         String topicClearDisplay = getBaseTopic() + "/oled/" + String(getDeviceIndex()) + "/invert";
-        topics->push_back(*new Topic(topicClearDisplay, "Clears the display.", MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(topicClearDisplay, "Clears the display.", MessageDirection::IotZooClientOutbound);
     }
 
     /// @brief Subscribe to Topics

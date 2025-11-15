@@ -25,20 +25,20 @@ namespace IotZoo
     /// @brief We have 2 diplay types: 4 digits and 6 digits. Unfortunately, these are derived from different classes that do not inherit from each
     /// other. This class represents either a 4 digit display or a 6 digit display dependent on displayType.
 
-    TM1637Display::TM1637Display(MqttClient* mqttClient, int deviceIndex, const String& baseTopic, Tm1637DisplayType displayType, uint8_t pinClk,
-                                 uint8_t pinDio, bool flipDisplay, const String& serverDownText)
-        : TM1637DisplayBase(deviceIndex, mqttClient, baseTopic)
+    TM1637Display::TM1637Display(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic,
+                                 Tm1637DisplayType displayType, uint8_t pinClk, uint8_t pinDio, bool flipDisplay, const String& serverDownText)
+        : TM1637DisplayBase(deviceIndex, settings, mqttClient, baseTopic)
     {
 #ifdef USE_TM1637_4
         if (displayType == Tm1637DisplayType::Digits4)
         {
-            tm1637Display = new TM1637Display4Digits(deviceIndex, pinClk, pinDio, mqttClient, baseTopic);
+            tm1637Display = new TM1637Display4Digits(deviceIndex, settings, mqttClient, baseTopic, pinClk, pinDio);
         }
 #endif
 #ifdef USE_TM1637_6
         if (displayType == Tm1637DisplayType::Digits6)
         {
-            tm1637Display = new TM1637Display6Digits(deviceIndex, pinClk, pinDio, mqttClient, baseTopic);
+            tm1637Display = new TM1637Display6Digits(deviceIndex, settings, mqttClient, baseTopic, pinClk, pinDio);
         }
         tm1637Display->flipDisplay(flipDisplay);
         tm1637Display->setServerDownText(serverDownText);

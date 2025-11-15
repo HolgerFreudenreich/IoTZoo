@@ -32,7 +32,8 @@ namespace IotZoo
         SoftwareSerial* softwareSerial;
 
       public:
-        Gps(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pinRx, uint8_t pinTx, uint32_t baud = 9600);
+        Gps(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic,
+          uint8_t pinRx, uint8_t pinTx, uint32_t baud = 9600);
         ~Gps() override;
 
         /// @brief Let the user know what the device can do.

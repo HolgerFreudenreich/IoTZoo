@@ -27,15 +27,15 @@ namespace IotZoo
     class RotaryEncoder : public AiEsp32RotaryEncoder, public DeviceBase
     {
       public:
-        RotaryEncoder(MqttClient* mqttClient, int deviceIndex, const String& baseTopic, int boundaryMinValue,
-                      int boundaryMaxValue, bool circleValues, int acceleration, uint8_t encoderSteps, uint8_t encoderAPin,
-                      uint8_t encoderBPin, int encoderButtonPin, int encoderVccPin);
+        RotaryEncoder(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, int boundaryMinValue,
+                      int boundaryMaxValue, bool circleValues, int acceleration, uint8_t encoderSteps, uint8_t encoderAPin, uint8_t encoderBPin,
+                      int encoderButtonPin, int encoderVccPin);
 
-        virtual ~RotaryEncoder();
+        ~RotaryEncoder() override;
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
         void onReceivedRotaryEncoderValue(const String& strValue);
 
@@ -43,9 +43,9 @@ namespace IotZoo
         /// prerequisite for a subscription.
         /// @param mqttClient
         /// @param baseTopic
-        virtual void onMqttConnectionEstablished() override;
+        void onMqttConnectionEstablished() override;
 
-        virtual void loop() override;
+        void loop() override;
 
         void setLastTimeButtonDown(unsigned long lastTimeButtonDown);
 

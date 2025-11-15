@@ -15,8 +15,9 @@
 
 namespace IotZoo
 {
-    TM1638::TM1638(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t strobe, uint8_t clock, uint8_t data, bool highfreq)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    TM1638::TM1638(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t strobe, uint8_t clock,
+                   uint8_t data, bool highfreq)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.println("Constructor TM1638");
         tm1638plus = new TM1638plus(strobe, clock, data, highfreq);
@@ -43,16 +44,15 @@ namespace IotZoo
     /// @param topics
     void TM1638::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(
-            *new Topic(getBaseTopic() + "/ledAndKey/0/button_row/state", "State of the 8 Buttons.", MessageDirection::IotZooClientInbound));
+        topics->emplace_back(getBaseTopic() + "/ledAndKey/0/button_row/state", "State of the 8 Buttons.", MessageDirection::IotZooClientInbound);
 
-        topics->push_back(*new Topic(getBaseTopic() + "/ledAndKey/0/text", "Text to display.", MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(getBaseTopic() + "/ledAndKey/0/text", "Text to display.", MessageDirection::IotZooClientOutbound);
 
-        topics->push_back(*new Topic(getBaseTopic() + "/ledAndKey/0/humber", "Number to display.", MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(getBaseTopic() + "/ledAndKey/0/humber", "Number to display.", MessageDirection::IotZooClientOutbound);
         for (int ledNumber = 0; ledNumber < 8; ledNumber++)
         {
-            topics->push_back(*new Topic(getBaseTopic() + "/ledAndKey/0/led/" + String(ledNumber), "Payload: 0 = off, 1 = on",
-                                         MessageDirection::IotZooClientOutbound));
+            topics->emplace_back(getBaseTopic() + "/ledAndKey/0/led/" + String(ledNumber), "Payload: 0 = off, 1 = on",
+                                 MessageDirection::IotZooClientOutbound);
         }
     }
 

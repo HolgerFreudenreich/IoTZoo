@@ -13,10 +13,10 @@ namespace IotZoo
     class HT1621 : public DeviceBase
     {
       public:
-        HT1621(u_int8_t csPin, u_int8_t wrPin, u_int8_t dataPin, u_int8_t backlightPin, int deviceIndex, MqttClient* mqttClient,
-               const String& baseTopic);
+        HT1621(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, u_int8_t csPin, u_int8_t wrPin,
+               u_int8_t dataPin, u_int8_t backlightPin);
 
-        virtual ~HT1621();
+        ~HT1621() override;
 
         /// @brief Let the user know what the device can do.
         /// @param topics
