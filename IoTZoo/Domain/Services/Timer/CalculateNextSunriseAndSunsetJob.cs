@@ -165,11 +165,9 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
                     // The sun sets now.
                     foreach (var project in projects)
                     {
-
                         result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.SUNSET_NOW}",
                                                                "When the sun goes down...");
                         result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", "0");
-
                     }
                 }
             }
