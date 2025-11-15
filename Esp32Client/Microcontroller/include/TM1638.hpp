@@ -24,10 +24,10 @@ namespace IotZoo
     class TM1638 : public DeviceBase
     {
     public:
-        TM1638(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
+        TM1638(int deviceIndex, Settings* const settings, MqttClient *const mqttClient, const String &baseTopic,
                uint8_t strobe, uint8_t clock, uint8_t data, bool highfreq = true);
 
-        virtual ~TM1638();
+        ~TM1638() override;
 
         void setServerDownText(const String &serverDownText);
 

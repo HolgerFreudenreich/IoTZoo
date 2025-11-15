@@ -57,7 +57,7 @@ namespace IotZoo
 
         TM1637* display = getDisplayByDeviceIndex(deviceIndex);
 
-        if (NULL != display)
+        if (nullptr != display)
         {
             int index = 0;
 
@@ -134,7 +134,7 @@ namespace IotZoo
 
             TM1637* display = getDisplayByDeviceIndex(deviceIndex);
 
-            if (NULL != display)
+            if (nullptr != display)
             {
                 display->setBrightness(0x0A, true); // 0x0f = max brightness. Do not delete this, the display may be turned off.
                 Serial.println(message);
@@ -153,7 +153,7 @@ namespace IotZoo
             }
         }
         Serial.println("TM1637 display with index " + String(index) + " not found!");
-        return NULL;
+        return nullptr;
     }
 
     /// @brief Incoming MqttMessage to indicate a level between 0 and 100.
@@ -172,7 +172,7 @@ namespace IotZoo
             Serial.println(topic.c_str()[indexEnd - 1]);
 
             TM1637* display = getDisplayByDeviceIndex(deviceIndex);
-            if (NULL != display)
+            if (nullptr != display)
             {
                 display->setBrightness(0x0A, true); // 0x0f = max brightness. Do not delete this, the display may be turned off before.
                 int level = 0;
@@ -192,9 +192,7 @@ namespace IotZoo
 
     void TM1637_Handling::addDevice(const String& baseTopic, int deviceIndex, int clkPin, int dioPin, bool flipDisplay, const String& serverDownText)
     {
-        IotZoo::TM1637* displayTm1637 =
-            new IotZoo::TM1637(tm1637DisplayType, mqttClient, deviceIndex, baseTopic, clkPin, dioPin, flipDisplay, serverDownText);
-        displays1637.push_back(*displayTm1637);
+        displays1637.emplace_back(deviceIndex, settings, mqttClient, baseTopic, tm1637DisplayType, clkPin, dioPin, flipDisplay, serverDownText);
     }
 
     // Initialize static members

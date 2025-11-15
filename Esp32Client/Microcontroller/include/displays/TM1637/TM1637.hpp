@@ -14,8 +14,9 @@
 #define __TM1637_4_HPP__
 
 #include "DeviceBase.hpp"
-#include <ArduinoJson.h>
 #include "TM1637Display.hpp"
+
+#include <ArduinoJson.h>
 
 using namespace IotZoo;
 using namespace std;
@@ -25,16 +26,16 @@ namespace IotZoo
     /// @brief For each configured TM1637 display this class will be instantiated.
     class TM1637 : public TM1637DisplayBase
     {
-    protected:
-        TM1637Display *displayTm1637 = nullptr;
+      protected:
+        TM1637Display* displayTm1637 = nullptr;
 
-    public:
-        TM1637(Tm1637DisplayType displayType, MqttClient *mqttClient, int deviceIndex, const String &baseTopic,
-               int clkPin, int dioPin, bool flipDisplay, const String &serverDownText);
+      public:
+        TM1637(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, 
+            Tm1637DisplayType displayType, int clkPin, int dioPin, bool flipDisplay, const String& serverDownText);
 
-        virtual ~TM1637();
+        ~TM1637() override;
 
-        void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
         void begin()
         {
@@ -54,7 +55,8 @@ namespace IotZoo
         }
 
         /// @brief Sets the orientation of the display.
-        /// @param flip flip Flip display upside down true/false. Setting this parameter to true will cause the rendering on digits to be displayed upside down.
+        /// @param flip flip Flip display upside down true/false. Setting this parameter to true will cause the rendering on digits to be displayed
+        /// upside down.
         void flipDisplay(bool flip = true)
         {
             displayTm1637->flipDisplay(flip);
@@ -167,7 +169,7 @@ namespace IotZoo
             displayTm1637->showLevel(level, horizontal);
         }
     };
-}
+} // namespace IotZoo
 
 #endif
 #endif // USE_TM1637_4

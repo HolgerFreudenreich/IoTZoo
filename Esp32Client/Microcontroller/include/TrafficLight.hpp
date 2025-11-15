@@ -18,31 +18,31 @@
 
 namespace IotZoo
 {
-  class TrafficLight : DeviceBase
-  {
-  private:
-    u_int8_t pinRedLed = 0;
-    u_int8_t pinYellowLed = 0;
-    u_int8_t pinGreenLed = 0;
+    class TrafficLight : DeviceBase
+    {
+      private:
+        u_int8_t pinRedLed    = 0;
+        u_int8_t pinYellowLed = 0;
+        u_int8_t pinGreenLed  = 0;
 
-  public:
-    TrafficLight(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
-                 u_int8_t pinRedLed, u_int8_t pinYellowLed, u_int8_t pinGreenLed);
+      public:
+        TrafficLight(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, u_int8_t pinRedLed,
+                     u_int8_t pinYellowLed, u_int8_t pinGreenLed);
 
-    virtual ~TrafficLight();
+        ~TrafficLight() override;
 
-    void handleTrafficLightPayload(const String &payload);
+        void handleTrafficLightPayload(const String& payload);
 
-    /// @brief Let the user know what the device can do.
-    /// @param topics
-    void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        /// @brief Let the user know what the device can do.
+        /// @param topics
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
-    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
-    /// @param mqttClient
-    /// @param baseTopic
-    void onMqttConnectionEstablished() override;
-  };
-}
+        /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+        /// @param mqttClient
+        /// @param baseTopic
+        void onMqttConnectionEstablished() override;
+    };
+} // namespace IotZoo
 
 #endif // __TRAFFIC_LIGHT_HPP__
 #endif // USE_TRAFFIC_LIGHT_LEDS

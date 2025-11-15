@@ -27,9 +27,10 @@ namespace IotZoo
         String    topicBeep;
 
       public:
-        Buzzer(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pinBuzzer, uint8_t pinLed);
+        Buzzer(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, 
+          uint8_t pinBuzzer, uint8_t pinLed);
 
-        virtual ~Buzzer();
+        ~Buzzer() override;
 
         /// @brief Let the user know what the device can do.
         /// @param topics

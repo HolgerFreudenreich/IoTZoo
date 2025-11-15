@@ -6,7 +6,7 @@
 //  /___/\____/_/       /____|____/\____/   (c) 2025 Holger Freudenreich under the MIT licence.
 //
 // --------------------------------------------------------------------------------------------------------------------
-// Connect up to three HC SR501 Motion detectors with microcontrollers in a simple way.
+// Connect HC SR501 Motion detectors with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
 #ifdef USE_HC_SR501
@@ -21,20 +21,20 @@ namespace IotZoo
 {
     class HRSR501Handling : DeviceHandlingBase
     {
-    public:
+      public:
         HRSR501Handling();
 
         ~HRSR501Handling();
 
-        void addDevice(int deviceIndex, MqttClient *mqttClient, const String &baseTopic, uint8_t pin1);
+        void addDevice(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, uint8_t pin1);
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
         void loop();
     };
-}
+} // namespace IotZoo
 
 #endif // __HRSR501_HANDLING_HPP__
 #endif // USE_HC_SR501

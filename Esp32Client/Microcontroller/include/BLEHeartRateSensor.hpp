@@ -43,10 +43,10 @@ namespace IotZoo
         notify_callback notifyCallback;
 
       public:
-        HeartRateSensor(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic,
+        HeartRateSensor(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic,
                         uint8_t advertisingTimeoutSeconds);
 
-        virtual ~HeartRateSensor();
+        ~HeartRateSensor() override;
 
         /// @brief Let the user know what the device can do.
         /// @param topics
@@ -60,8 +60,7 @@ namespace IotZoo
             // Called for each advertising BLE server.
             void onResult(NimBLEAdvertisedDevice* advertisedDevice)
             {
-                Serial.println("BLE Advertised Device found with serviceUUID: " +
-                               String(advertisedDevice->getServiceUUID().toString().c_str()));
+                Serial.println("BLE Advertised Device found with serviceUUID: " + String(advertisedDevice->getServiceUUID().toString().c_str()));
 
                 // We have found a device, let us now see if it contains the service we are looking for.
                 if (advertisedDevice->haveServiceUUID() && advertisedDevice->getServiceUUID().equals(serviceUUID))

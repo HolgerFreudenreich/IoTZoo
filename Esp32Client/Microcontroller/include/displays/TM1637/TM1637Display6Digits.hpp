@@ -21,9 +21,9 @@ namespace IotZoo
     class TM1637Display6Digits : public TM1637DisplayBase
     {
       public:
-        TM1637Display6Digits(int deviceIndex, uint8_t pinClk, uint8_t pinDio, MqttClient* mqttClient,
-                             const String& baseTopic)
-            : TM1637DisplayBase(deviceIndex, mqttClient, baseTopic)
+        TM1637Display6Digits(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic,
+             uint8_t pinClk, uint8_t pinDio)
+            : TM1637DisplayBase(deviceIndex, settings, mqttClient, baseTopic)
         {
             Serial.println("Constructor TM1637Display6Digits");
             tm1637_6_Display = new TM1637TinyDisplay6(pinClk, pinDio); // concrete implementation of the underlying hardware
@@ -34,37 +34,33 @@ namespace IotZoo
             return 6;
         }
 
-        virtual void onIotZooClientUnavailable() override
+        void onIotZooClientUnavailable() override
         {
             tm1637_6_Display->showString(getServerDownText().c_str());
         }
 
-        virtual Tm1637DisplayType getDisplayType() const override
+        Tm1637DisplayType getDisplayType() const override
         {
             return Tm1637DisplayType::Digits6;
         }
 
-        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override
         {
-            topics->push_back(
-                *new Topic(baseTopic + "/tm1637_6/" + String(deviceIndex) + "/number",
-                           "Send a number to TM1637 6 digits LCD display with index " + String(deviceIndex) + ".",
-                           MessageDirection::IotZooClientOutbound));
+            topics->emplace_back(baseTopic + "/tm1637_6/" + String(deviceIndex) + "/number",
+                                 "Send a number to TM1637 6 digits LCD display with index " + String(deviceIndex) + ".",
+                                 MessageDirection::IotZooClientOutbound);
 
-            topics->push_back(
-                *new Topic(baseTopic + "/tm1637_6/" + String(deviceIndex) + "/text",
-                           "Send a text to TM1637 6 digits LCD display with index " + String(deviceIndex) + ".",
-                           MessageDirection::IotZooClientOutbound));
+            topics->emplace_back(baseTopic + "/tm1637_6/" + String(deviceIndex) + "/text",
+                                 "Send a text to TM1637 6 digits LCD display with index " + String(deviceIndex) + ".",
+                                 MessageDirection::IotZooClientOutbound);
 
-            topics->push_back(*new Topic(baseTopic + "/tm1637_6/" + String(deviceIndex) + "/level",
-                                         "Use TM1637 6 digits LCD display with index " + String(deviceIndex) +
-                                             " to indicate a level between 0 and 100.",
-                                         MessageDirection::IotZooClientOutbound));
+            topics->emplace_back(baseTopic + "/tm1637_6/" + String(deviceIndex) + "/level",
+                                 "Use TM1637 6 digits LCD display with index " + String(deviceIndex) + " to indicate a level between 0 and 100.",
+                                 MessageDirection::IotZooClientOutbound);
 
-            topics->push_back(*new Topic(baseTopic + "/tm1637_6/" + String(deviceIndex) + "/temperature",
-                                         "Use TM1637 6 digits LCD display with index " + String(deviceIndex) +
-                                             " to indicate a temperature.",
-                                         MessageDirection::IotZooClientOutbound));
+            topics->emplace_back(baseTopic + "/tm1637_6/" + String(deviceIndex) + "/temperature",
+                                 "Use TM1637 6 digits LCD display with index " + String(deviceIndex) + " to indicate a temperature.",
+                                 MessageDirection::IotZooClientOutbound);
         }
 
         void begin()

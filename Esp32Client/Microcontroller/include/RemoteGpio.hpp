@@ -12,38 +12,38 @@
 #ifndef __REMOTE_GPIO_HPP__
 #define __REMOTE_GPIO_HPP__
 
-#include <Arduino.h>
 #include "DeviceBase.hpp"
+
+#include <Arduino.h>
 
 namespace IotZoo
 {
-  class RemoteGpio : DeviceBase
-  {
-  protected:
-    int pinGpio = -1;
+    class RemoteGpio : DeviceBase
+    {
+      protected:
+        int pinGpio = -1;
 
-  public:
-    RemoteGpio(int deviceIndex, MqttClient *const mqttClient, const String &baseTopic,
-               int pin);
+      public:
+        RemoteGpio(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, int pin);
 
-    virtual ~RemoteGpio();
+        ~RemoteGpio() override;
 
-    /// @brief Let the user know what the device can do.
-    /// @param topics
-    void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        /// @brief Let the user know what the device can do.
+        /// @param topics
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
-    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
-    /// @param mqttClient
-    /// @param baseTopic
-    virtual void onMqttConnectionEstablished() override;
+        /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+        /// @param mqttClient
+        /// @param baseTopic
+        void onMqttConnectionEstablished() override;
 
-    int getGpioPin() const;
+        int getGpioPin() const;
 
-    int readDigitalValue() const;
+        int readDigitalValue() const;
 
-    void handlePayload(const String &rawData);
-  };
-}
+        void handlePayload(const String& rawData);
+    };
+} // namespace IotZoo
 
 #endif // __REMOTE_GPIO_HPP__
 #endif // USE_REMOTE_GPIOS

@@ -17,8 +17,8 @@
 
 namespace IotZoo
 {
-    RemoteGpio::RemoteGpio(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, int pin)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    RemoteGpio::RemoteGpio(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, int pin)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         pinGpio = pin;
         pinMode(pinGpio, OUTPUT);
@@ -34,8 +34,8 @@ namespace IotZoo
     /// @param topics
     void RemoteGpio::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(getBaseTopic() + "/gpio/" + String(deviceIndex), "0, LOW, OFF or 1, HIGH, ON or TOGGLE for toggling state",
-                                     MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(getBaseTopic() + "/gpio/" + String(deviceIndex), "0, LOW, OFF or 1, HIGH, ON or TOGGLE for toggling state",
+                                     MessageDirection::IotZooClientOutbound);
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite

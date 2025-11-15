@@ -20,9 +20,10 @@ namespace IotZoo
 {
     class TM1637Display4Digits : public TM1637DisplayBase
     {
-    public:
-        TM1637Display4Digits(int deviceIndex, uint8_t pinClk, uint8_t pinDio,
-                             MqttClient *mqttClient, const String &baseTopic) : TM1637DisplayBase(deviceIndex, mqttClient, baseTopic)
+      public:
+        TM1637Display4Digits(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, uint8_t pinClk,
+                             uint8_t pinDio)
+            : TM1637DisplayBase(deviceIndex, settings, mqttClient, baseTopic)
         {
             Serial.println("Constructor TM1637Display4Digits");
             tm1637_4_Display = new TM1637TinyDisplay(pinClk, pinDio); // concrete implementation of the underlying hardware
@@ -43,23 +44,23 @@ namespace IotZoo
             return Tm1637DisplayType::Digits4;
         }
 
-        virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override
+        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override
         {
-            topics->push_back(*new Topic(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/time",
-                                         "Send time to TM1637 4 digits LCD display with index " + String(deviceIndex) + ".",
-                                         MessageDirection::IotZooClientOutbound));
+            topics->emplace_back(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/time",
+                                 "Send time to TM1637 4 digits LCD display with index " + String(deviceIndex) + ".",
+                                 MessageDirection::IotZooClientOutbound);
 
-            topics->push_back(*new Topic(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/number",
-                                         "Send a number to TM1637 4 digits LCD display with index " + String(deviceIndex) + ".",
-                                         MessageDirection::IotZooClientOutbound));
+            topics->emplace_back(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/number",
+                                 "Send a number to TM1637 4 digits LCD display with index " + String(deviceIndex) + ".",
+                                 MessageDirection::IotZooClientOutbound);
 
-            topics->push_back(*new Topic(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/text",
-                                         "Send a text to TM1637 4 digits LCD display with index " + String(deviceIndex) + ".",
-                                         MessageDirection::IotZooClientOutbound));
+            topics->emplace_back(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/text",
+                                 "Send a text to TM1637 4 digits LCD display with index " + String(deviceIndex) + ".",
+                                 MessageDirection::IotZooClientOutbound);
 
-            topics->push_back(*new Topic(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/level",
-                                         "Use TM1637 4 digits LCD display with index " + String(deviceIndex) + " to indicate a level between 0 and 100.",
-                                         MessageDirection::IotZooClientOutbound));
+            topics->emplace_back(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/level",
+                                 "Use TM1637 4 digits LCD display with index " + String(deviceIndex) + " to indicate a level between 0 and 100.",
+                                 MessageDirection::IotZooClientOutbound);
         }
 
         void begin()
@@ -68,7 +69,8 @@ namespace IotZoo
         }
 
         /// @brief Sets the orientation of the display.
-        /// @param flip flip Flip display upside down true/false. Setting this parameter to true will cause the rendering on digits to be displayed upside down.
+        /// @param flip flip Flip display upside down true/false. Setting this parameter to true will cause the rendering on digits to be displayed
+        /// upside down.
         void flipDisplay(bool flip = true)
         {
             tm1637_4_Display->flipDisplay(flip);
@@ -181,10 +183,10 @@ namespace IotZoo
             tm1637_4_Display->showLevel(level, horizontal);
         }
 
-    protected:
-        TM1637TinyDisplay *tm1637_4_Display = nullptr;
+      protected:
+        TM1637TinyDisplay* tm1637_4_Display = nullptr;
     };
-}
+} // namespace IotZoo
 
 #endif // USE_TM1637_4
 

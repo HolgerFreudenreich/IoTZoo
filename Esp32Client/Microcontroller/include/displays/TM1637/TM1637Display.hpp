@@ -22,6 +22,7 @@
 #include "TM1637TinyDisplay6.h" // ThirdParty Hardware implementation
 #endif
 #include "DeviceBase.hpp"
+
 #include <ArduinoJson.h>
 
 using namespace IotZoo;
@@ -33,22 +34,23 @@ namespace IotZoo
     /// This class represents either a 4 digit display or a 6 digit display dependent on displayType.
     class TM1637Display : public TM1637DisplayBase
     {
-    public:
-        TM1637Display(MqttClient *mqttClient, int deviceIndex, const String &baseTopic,
-                      Tm1637DisplayType displayType, uint8_t pinClk, uint8_t pinDio, bool flipDisplay, const String &serverDownText);
+      public:
+        TM1637Display(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, Tm1637DisplayType displayType,
+                      uint8_t pinClk, uint8_t pinDio, bool flipDisplay, const String& serverDownText);
 
         void begin();
 
-        virtual Tm1637DisplayType getDisplayType() const override;
+        Tm1637DisplayType getDisplayType() const override;
 
-        virtual void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
-        virtual void onIotZooClientUnavailable() override;
+        void onIotZooClientUnavailable() override;
 
         int getDefaultDisplayLength() const;
 
         /// @brief Sets the orientation of the display.
-        /// @param flip flip Flip display upside down true/false. Setting this parameter to true will cause the rendering on digits to be displayed upside down.
+        /// @param flip flip Flip display upside down true/false. Setting this parameter to true will cause the rendering on digits to be displayed
+        /// upside down.
         void flipDisplay(bool flip = true);
 
         /// @brief Returns the orientation of the display.
@@ -137,10 +139,10 @@ namespace IotZoo
         //! @param horizontal Boolean (true/false) where true = horizontal, false = vertical
         void showLevel(unsigned int level = 100, bool horizontal = true);
 
-    protected:
-        TM1637DisplayBase *tm1637Display = nullptr;
+      protected:
+        TM1637DisplayBase* tm1637Display = nullptr;
     };
-}
+} // namespace IotZoo
 
 #endif
 #endif

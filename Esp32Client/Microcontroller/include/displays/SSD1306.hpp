@@ -26,9 +26,9 @@ namespace IotZoo
     class OledSsd1306Display : public DeviceBase
     {
       public:
-        OledSsd1306Display(u_int8_t i2cAddress, int deviceIndex, MqttClient* mqttClient, const String& baseTopic);
+        OledSsd1306Display(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, u_int8_t i2cAddress);
 
-        virtual ~OledSsd1306Display();
+        ~OledSsd1306Display() override;
 
         /// @brief Let the user know what the device can do.
         /// @param topics

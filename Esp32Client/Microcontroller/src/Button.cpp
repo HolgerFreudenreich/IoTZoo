@@ -15,8 +15,8 @@
 
 namespace IotZoo
 {
-    Button::Button(int deviceIndex, MqttClient* const mqttClient, const String& baseTopic, uint8_t pin)
-        : DeviceBase(deviceIndex, mqttClient, baseTopic)
+    Button::Button(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t pin)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         this->pin = pin;
         Serial.println("Constructor Button. Pin: " + String(pin));
@@ -41,10 +41,9 @@ namespace IotZoo
     /// @param topics
     void Button::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->push_back(*new Topic(topicButtonPushedCounter, "Button " + String(getDeviceIndex()) + " was pushed x times.",
-                                     MessageDirection::IotZooClientInbound));
-        topics->push_back(
-            *new Topic(topicButtonSetCounter, "Reset push counter for Button " + String(getDeviceIndex()), MessageDirection::IotZooClientOutbound));
+        topics->emplace_back(topicButtonPushedCounter, "Button " + String(getDeviceIndex()) + " was pushed x times.",
+                                     MessageDirection::IotZooClientInbound);
+        topics->emplace_back(topicButtonSetCounter, "Reset push counter for Button " + String(getDeviceIndex()), MessageDirection::IotZooClientOutbound);
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite

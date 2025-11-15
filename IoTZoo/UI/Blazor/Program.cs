@@ -27,7 +27,7 @@ using Domain.Services.Timer;
 using Infrastructure;
 using IotZoo;
 using IotZoo.Services;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using MQTTnet.Exceptions;
 using MudBlazor;
 using MudBlazor.Services;

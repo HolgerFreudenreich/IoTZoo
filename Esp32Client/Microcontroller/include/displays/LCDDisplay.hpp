@@ -16,18 +16,19 @@
 #define __LCD_DISPLAY_HPP__
 
 #include "DeviceBase.hpp"
-#include <Wire.h>
+
 #include <LiquidCrystal_I2C.h>
+#include <Wire.h>
 
 namespace IotZoo
 {
     class LcdDisplay : public DeviceBase, public Print
     {
-    public:
-        LcdDisplay(u_int8_t address, u_int8_t cols, u_int8_t rows,
-                   int deviceIndex, MqttClient *mqttClient, const String &baseTopic);
+      public:
+        LcdDisplay(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, u_int8_t address, u_int8_t cols,
+                   u_int8_t rows);
 
-        virtual ~LcdDisplay();
+        ~LcdDisplay() override;
 
         void turnBacklightOn();
 
@@ -39,7 +40,7 @@ namespace IotZoo
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        void addMqttTopicsToRegister(std::vector<Topic> *const topics) const override;
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
         /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
         /// @param mqttClient
@@ -50,19 +51,19 @@ namespace IotZoo
 
         size_t write(uint8_t data) override;
 
-        void setLcd160xBacklight(const String &rawData);
+        void setLcd160xBacklight(const String& rawData);
 
         // {"text": "IoT Zoo", "clear": true, "x":1, "y": 0}
-        void setLcd160xData(const String &json);
+        void setLcd160xData(const String& json);
 
         void subscribeSetLcd160xData();
 
         void subscribeSetBacklight();
 
-    protected:
-        LiquidCrystal_I2C *lcd = nullptr;
+      protected:
+        LiquidCrystal_I2C* lcd = nullptr;
     };
-}
+} // namespace IotZoo
 
 #endif // __LCD_DISPLAY_HPP__
 
