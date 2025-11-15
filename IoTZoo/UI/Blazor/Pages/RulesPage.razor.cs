@@ -23,120 +23,126 @@ using MudBlazor;
 
 public class RulesPageBase : PageBase
 {
-   [Inject]
-   public IIoTZooMqttClient MqttClient
-   {
-      get;
-      set;
-   } = null!;
+    [Inject]
+    public IIoTZooMqttClient MqttClient
+    {
+        get;
+        set;
+    } = null!;
 
-   [Inject]
-   public IRulesCrudService RulesService
-   {
-      get;
-      set;
-   } = null!;
+    [Inject]
+    public IRulesCrudService RulesService
+    {
+        get;
+        set;
+    } = null!;
 
-   [Inject]
-   public IProjectCrudService ProjectService { get; set; } = null!;
+    [Inject]
+    public IProjectCrudService ProjectService { get; set; } = null!;
 
-   protected List<Project> ProjectsCatalog { get; private set; } = new();
+    protected List<Project> ProjectsCatalog { get; private set; } = new();
 
-   protected Project? SelectedProject
-   {
-      get => DataTransferService.SelectedProject;
-      set
-      {
-         DataTransferService.SelectedProject = value;
-         _ = LoadData();
-      }
-   }
+    protected Project? SelectedProject
+    {
+        get => DataTransferService.SelectedProject;
+        set
+        {
+            DataTransferService.SelectedProject = value;
+            _ = LoadData();
+        }
+    }
 
-   protected override async Task RefreshData(bool firstRender = false)
-   {
-      if (firstRender)
-      {
-         DataTransferService.CurrentScreen = ScreenMode.Rules;
-      }
-      ProjectsCatalog = await this.ProjectService.LoadProjects();
-      await base.RefreshData(firstRender); // calls LoadData and StateHasChanged.
-   }
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        DataTransferService.CurrentScreen = ScreenMode.Rules;
+    }
 
-   protected List<Rule>? Rules
-   {
-      get;
-      private set;
-   } = new();
+    protected override async Task RefreshData(bool firstRender = false)
+    {
+        if (firstRender)
+        {
+            DataTransferService.CurrentScreen = ScreenMode.Rules;
+        }
+        ProjectsCatalog = await this.ProjectService.LoadProjects();
+        await base.RefreshData(firstRender); // calls LoadData and StateHasChanged.
+    }
 
-   protected async Task EditRule(Rule rule)
-   {
-      await OpenRuleEditor(rule);
-   }
+    protected List<Rule>? Rules
+    {
+        get;
+        private set;
+    } = new();
 
-   protected async Task DeleteRule(Rule rule)
-   {
-      bool? result = await DialogService.ShowMessageBox("Delete",
-                                                        $"Do you want to delete the rule with Id {rule.RuleId}?",
-                                                        yesText: "Yes", cancelText: "No");
-      if (!result.HasValue)
-      {
-         return;
-      }
-      await RulesService.Delete(rule);
-      await LoadData();
-   }
+    protected async Task EditRule(Rule rule)
+    {
+        await OpenRuleEditor(rule);
+    }
 
-   protected async Task CloneRule(Rule rule)
-   {
-      var clonedRule = Infrastructure.Tools.DeepCopyReflection(rule);
-      clonedRule.RuleId = 0; // force new
-      await OpenRuleEditor(clonedRule);
-   }
+    protected async Task DeleteRule(Rule rule)
+    {
+        bool? result = await DialogService.ShowMessageBox("Delete",
+                                                          $"Do you want to delete the rule with Id {rule.RuleId}?",
+                                                          yesText: "Yes", cancelText: "No");
+        if (!result.HasValue)
+        {
+            return;
+        }
+        await RulesService.Delete(rule);
+        await LoadData();
+    }
 
-   protected async Task ExecuteRule(Rule rule)
-   {
-      var applicationMessage = new MqttApplicationMessageBuilder()
-                               .WithTopic(rule.SourceTopicFullQualified)                   
-                               .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
-                               .Build();
+    protected async Task CloneRule(Rule rule)
+    {
+        var clonedRule = Infrastructure.Tools.DeepCopyReflection(rule);
+        clonedRule.RuleId = 0; // force new
+        await OpenRuleEditor(clonedRule);
+    }
 
-      await MqttClient.Client.PublishAsync(applicationMessage);
-   }
+    protected async Task ExecuteRule(Rule rule)
+    {
+        var applicationMessage = new MqttApplicationMessageBuilder()
+                                 .WithTopic(rule.SourceTopicFullQualified)
+                                 .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                                 .Build();
 
-   public void ApplyRules()
-   {
-      MqttClient.ApplyRulesAsync();
-   }
+        await MqttClient.Client.PublishAsync(applicationMessage);
+    }
 
-   public async Task OpenRuleEditorAsync()
-   {
-      await OpenRuleEditor(new Rule());
-   }
+    public void ApplyRules()
+    {
+        MqttClient.ApplyRulesAsync();
+    }
 
-   private async Task OpenRuleEditor(Rule rule)
-   {
-      try
-      {
-         var options = GetDialogOptions();
+    public async Task OpenRuleEditorAsync()
+    {
+        await OpenRuleEditor(new Rule());
+    }
 
-         var parameters = new DialogParameters { ["Rule"] = rule };
-         IsEditorOpen = true;
-         var dialog = await this.DialogService.ShowAsync<RuleEditor>("Edit Rule",
-                                                                     parameters,
-                                                                     options);
-         var result = await dialog.Result;
-      }
-      finally
-      {
-         IsEditorOpen = false;
-         await LoadData();
-         ApplyRules();
-      }
-   }
+    private async Task OpenRuleEditor(Rule rule)
+    {
+        try
+        {
+            var options = GetDialogOptions();
 
-   protected override async Task LoadData()
-   {
-      Rules = await this.RulesService.GetRulesByProject(SelectedProject);
-      await InvokeAsync(StateHasChanged);
-   }
+            var parameters = new DialogParameters { ["Rule"] = rule };
+            IsEditorOpen = true;
+            var dialog = await this.DialogService.ShowAsync<RuleEditor>("Edit Rule",
+                                                                        parameters,
+                                                                        options);
+            var result = await dialog.Result;
+        }
+        finally
+        {
+            IsEditorOpen = false;
+            await LoadData();
+            ApplyRules();
+        }
+    }
+
+    protected override async Task LoadData()
+    {
+        Rules = await this.RulesService.GetRulesByProject(SelectedProject);
+        await InvokeAsync(StateHasChanged);
+    }
 }
