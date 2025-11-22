@@ -38,7 +38,7 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
         ProjectCrudService = projectsCrudService;
     }
 
-    public  async Task Execute(IJobExecutionContext context)
+    public async Task Execute(IJobExecutionContext context)
     {
         try
         {
@@ -113,14 +113,6 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
                     foreach (var project in projects)
                     {
                         result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.SUNRISE_NOW}", "When the sun rises...)");
-                        result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", "1");
-                    }
-                }
-                else
-                {
-                    foreach (var project in projects)
-                    {
-                        result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", "0");
                     }
                 }
             }
@@ -165,6 +157,8 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
                 {
                     result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.MINUTES_NEXT_SUNSET}",
                                                            minutesUntilSunset.ToString("F0"));
+
+                    result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", (minutesUntilSunset < minutesUntilSunrise).ToString());
                 }
 
                 if (minutesUntilSunset <= 1 && minutesUntilSunset > 0)
@@ -174,17 +168,14 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
                     {
                         result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.SUNSET_NOW}",
                                                                "When the sun goes down...");
-                        result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", "0");
-                    }
-                }
-                else
-                {
-                    foreach (var project in projects)
-                    {
-                        result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", "1");
-                    }
+                   }
                 }
             }
+
+
+
+
+
         }
         catch (Exception ex)
         {

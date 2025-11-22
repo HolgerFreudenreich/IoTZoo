@@ -154,6 +154,21 @@
                      </TooltipContent>
                   </MudTooltip>
 
+                  <MudTooltip>
+                     <ChildContent>
+                        <MudButton OnClick="AddNeoPixelMatrix"
+                                   Style="height: 65px; width: 280px; margin: 5px;"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   Variant="Variant.Filled"
+                                   Color="Color.Primary">
+                           Add NEO Pixel WS2818 Led-Matrix
+                        </MudButton>
+                     </ChildContent>
+                     <TooltipContent>
+                        <MudText Typo="Typo.h6">If necessary, connect extra power supply for more than 128 LEDs</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+
                   <!-- Actuators -->
                   <MudButton OnClick="AddRemoteGpio"
                              Style="height: 65px; width: 280px; margin: 5px;"

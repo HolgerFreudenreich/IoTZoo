@@ -15,6 +15,7 @@
 #include "Defines.hpp"
 #ifdef USE_MQTT
 #include "MqttClient.hpp"
+
 #include <ArduinoJson.h>
 #endif
 #ifdef USE_MQTT2
@@ -80,6 +81,21 @@ namespace IotZoo
             return baseTopic;
         }
 
+        String getDeviceName() const
+        {
+            return deviceName;
+        }
+
+        int getDeviceIdex() const
+        {
+           return deviceIndex;
+        }
+
+        MqttClient* getMqttClient() const
+        {
+            return mqttClient;
+        }
+        
         void publishError(const String& errMsg)
         {
             String topic = getBaseTopic() + "/error";
@@ -107,9 +123,10 @@ namespace IotZoo
         }
 
       protected:
-        MqttClient* mqttClient = nullptr;
-        Settings*   settings = nullptr;
+        MqttClient* mqttClient  = nullptr;
+        Settings*   settings    = nullptr;
         int         deviceIndex = -1;
+        String      deviceName;
         String      baseTopic;
         bool        mqttCallbacksAreRegistered = false;
     };

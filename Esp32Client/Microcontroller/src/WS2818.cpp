@@ -16,10 +16,11 @@
 
 namespace IotZoo
 {
-    WS2818::WS2818(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, int pin, int numberOfLeds)
+    WS2818::WS2818(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint pin, uint numberOfLeds)
         : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         Serial.println("Constructor WS2818");
+        deviceName         = "neo";
         dioPin             = pin;
         this->numberOfLeds = numberOfLeds;
         pixels             = new Adafruit_NeoPixel(numberOfLeds, dioPin, (NEO_GRB + NEO_KHZ800));
@@ -45,27 +46,7 @@ namespace IotZoo
         }
 
         pixels->begin();
-
-        for (int index = 0; index < this->numberOfLeds; index++)
-        {
-            setPixelColorRgb(255, 0, 0, index, 10);
-        }
-        pixels->show();
-        for (int index = 0; index < this->numberOfLeds; index++)
-        {
-            setPixelColorRgb(0, 255, 0, index, 10);
-        }
-        pixels->show();
-
-        for (int index = 0; index < this->numberOfLeds; index++)
-        {
-            setPixelColorRgb(0, 0, 255, index, 10);
-        }
-        pixels->show();
-
         pixels->clear();
-        pixels->show();
-
         Serial.println("WS2818 setup done.");
     }
 
@@ -121,7 +102,7 @@ namespace IotZoo
     {
         try
         {
-            Serial.println("setPixelColorHex rawData: " + String(json)); // {"color": "0x10E084", "index": 15, "length": 1, "brightness": 33}
+            Serial.println("setPixelColor rawData: " + String(json)); // {"brightness":10,"color":"#FFFF00","pixels":[{"color":"#10E084","index":0,"length":10,"brightness":10,"millisUntilTurnOff":2000},{"color":"#FFFFFF","index":30,"length":8,"millisUntilTurnOff":1000},{"index":50,"length":8,"millisUntilTurnOff":3000}]}
             String colorHexGlobal;
 
             u_int16_t startIndex;
@@ -236,14 +217,6 @@ namespace IotZoo
                 for (u_int16_t index = startIndex; index < startIndex + length; index++)
                 {
                     setPixelColor(color, index, brightness, millisUntilTurnOff);
-                    if (millisUntilTurnOff > 0)
-                    {
-                        pixelProperties[index].MillisUntilTurnOff = millisUntilTurnOff + millis();
-                    }
-                    else
-                    {
-                        pixelProperties[index].MillisUntilTurnOff = 0;
-                    }
                 }
             }
             pixels->show();
@@ -312,9 +285,8 @@ namespace IotZoo
                                             ]
                                         })";
 
-        topics->emplace_back(getBaseTopic() + "/neo/0/setPixelColor", jsonExampleColorHex, MessageDirection::IotZooClientOutbound);
-
-        topics->emplace_back(getBaseTopic() + "/neo/0/setPixelsByPreset", "Smiley", MessageDirection::IotZooClientOutbound);
+        topics->emplace_back(getBaseTopic() + "/" + deviceName + "/0/setPixelColor", jsonExampleColorHex, MessageDirection::IotZooClientOutbound);
+        topics->emplace_back(getBaseTopic() + "/" + deviceName + "/0/setPixelsByPreset", "Smiley", MessageDirection::IotZooClientOutbound);
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite
@@ -330,11 +302,11 @@ namespace IotZoo
             return;
         }
 
-        String topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelColor";
+        String topic = getBaseTopic() + "/" + deviceName + "/" + String(deviceIndex) + "/setPixelColor";
         mqttClient->subscribe(topic, [&](const String& json) { setPixelColor(json); });
         Serial.println("LED strip subscribed to topic " + topic);
 
-        topic = getBaseTopic() + "/neo/" + String(deviceIndex) + "/setPixelsByPreset";
+        topic = getBaseTopic() + "/" + deviceName + "/" + String(deviceIndex) + "/setPixelsByPreset";
         mqttClient->subscribe(topic, [&](const String& presetName) { setPixelsByPreset(presetName); });
         Serial.println("LED strip subscribed to topic " + topic);
     }
@@ -342,6 +314,15 @@ namespace IotZoo
     void WS2818::setPixelColorRgb(uint8_t r, uint8_t g, uint8_t b, uint16_t index, uint8_t brightness /* = 20*/, uint64_t millisUntilTurnOff /* = 0*/)
     {
         setPixelColor(pixels->Color(r, g, b), index, brightness, millisUntilTurnOff);
+    }
+
+    void WS2818::setPixelColorRgb(uint8_t r, uint8_t g, uint8_t b, uint16_t startIndex, uint16_t length, uint8_t brightness,
+                                  uint64_t millisUntilTurnOff)
+    {
+        for (uint16_t index = startIndex; index < startIndex + length; index++)
+        {
+            setPixelColor(pixels->Color(r, g, b), index, brightness, millisUntilTurnOff);
+        }
     }
 
     void WS2818::setPixelColor(uint32_t color, uint16_t index, uint8_t brightness /* = 20*/, uint64_t millisUntilTurnOff /* = 0*/)
@@ -359,6 +340,24 @@ namespace IotZoo
         }
 
         pixels->setPixelColor(index, color);
+
+        if (millisUntilTurnOff > 0)
+        {
+            pixelProperties[index].MillisUntilTurnOff = millisUntilTurnOff + millis();
+        }
+        else
+        {
+            pixelProperties[index].MillisUntilTurnOff = 0;
+        }
     }
+
+    void WS2818::setPixelColor(uint32_t color, uint16_t startIndex, uint16_t length, uint8_t brightness, uint64_t millisUntilTurnOff)
+    {
+        for (uint16_t index = startIndex; index < startIndex + length; index++)
+        {
+            setPixelColor(color, index, brightness, millisUntilTurnOff);
+        }
+    }
+
 } // namespace IotZoo
 #endif // USE_WS2818
