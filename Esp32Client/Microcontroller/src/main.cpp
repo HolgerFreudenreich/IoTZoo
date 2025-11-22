@@ -53,6 +53,9 @@ IotZoo::TM1638* tm1638 = nullptr;
 #ifdef USE_WS2818
 #include "WS2818.hpp"
 IotZoo::WS2818* ws2812 = nullptr;
+#ifdef USE_WS2818_PIXEL_MATRIX
+#include "PixelMatrix.hpp"
+#endif
 #endif
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
@@ -1157,7 +1160,7 @@ void makeInstanceConfiguredDevices()
 #endif // USE_DS18B20
 
 #ifdef USE_WS2818
-                if (deviceType == "NEO" || deviceType == "Neo Pixel")
+                if (deviceType == "NEO")
                 {
                     Serial.println("Configuration of NEO pixels...");
                     int dioPin       = arrPins[0]["MicrocontrollerGpoPin"];
@@ -1175,6 +1178,40 @@ void makeInstanceConfiguredDevices()
                     ws2812 = new WS2818(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLeds);
                     Serial.println("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
                 }
+#ifdef USE_WS2818_PIXEL_MATRIX
+                else if (deviceType == "PixelMatrix")
+                {
+                    Serial.println("Configuration of NEO pixel matrix...");
+                    int  dioPin                = arrPins[0]["MicrocontrollerGpoPin"];
+                    uint numberOfLedsPerColumn = 8;
+                    uint numberOfLedsPerRow    = 8;
+                    uint extensions            = 0;
+
+                    for (JsonVariant property : arrProperties)
+                    {
+                        String propertyName  = property["Name"];
+                        String propertyValue = property["Value"];
+                        if (propertyName == "numberOfLedsPerColumn")
+                        {
+                            numberOfLedsPerColumn = std::stoi(propertyValue.c_str());
+                        }
+                        else if (propertyName == "numberOfLedsPerRow")
+                        {
+                            numberOfLedsPerRow = std::stoi(propertyValue.c_str());
+                        }
+                        else if (propertyName == "extensions")
+                        {
+                            extensions = std::stoi(propertyValue.c_str());
+                        }
+                        extensions = 1;
+                    }
+                    ws2812 = new PixelMatrix(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLedsPerColumn, numberOfLedsPerRow,
+                                             (PixelMatrixExtensions)extensions);
+                    Serial.println("Neo pixel matrix configuration loaded! DIO Pin is " + String(dioPin) +
+                                   ", numberOfLedsPerColumn: " + String(numberOfLedsPerColumn) +
+                                   ", numberOfLedsPerRow: " + String(numberOfLedsPerRow) + ", Extensions: " + String(extensions));
+                }
+#endif // USE_WS2818_PIXEL_MATRIX
 #endif // USE_WS2818
 
 #ifdef USE_TM1637_4

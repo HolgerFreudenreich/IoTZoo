@@ -261,7 +261,23 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
       }
    }
 
-   protected async Task AddOledDisplaySSD1306()
+    protected async Task AddNeoPixelMatrix()
+    {
+        try
+        {
+            Snackbar.Add("Adding NEO-pixel matrix configuration to the microcontroller...", Severity.Info);
+            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromNeoPixelMatrix());
+            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
+        }
+    }
+
+    protected async Task AddOledDisplaySSD1306()
    {
       try
       {

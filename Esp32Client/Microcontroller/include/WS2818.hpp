@@ -28,22 +28,22 @@ namespace IotZoo
         unsigned long MillisUntilTurnOff = 0;
     };
 
-    class WS2818 : DeviceBase
+    class WS2818 : public DeviceBase
     {
       protected:
         Adafruit_NeoPixel*    pixels = nullptr;
         int                   dioPin;
-        int                   numberOfLeds;
+        uint                  numberOfLeds;
         vector<PixelProperty> pixelProperties;
 
       public:
-        WS2818(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, int pin, int numberOfLeds);
+        WS2818(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint pin, uint numberOfLeds);
 
         ~WS2818() override;
 
-        void setup();
+        virtual void setup();
 
-        void loop();
+        virtual void loop();
 
         /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
         /// @param json
@@ -61,9 +61,20 @@ namespace IotZoo
         void onMqttConnectionEstablished() override;
 
         void setPixelColorRgb(uint8_t r, uint8_t g, uint8_t b, uint16_t index, uint8_t brightness = 20, uint64_t millisUntilTurnOff = 0);
+        void setPixelColorRgb(uint8_t r, uint8_t g, uint8_t b, uint16_t startIndex, uint16_t length, uint8_t brightness = 20,
+                              uint64_t millisUntilTurnOff = 0);
 
         void setPixelColor(uint32_t color, uint16_t index, uint8_t brightness = 20, uint64_t millisUntilTurnOff = 0);
+        void setPixelColor(uint32_t color, uint16_t startIndex, uint16_t length, uint8_t brightness = 20, uint64_t millisUntilTurnOff = 0);
+
+        Adafruit_NeoPixel* getPixels() const
+        {
+            return pixels;
+        }
     };
+
+
+
 } // namespace IotZoo
 
 #endif // __WS2818_HPP__
