@@ -127,12 +127,18 @@ namespace IotZoo
                 pixelMatrix->setPixelColor(color, 11, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 18, 3, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Norden") > -1)
+            else if (subject.indexOf("Parkplatz") > -1)
             {
                 pixelMatrix->setPixelColor(color, 32, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 44, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 48, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 60, 4, brightness, millisUntilTurnOff);
+            }
+            else if (subject.indexOf("Garten") > -1)
+            {
+                pixelMatrix->setPixelColor(color, 42, 2, brightness, millisUntilTurnOff);
+                pixelMatrix->setPixelColor(color, 52, 2, brightness, millisUntilTurnOff);
+                pixelMatrix->setPixelColor(color, 58, 2, brightness, millisUntilTurnOff);
             }
             else if (subject.indexOf("Westen") > -1)
             {
@@ -181,6 +187,12 @@ namespace IotZoo
                 pixelMatrix->setPixelColor(color, 128, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 157, 3, brightness, millisUntilTurnOff);
             }
+            else if (subject.indexOf("Garten") > -1)
+            {
+                pixelMatrix->setPixelColor(color, 128, 3, brightness, millisUntilTurnOff);
+                pixelMatrix->setPixelColor(color, 157, 3, brightness, millisUntilTurnOff);
+                pixelMatrix->setPixelColor(color, 160, 3, brightness, millisUntilTurnOff);
+            }
             else if (subject.indexOf("Vorne") > -1)
             {
                 pixelMatrix->setPixelColor(color, 6, 10, brightness, millisUntilTurnOff);
@@ -201,7 +213,7 @@ namespace IotZoo
                 pixelMatrix->setPixelColor(color, 112, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 141, 3, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Norden") > -1)
+            else if (subject.indexOf("Parkplatz") > -1)
             {
                 pixelMatrix->setPixelColor(color, 0, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 28, 4, brightness, millisUntilTurnOff);

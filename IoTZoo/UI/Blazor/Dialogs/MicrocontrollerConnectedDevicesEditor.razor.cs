@@ -377,7 +377,25 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
       }
    }
 
-   protected async Task AddHW040RotaryEncoder()
+    protected async Task AddMax7219Display()
+    {
+        try
+        {
+            Snackbar.Add("Adding Max7219 6 digit LED display", Severity.Info);
+            var device = ConnectedDevices.FromMax7219();
+            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, device);
+
+            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
+        }
+    }
+
+    protected async Task AddHW040RotaryEncoder()
    {
       try
       {
