@@ -282,6 +282,19 @@
 <MudText>"brightness": 0 clears the entire display.</MudText>
 <br />
 <br />
+<MudText Typo="Typo.h6">MAX 7219 Dot Matrix</MudText>
+<br />
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/max7219/<display index>/setPoint"
+                     Description="Payload: {&quot;row&quot;: 0, &quot;col&quot;: 1, &quot;on&quot;: true}">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/max7219/<display index>/clear"
+                     Description="Payload: {}">
+</KnownTopicComponent>
+<br />
+<br />
 <MudDivider />
 <br />
 <br />

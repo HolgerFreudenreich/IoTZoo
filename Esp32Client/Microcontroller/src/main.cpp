@@ -158,7 +158,7 @@ std::vector<Switch> switches{};
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.1.7";
+String firmwareVersion = "0.2.0";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -230,15 +230,19 @@ MqttClient* mqttClient = nullptr;
 #endif
 
 #ifdef USE_TM1637_4
-
 #include "./displays/TM1637/TM1637_4_Handling.hpp"
-IotZoo::TM1637_4_Handling tm1637_4Handling;
-#endif
+IotZoo::TM1637_4_Handling* tm1637_4Handling;
+#endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
 #include "./displays/TM1637/TM1637_6_Handling.hpp"
 IotZoo::TM1637_6_Handling tm1637_6Handling;
-#endif
+#endif // USE_TM1637_6
+
+#ifdef USE_MAX7219
+#include "./displays/Max7219.hpp"
+Max7219* max7219;
+#endif // USE_MAX7219
 
 #if defined(USE_MQTT) || defined(USE_MQTT2)
 const String NamespaceNameFallback = "iotzoo";
@@ -468,6 +472,11 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
     jsonObjectSupportedDevices["HT1621"] = true;
 #else
     jsonObjectSupportedDevices["HT1621"] = false;
+#endif
+#ifdef USE_MAX7219
+    jsonObjectSupportedDevices["MAX7219"] = true;
+#else
+    jsonObjectSupportedDevices["MAX7219"] = false;
 #endif
 #ifdef USE_LCD_160X
     jsonObjectSupportedDevices["LCD160x"] = true;
@@ -773,7 +782,10 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 #endif
 
 #ifdef USE_TM1637_4
-    tm1637_4Handling.onMqttConnectionEstablished(mqttClient, getBaseTopic());
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->onMqttConnectionEstablished(mqttClient, getBaseTopic());
+    }
 #endif
 
 #ifdef USE_TM1637_6
@@ -792,7 +804,14 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     {
         ht1621->onMqttConnectionEstablished();
     }
-#endif
+#endif // USE_HT1621
+
+#ifdef USE_MAX7219
+    if (nullptr != max7219)
+    {
+        max7219->onMqttConnectionEstablished();
+    }
+#endif // USE_MAX7219
 
 #ifdef USE_REMOTE_GPIOS
     for (auto& remoteGpio : remoteGpios)
@@ -966,10 +985,38 @@ void makeInstanceConfiguredDevices()
                     uint8_t backlightPin = arrPins[3]["MicrocontrollerGpoPin"];
 
                     ht1621 = new IotZoo::HT1621(deviceIndex, settings, mqttClient, getBaseTopic(), csPin, wsPin, dataPin, backlightPin);
-
-                    Serial.println("HT1621 6 digit LED Display initialized.");
+                    if (nullptr != ht1621)
+                    {
+                        Serial.println("HT1621 6 digit LED Display initialized.");
+                    }
                 }
 #endif // USE_HT1621
+
+#ifdef USE_MAX7219
+                if (deviceType == "MAX7219")
+                {
+                    uint8_t dataPin         = arrPins[0]["MicrocontrollerGpoPin"];
+                    uint8_t clkPin          = arrPins[1]["MicrocontrollerGpoPin"];
+                    uint8_t csPin           = arrPins[2]["MicrocontrollerGpoPin"];
+                    uint8_t numberOfDevices = 1;
+
+                    for (JsonVariant property : arrProperties)
+                    {
+                        String propertyName = property["Name"];
+
+                        if (propertyName == "numberOfDevices")
+                        {
+                            numberOfDevices = property["Value"];
+                        }
+                    }
+
+                    max7219 = new IotZoo::Max7219(deviceIndex, settings, mqttClient, getBaseTopic(), numberOfDevices, dataPin, clkPin, csPin);
+                    if (nullptr != max7219)
+                    {
+                        Serial.println("Max7219 8x8 LED Matrix initialized.");
+                    }
+                }
+#endif // USE_MAX7219
 
 #ifdef USE_SWITCH
                 if (deviceType == "Switch")
@@ -1240,10 +1287,13 @@ void makeInstanceConfiguredDevices()
                             serverDownText = propertyValue;
                         }
                     }
-
-                    tm1637_4Handling.addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
-                    Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
-                                   ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
+                    tm1637_4Handling = new TM1637_4_Handling();
+                    if (nullptr != tm1637_4Handling)
+                    {
+                        tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+                        Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
+                                       ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
+                    }
                 }
 #endif // USE_TM1637_4
 
@@ -1711,7 +1761,10 @@ void setup()
 #endif
 
 #ifdef USE_TM1637_4
-    tm1637_4Handling.setup();
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->setup();
+    }
 #endif
 
 #ifdef USE_TM1637_6
@@ -1902,7 +1955,10 @@ void registerTopics()
 #endif
 
 #ifdef USE_TM1637_4
-    tm1637_4Handling.addMqttTopicsToRegister(&topics);
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->addMqttTopicsToRegister(&topics);
+    }
 #endif
 
 #ifdef USE_TM1637_6
@@ -1913,6 +1969,13 @@ void registerTopics()
     if (nullptr != ht1621)
     {
         ht1621->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_MAX7219
+    if (nullptr != max7219)
+    {
+        max7219->addMqttTopicsToRegister(&topics);
     }
 #endif
 
@@ -1986,7 +2049,10 @@ void onIotZooClientUnavailable()
     mqttClient->publish("i_am_lost", jsonMicrocontroller);
     // server dead?
 #ifdef USE_TM1637_4
-    tm1637_4Handling.onIotZooClientUnavailable();
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->onIotZooClientUnavailable();
+    }
 #endif
 
 #ifdef USE_TM1637_6
@@ -2113,7 +2179,7 @@ void loop()
         }
 
 #ifdef USE_TM1637_4
-        TM1637* tm1637 = tm1637_4Handling.getDisplayByDeviceIndex(2);
+        TM1637* tm1637 = tm1637_4Handling->getDisplayByDeviceIndex(2);
         if (nullptr != tm1637)
         {
             tm1637->showNumber(reedContactCounter, true);

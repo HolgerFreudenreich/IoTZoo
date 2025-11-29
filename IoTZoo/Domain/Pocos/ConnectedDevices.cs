@@ -144,6 +144,34 @@ public static class ConnectedDevices
         };
     }
 
+    public static ConnectedDevice FromMax7219()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "MAX7219",
+            Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "27",
+                                    PinName               = "DATA_PIN"
+                                 },
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "25",
+                                    PinName               = "CLK_PIN"
+                                 },
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "26",
+                                    PinName               = "CS_PIN"
+                                 }
+                              },
+            PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "numberOfDevices", Value = "1" } }
+        };
+    }
+
     public static ConnectedDevice FromLedTrafficLights()
     {
         return new ConnectedDevice
