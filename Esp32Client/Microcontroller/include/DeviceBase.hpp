@@ -15,16 +15,16 @@
 #include "Defines.hpp"
 #ifdef USE_MQTT
 #include "MqttClient.hpp"
-
-#include <ArduinoJson.h>
 #endif
 #ifdef USE_MQTT2
 #include "MqttClient2.hpp"
 #endif
+#include <ArduinoJson.h>
 #include "./pocos/Topic.hpp"
 #ifdef ARDUINO_ESP32_DEV
 #include "Settings.hpp"
 #endif
+
 using namespace std;
 
 namespace IotZoo

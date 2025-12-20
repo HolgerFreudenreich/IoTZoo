@@ -445,6 +445,39 @@ public static class ConnectedDevices
         };
     }
 
+    public static ConnectedDevice FromMicrophone()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "INMP441",
+            Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "22",
+                                    PinName               = "SD"
+                                 },
+                                  new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "35",
+                                    PinName               = "WS" // connect this PIN to GROUND.
+                                 },
+                                   new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "15",
+                                    PinName               = "SCK" // connect this PIN to GROUND.
+                                 }
+                              },
+            PropertyValues = new List<PropertyValue>()
+                          {
+                             new PropertyValue {Name = "AllowStreaming", Value = "false"}, // Streaming uses a lot of bandwidth and the quality is not that good because only 16 bit sample rate.
+                             new PropertyValue {Name = "AllowSoundLevel", Value = "true"},
+                             new PropertyValue {Name = "MinRms", Value = "400"},
+                          }
+        };
+    }
+
     public static ConnectedDevice FromBuzzer()
     {
         return new ConnectedDevice
