@@ -34,6 +34,8 @@ namespace IotZoo
 // #define USE_WS2818_PIXEL_MATRIX
 #endif
 
+#define USE_AUDIO_STREAMER // INMP441 microphone Default Pins: I2S_WS: 22, I2S_SCK: 15, I2S_SD: 35
+
 #define USE_TRAFFIC_LIGHT_LEDS // Default Pins: R: 5, Y: 18, G: 19
 // #define USE_REMOTE_GPIOS       // Default Pins: 36
 // #define USE_HC_SR501           // Motion detector, Default Pin: 21 (this is the pin in the middle of the motion detector).

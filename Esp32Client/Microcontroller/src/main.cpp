@@ -2086,6 +2086,13 @@ void registerTopics()
     }
 #endif
 
+#ifdef USE_AUDIO_STREAMER
+    if (nullptr != audioStreamer)
+    {
+        audioStreamer->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
 #ifdef USE_TRAFFIC_LIGHT_LEDS
     for (auto& trafficLight : trafficLightLeds)
     {
