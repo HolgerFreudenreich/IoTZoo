@@ -145,6 +145,11 @@ IotZoo::ButtonMatrixHandling buttonMatrixHandling;
 ButtonHandling buttonHandling;
 #endif
 
+#ifdef USE_AUDIO_STREAMER
+#include "AudioStreamer.hpp"
+AudioStreamer* audioStreamer;
+#endif
+
 #ifdef USE_GPS
 #include "Gps.hpp"
 Gps* gps = nullptr;
@@ -158,7 +163,7 @@ std::vector<Switch> switches{};
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.2.0";
+String firmwareVersion = "0.2.1";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -438,6 +443,11 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
 #else
     jsonObjectSupportedDevices["BUTTON"] = false;
 #endif
+#ifdef USE_AUDIO_STREAMER
+    jsonObjectSupportedDevices["AUDIO_STREAMER"] = true;
+#else
+    jsonObjectSupportedDevices["AUDIO_STREAMER"] = false;
+#endif
 #ifdef USE_GPS
     jsonObjectSupportedDevices["GPS"] = true;
 #else
@@ -690,7 +700,7 @@ void onLoadAndPublishConfigurationByKey(const String& key)
 
 #ifdef USE_MQTT2
 /// @brief /esp32/<mac>/status requested (from IoTZooClient) via MQTT.
-void onStatusRequested2(char* topic, byte* payload, unsigned int length)
+void onStatusRequested2(char* topic, uint8_t* payload, unsigned int length)
 {
     Serial.println("Received " + String(topic));
     // Convert the payload into a String
@@ -765,6 +775,13 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 
 #ifdef USE_BUTTON
     buttonHandling.onMqttConnectionEstablished();
+#endif
+
+#ifdef USE_AUDIO_STREAMER
+    if (nullptr != audioStreamer)
+    {
+        audioStreamer->onMqttConnectionEstablished();
+    }
 #endif
 
 #ifdef USE_GPS
@@ -952,6 +969,48 @@ void makeInstanceConfiguredDevices()
                     Serial.println("Button initialized.");
                 }
 #endif // USE_BUTTON
+
+#ifdef USE_AUDIO_STREAMER
+                if (deviceType == "INMP441")
+                {
+                    int pinSd  = arrPins[0]["MicrocontrollerGpoPin"];
+                    int pinWs  = arrPins[1]["MicrocontrollerGpoPin"];
+                    int pinSck = arrPins[2]["MicrocontrollerGpoPin"];
+
+                    u8_t  features = AudioStreamerFeatures::Undefined;
+                    u16_t minRms   = 400;
+                    for (JsonVariant property : arrProperties)
+                    {
+                        String propertyName = property["Name"];
+
+                        if (propertyName == "AllowStreaming")
+                        {
+                            bool allowStreaming = property["Value"] == "true";
+                            if (allowStreaming)
+                            {
+                                features |= AudioStreamerFeatures::Streaming;
+                            }
+                        }
+                        else if (propertyName == "AllowSoundLevel")
+                        {
+                            bool allowSoundLevel = property["Value"] == "true";
+                            if (allowSoundLevel)
+                            {
+                                features |= AudioStreamerFeatures::SoundLevel;
+                            }
+                        }
+                        else if (propertyName == "MinRms")
+                        {
+                            u16_t minRms = property["Value"];
+                        }
+                    }
+
+                    audioStreamer =
+                        new IotZoo::AudioStreamer(deviceIndex, settings, mqttClient, getBaseTopic(), features, minRms, pinSd, pinWs, pinSck);
+
+                    Serial.println("AudioStreamer initialized.");
+                }
+#endif // USE_AUDIO_STREAMER
 
 #ifdef USE_GPS
                 if (deviceType == "GPS")
@@ -2102,7 +2161,7 @@ void loop()
 {
     try
     {
-
+        Serial.print("_");
         lastLoopStartTime = millis();
         loopCounter++;
 
@@ -2142,6 +2201,13 @@ void loop()
 
 #ifdef USE_BUTTON
         buttonHandling.loop();
+#endif
+
+#ifdef USE_AUDIO_STREAMER
+        if (nullptr != audioStreamer)
+        {
+            audioStreamer->loop();
+        }
 #endif
 
 #ifdef USE_WS2818
