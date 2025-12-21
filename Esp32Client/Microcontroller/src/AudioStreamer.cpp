@@ -95,7 +95,7 @@ namespace IotZoo
         }
         if (features & AudioStreamerFeatures::SoundLevel)
         {
-            topics->emplace_back(baseTopic + "/audio_stream/0/sound_level_rms", "value between " + String(minRms) + "(quiet) and 32767 (extrem loud)",
+            topics->emplace_back(baseTopic + "/audio_stream/0/sound_level_rms", "380 -> absolutely quiet, > 10000 extrem loud",
                                  MessageDirection::IotZooClientInbound);
         }
     }
