@@ -20,6 +20,8 @@ using Microsoft.AspNetCore.Components;
 using MQTTnet;
 using MQTTnet.Protocol;
 using MudBlazor;
+using System.Reflection;
+using System.Text.Json;
 
 public class RulesPageBase : PageBase
 {
@@ -99,6 +101,17 @@ public class RulesPageBase : PageBase
         await OpenRuleEditor(clonedRule);
     }
 
+    protected async Task ExportRule(Rule rule)
+    {
+        var serializerOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
+        string json = System.Text.Json.JsonSerializer.Serialize(rule, serializerOptions);
+        await CopyToClipboard(json);
+    }
+
     protected async Task ExecuteRule(Rule rule)
     {
         var applicationMessage = new MqttApplicationMessageBuilder()
@@ -119,6 +132,89 @@ public class RulesPageBase : PageBase
         await OpenRuleEditor(new Rule());
     }
 
+    protected async Task ExportRulesToClipboard()
+    {
+        try
+        {
+            await RulesService.GetRulesByProject(SelectedProject);
+
+            var serializerOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            };
+
+            string json = System.Text.Json.JsonSerializer.Serialize(Rules, serializerOptions);
+            await CopyToClipboard(json);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add($"Exporting rules to Clipboard failed: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            await LoadData();
+        }
+    }
+
+    protected async Task OpenTextEditorAndImportRules()
+    {
+        try
+        {
+            var options = GetDialogOptions();
+
+            var parameters = new DialogParameters { };
+            IsEditorOpen = true;
+            var dialog = await DialogService.ShowAsync<Dialogs.TextEditor>("Import Rule/s",
+                                                                                         parameters,
+                                                                                         options);
+            var result = await dialog.Result;
+            string json = result?.Data as string ?? string.Empty;
+            json = json.Trim();
+            if (json.Length > 0)
+            {
+                if (json.StartsWith("{") && json.EndsWith("}"))
+                {
+                    var singleRule = System.Text.Json.JsonSerializer.Deserialize<Rule>(json);
+                    if (singleRule != null)
+                    {
+                        singleRule.RuleId = 0; // force new
+                        await RulesService.Save(singleRule);
+                    }
+                }
+                else if (json.StartsWith("[") && json.EndsWith("]"))
+                {
+                    var importedRules = System.Text.Json.JsonSerializer.Deserialize<List<Rule>>(json);
+                    if (importedRules != null)
+                    {
+                        foreach (var rule in importedRules)
+                        {
+                            rule.RuleId = 0; // force new
+                            await RulesService.Save(rule);
+                        }
+                    }
+                }
+                else
+                {
+                    Snackbar.Add("Importing rules failed: JSON is not valid!", Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add($"Importing rules failed: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            IsEditorOpen = false;
+            await LoadData();
+        }
+    }
+
+
+
     private async Task OpenRuleEditor(Rule rule)
     {
         try
@@ -131,6 +227,10 @@ public class RulesPageBase : PageBase
                                                                         parameters,
                                                                         options);
             var result = await dialog.Result;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
         }
         finally
         {

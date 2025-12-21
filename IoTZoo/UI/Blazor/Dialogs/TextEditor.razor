@@ -1,0 +1,46 @@
+﻿@inherits TextEditorBase
+
+@using Domain.Pocos
+@using IotZoo.Components
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+         @DialogTitle
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.Element>
+                  <MudTextField @bind-Value="@Text"
+                                Lines="40"
+                                MaxLines=1000
+                                Required="true"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Key"
+                                Label="@LabelText"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+
+      <MudButton Variant="Variant.Filled"
+                 Color="Color.Success"
+                 OnClick="Save">@LabelButtonSave</MudButton>
+   </DialogActions>
+</MudDialog>

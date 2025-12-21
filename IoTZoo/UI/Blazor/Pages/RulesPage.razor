@@ -36,6 +36,22 @@
                  Color="Color.Primary">
          Add Rule
       </MudButton>
+      <MudButton OnClick="ExportRulesToClipboard"
+                 Disabled="@(DataTransferService.SelectedProject == null)"
+                 Style="height: 40px"
+                 StartIcon="@Icons.Material.Filled.Add"
+                 Variant="Variant.Filled"
+                 Color="Color.Primary">
+         Export Rule(s) to Clipboard
+      </MudButton>
+      <MudButton OnClick="OpenTextEditorAndImportRules"
+                 Disabled="@(DataTransferService.SelectedProject == null)"
+                 Style="height: 40px"
+                 StartIcon="@Icons.Material.Filled.Add"
+                 Variant="Variant.Filled"
+                 Color="Color.Primary">
+         Import Rule(s) from JSON
+      </MudButton>
    }
    <MudSpacer></MudSpacer>
    <MudTooltip Color="Color.Tertiary">
@@ -127,6 +143,20 @@
                </ChildContent>
                <TooltipContent>
                   <MudText Typo="Typo.h6">Clone</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => ExportRule(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.Output"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Export</MudText>
                </TooltipContent>
             </MudTooltip>
 

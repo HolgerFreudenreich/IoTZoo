@@ -26,10 +26,5 @@ public class InstructionsRunOnDockerPageBase : PageBase
       DataTransferService.CurrentScreen = ScreenMode.InstructionsRunOnDocker;
       base.OnInitialized();
    }
-
-   protected void CopyToClipboard(string text)
-   {
-      JsRuntime.InvokeVoidAsync("clipboardCopy.copyText", text);
-      Snackbar.Add("Copied to clipboard", MudBlazor.Severity.Info);
-   }
+ 
 }
