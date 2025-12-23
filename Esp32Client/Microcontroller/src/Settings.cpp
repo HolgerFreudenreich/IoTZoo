@@ -96,6 +96,22 @@ namespace IotZoo
         preferences.end();
     }
 
+    bool Settings::isAliveAckLedEnabled()
+    {
+        preferences.begin(NamespaceNameConfig, true);
+        bool isActive = preferences.getBool("alive_led", true);
+        preferences.end();
+        return isActive;
+    }
+
+    bool Settings::setAliveLedEnabled(bool enabled)
+    {
+        preferences.begin(NamespaceNameConfig, false);
+        bool ok = preferences.putBool("alive_led", enabled) > 0;
+        preferences.end();
+        return ok;
+    }
+
     bool Settings::storeData(const String& key, const String& data)
     {
         try
