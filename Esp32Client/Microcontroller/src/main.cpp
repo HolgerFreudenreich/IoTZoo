@@ -397,12 +397,13 @@ void AddMicrocontrollerNestedJsonObject(JsonDocument* jsonDocument)
 
 void AddAliveNestedJsonObject(JsonDocument* jsonDocument)
 {
-    JsonObject jsonObjectAlive           = jsonDocument->createNestedObject("Alive");
-    jsonObjectAlive["AliveCounter"]      = aliveCounter;
-    jsonObjectAlive["LoopCounter"]       = loopCounter;
-    jsonObjectAlive["LoopDurationMs"]    = loopDurationMs;
-    jsonObjectAlive["ReconnectionCount"] = mqttClient->getConnectionEstablishedCount() - 1;
-    jsonObjectAlive["AliveIntervalMs"]   = settings->getAliveIntervalMillis();
+    JsonObject jsonObjectAlive            = jsonDocument->createNestedObject("Alive");
+    jsonObjectAlive["AliveCounter"]       = aliveCounter;
+    jsonObjectAlive["LoopCounter"]        = loopCounter;
+    jsonObjectAlive["LoopDurationMs"]     = loopDurationMs;
+    jsonObjectAlive["ReconnectionCount"]  = mqttClient->getConnectionEstablishedCount() - 1;
+    jsonObjectAlive["AliveIntervalMs"]    = settings->getAliveIntervalMillis();
+    jsonObjectAlive["AliveAckLedEnabled"] = settings->isAliveAckLedEnabled();
 }
 
 void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
@@ -645,7 +646,10 @@ void onAliveAck(const String& rawData)
     {
         if (rawData != "0")
         {
-            digitalWrite(LED_BUILTIN, HIGH); // turn the LED on.
+            if (settings->isAliveAckLedEnabled())
+            {
+                digitalWrite(LED_BUILTIN, HIGH); // turn the LED on.
+            }
         }
         Serial.println("Received alive_ack: " + rawData + ", millis: " + String(millis()));
 
@@ -855,12 +859,26 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
                               }
                           });
 
-    String topicIntervalAlive = getBaseTopic() + "/alive_interval_ms";
+    String topicIntervalAlive = getBaseTopic() + "/alive_config";
     mqttClient->subscribe(topicIntervalAlive,
-                          [&](const String& payload)
+                          [&](const String& json)
                           {
-                              settings->setAliveIntervalMillis(std::stol(payload.c_str()));
-                              Serial.println("alive interval is changed to " + String(settings->getAliveIntervalMillis()));
+                              StaticJsonDocument<256> jsonDocument;
+                              if (!deserializeStaticJsonAndPublishError(jsonDocument, json))
+                              {
+                                  return;
+                              }
+
+                              String key = jsonDocument["key"].as<String>();
+
+                              unsigned long aliveIntervalMs    = jsonDocument["aliveIntervalMs"];
+                              bool          aliveAckLedEnabled = jsonDocument["aliveAckLedEnabled"];
+
+                              settings->setAliveIntervalMillis(aliveIntervalMs);
+                              Serial.println("aliveIntervalMs: " + String(settings->getAliveIntervalMillis()));
+
+                              settings->setAliveLedEnabled(aliveAckLedEnabled);
+                              Serial.println("aliveAckLedEnabled " + String(settings->isAliveAckLedEnabled()));
                           });
 
     // Save the device configurations.
@@ -1944,6 +1962,10 @@ void registerTopics()
 
     // Alive message of the microcontroller
     topics.emplace_back(getBaseTopic() + "/alive", "Alive message of the microcontroller", MessageDirection::IotZooClientInbound);
+
+    // How should the device send alive messages
+    topics.emplace_back(getBaseTopic() + "/alive_config", "{\"aliveIntervalMs\": 15000, \"aliveAckLedEnabled\": true}",
+                        MessageDirection::IotZooClientInbound);
 
     // Acknowledge fo the alive message from the IotZooClient.
     topics.emplace_back(getBaseTopic() + "/alive_ack", "Alive message of the microcontroller", MessageDirection::IotZooClientOutbound);

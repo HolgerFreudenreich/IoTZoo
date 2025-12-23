@@ -83,6 +83,10 @@ namespace IotZoo
 
         void setAliveIntervalMillis(long interval);
 
+        bool isAliveAckLedEnabled();
+
+        bool setAliveLedEnabled(bool isActive);
+
         bool storeData(const String& key, const String& data);
 
         String getDataString(const String& key, const String& fallbackValue, bool printLog = true);

@@ -35,7 +35,7 @@ namespace IotZoo
     /// @param topics
     void Gps::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        String examplePayload = "{\"Lat\": 52.63, \"Lon\": 9.61, \"Alt\": 32.1, \"DateTimeUtc\": \"2025-10-05 17:30:36\"}";
+        String examplePayload = "{\"lat\": 52.63, \"lon\": 9.61, \"alt\": 32.1, \"dateTimeUtc\": \"2025-10-05 17:30:36\"}";
 
         topics->emplace_back(getBaseTopic() + "/gps/position" + String(deviceIndex), examplePayload, MessageDirection::IotZooClientInbound);
     }
