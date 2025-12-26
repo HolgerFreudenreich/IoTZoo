@@ -21,8 +21,8 @@ namespace IotZoo
 // --------------------------------------------------------------------------------------------------------------------
 // Comment feature(s) out if you run out of memory.
 // --------------------------------------------------------------------------------------------------------------------
-#define USE_DS18B20 // Temperatur Sensor | Default Pins: DAT: Pin 23
-
+#define USE_DS18B20 // Temperature Sensor | Default Pins: DAT: Pin 23
+#define USE_HW507 // Humidity Sensor | Default Pins: DAT: Pin 23
 #define USE_BUTTON // briefly on, then off again after releasing
 #define USE_GPS
 #define USE_SWITCH // permanently off or on
@@ -51,7 +51,7 @@ namespace IotZoo
 #define USE_LCD_160X     // 16 x 2, 16 x 4 LCD DISPLAY with I2C HW-061, Default Pins: SDA: 21, SCL: 22
 #define USE_TM1637_4     // 4 digits display. You can connect up to 10 items. Default Pins (Item 0): CLK: 27, DIO: 26
 // #define USE_TM1637_6             // 6 digits display. You can connect up to 10 items. Default Pins: CLK: 14, DIO: 27
-#define USE_MAX7219 // 8x8 Led Dot Matrix, Default Poins: Data: 27, CLK: 25, CS: 26
+//#define USE_MAX7219 // 8x8 Led Dot Matrix, Default Poins: Data: 27, CLK: 25, CS: 26
 #define USE_BUZZER
 
 // #define USE_BLE_HEART_RATE_SENSOR // Bluetooth hearte rate sensor. Needs alot of the available RAM so do not use to many other defines!

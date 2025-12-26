@@ -152,6 +152,22 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
         }
     }
 
+    protected async Task AddHW507HumiditySensor()
+    {
+        try
+        {
+            Snackbar.Add("Adding HW507 humidity sensor configuration to the microcontroller...", Severity.Info);
+            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromHW507());
+            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
+        }
+    }
+
     protected async Task Add28BYJ48StepperMotor()
     {
         try

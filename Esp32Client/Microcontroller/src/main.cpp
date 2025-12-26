@@ -3,7 +3,7 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \  P L A Y G R O U N D
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/   (c) 2025 Holger Freudenreich under the MIT licence.
+//  /___/\____/_/       /____|____/\____/   (c) 2025 - 2026 Holger Freudenreich under the MIT licence.
 //
 // --------------------------------------------------------------------------------------------------------------------
 // Firmware for ESP8266 and ESP32 Microcontrollers
@@ -218,6 +218,11 @@ String identifyBoard()
 #ifdef USE_DS18B20
 #include "DS18B20.hpp"
 IotZoo::DS18B20* ds18B20SensorManager = nullptr;
+#endif
+
+#ifdef USE_HW507
+#include "HW507.hpp"
+IotZoo::HW507* hw507HumiditySensor = nullptr;
 #endif
 
 #ifdef USE_MQTT
@@ -438,6 +443,11 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
     jsonObjectSupportedDevices["WS2818"] = true;
 #else
     jsonObjectSupportedDevices["WS2818"] = false;
+#endif
+#ifdef USE_HW507
+    jsonObjectSupportedDevices["HW507"] = true;
+#else
+    jsonObjectSupportedDevices["HW507"] = false;
 #endif
 #ifdef USE_BUTTON
     jsonObjectSupportedDevices["BUTTON"] = true;
@@ -749,7 +759,6 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     {
         Serial.println("ws2812 is nullptr!");
     }
-
 #endif
 
 #ifdef USE_HW040
@@ -1014,7 +1023,8 @@ void makeInstanceConfiguredDevices()
                             bool allowSoundLevel = property["Value"] == "true";
                             if (allowSoundLevel)
                             {
-                                features |= AudioStreamerFeatures::SoundLevel;
+                                features |= AudioStreamerFeatures::SoundLevelRms;
+                                features |= AudioStreamerFeatures::SoundLevelDecibel;
                             }
                         }
                         else if (propertyName == "MinRms")
@@ -1282,6 +1292,24 @@ void makeInstanceConfiguredDevices()
                                    ", Transmission interval: " + String(transmissionInterval));
                 }
 #endif // USE_DS18B20
+
+#ifdef USE_HW507
+                if (deviceType == "HW507")
+                {
+                    uint8_t dataPin    = arrPins[0]["DATA_PIN"];
+                    uint8_t deviceType = DHT11;
+                    for (JsonVariant property : arrProperties)
+                    {
+                        String propertyName = property["Name"];
+
+                        if (propertyName == "DeviceType")
+                        {
+                            deviceType == property["Value"];
+                        }
+                    }
+                    hw507HumiditySensor = new IotZoo::HW507(deviceIndex, settings, mqttClient, getBaseTopic(), deviceType, dataPin);
+                }
+#endif // USE_HW507
 
 #ifdef USE_WS2818
                 if (deviceType == "NEO")
@@ -2099,7 +2127,14 @@ void registerTopics()
                                 "The Temperature in °C of Sensor " + String(index), MessageDirection::IotZooClientInbound);
         }
     }
-#endif
+#endif // USE_DS18B20
+
+#ifdef USE_HW507
+    if (nullptr != hw507HumiditySensor)
+    {
+        hw507HumiditySensor->addMqttTopicsToRegister(&topics);
+    }
+#endif // USE_HW507
 
 #ifdef USE_WS2818
     if (nullptr != ws2812)
@@ -2243,6 +2278,13 @@ void loop()
         if (nullptr != ws2812)
         {
             ws2812->loop();
+        }
+#endif
+
+#ifdef USE_HW507
+        if (nullptr != hw507HumiditySensor)
+        {
+            hw507HumiditySensor->loop();
         }
 #endif
 

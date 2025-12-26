@@ -11,9 +11,7 @@
 // (c) 2025 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
-using Domain.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using System.Reflection;
 
@@ -21,15 +19,15 @@ namespace IotZoo.Shared;
 
 public class NavMenuBase : ComponentBase
 {
-   [Inject]
-   protected NavigationManager NavigationManager
-   {
-      get;
-      set;
-   } = null!;
+    [Inject]
+    protected NavigationManager NavigationManager
+    {
+        get;
+        set;
+    } = null!;
 
-   [Inject]
-   protected IJSRuntime JsRuntime { get; set; } = null!;
+    [Inject]
+    protected IJSRuntime JsRuntime { get; set; } = null!;
 
     [Inject]
     protected ILogger<NavMenuBase> Logger
@@ -37,13 +35,12 @@ public class NavMenuBase : ComponentBase
         get; set;
     } = null!;
 
-
     private string selectedMenuItem = string.Empty;
-   public string SelectedMenuItem
-   {
-      get => selectedMenuItem;
-      set
-      {
+    public string SelectedMenuItem
+    {
+        get => selectedMenuItem;
+        set
+        {
             try
             {
                 if (string.IsNullOrEmpty(value))
@@ -100,5 +97,5 @@ public class NavMenuBase : ComponentBase
                 Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
             }
         }
-   }
+    }
 }

@@ -3,7 +3,7 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \  P L A Y G R O U N D
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/   (c) 2025 Holger Freudenreich under the MIT licence.
+//  /___/\____/_/       /____|____/\____/   (c) 2025 - 2026 Holger Freudenreich under the MIT licence.
 //
 // --------------------------------------------------------------------------------------------------------------------
 // Firmware for ESP8266 and ESP32 Microcontrollers
@@ -20,9 +20,10 @@ namespace IotZoo
         Tm1637DisplayType displayType, int clkPin, int dioPin, bool flipDisplay, const String& serverDownText)
         : TM1637DisplayBase(deviceIndex, settings, mqttClient, baseTopic)
     {
-        Serial.println("Constructor TM1637. DisplayType:" + displayType);
+        Serial.printf("Constructor TM1637. DisplayType: %s\n", displayType);
 
-        displayTm1637 = new TM1637Display(deviceIndex, settings, mqttClient, baseTopic, displayType, clkPin, dioPin, flipDisplay, serverDownText);
+        displayTm1637 = new TM1637Display(deviceIndex, settings, mqttClient, baseTopic,
+             displayType, clkPin, dioPin, flipDisplay, serverDownText);
     }
 
     TM1637::~TM1637()

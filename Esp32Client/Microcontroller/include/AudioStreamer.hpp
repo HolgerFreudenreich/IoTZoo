@@ -3,7 +3,7 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/ (c) 2025 Holger Freudenreich under the MIT licence.
+//  /___/\____/_/       /____|____/\____/ (c) 2025 - 2026 Holger Freudenreich under the MIT licence.
 // --------------------------------------------------------------------------------------------------------------------
 // Connect a INMP441 microphone with a microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
@@ -27,9 +27,10 @@ namespace IotZoo
 
     enum AudioStreamerFeatures
     {
-        Undefined  = 0,
-        Streaming  = 1,
-        SoundLevel = 2
+        Undefined         = 0,
+        Streaming         = 1,
+        SoundLevelRms     = 2,
+        SoundLevelDecibel = 4,
     };
 
     class AudioStreamer : public DeviceBase
@@ -42,7 +43,15 @@ namespace IotZoo
 
         void addMqttTopicsToRegister(std::vector<Topic>* const topics) const;
 
-        void onMqttConnectionEstablished();
+        void onMqttConnectionEstablished() override;
+
+      protected:
+        // 0 dB = maximum digital volume
+        // -10 dB = strong, good
+        // -20 dB = usable
+        // -40 dB = barely usable
+        // -60 dB = noise
+        double rmsToDecibel(double rms, double fullScale = 32768.0);
 
       private:
         i2s_config_t i2sConfig = {

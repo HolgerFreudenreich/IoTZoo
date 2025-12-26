@@ -18,8 +18,6 @@ namespace IotZoo.Pages;
 
 public class InstructionsRunOnDockerPageBase : PageBase
 {
-   [Inject]
-   protected IJSRuntime JsRuntime { get; set; } = null!;
 
    protected override void OnInitialized()
    {

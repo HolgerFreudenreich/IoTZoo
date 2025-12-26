@@ -3,7 +3,7 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \  P L A Y G R O U N D
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/   (c) 2025 Holger Freudenreich under the MIT licence.
+//  /___/\____/_/       /____|____/\____/   (c) 2025 - 2026 Holger Freudenreich under the MIT licence.
 //
 // --------------------------------------------------------------------------------------------------------------------
 // Firmware for ESP8266 and ESP32 Microcontrollers
@@ -35,11 +35,13 @@ namespace IotZoo
     {
         topics->emplace_back(getBaseTopic() + "/max7219/" + String(deviceIndex) + "/setPoint", "{\"row\": 0, \"col\":1, \"on\": true}",
                              MessageDirection::IotZooClientOutbound);
-        topics->emplace_back(getBaseTopic() + "/max7219/" + String(deviceIndex) + "/setColumn", "{\"col\":0, \"value\": 1}",
+        topics->emplace_back(getBaseTopic() + "/max7219/" + String(deviceIndex) + "/setColumn", "{\"col\":0, \"value\": 1}; value: Bitfield 0-255",
                              MessageDirection::IotZooClientOutbound);
-        topics->emplace_back(getBaseTopic() + "/max7219/" + String(deviceIndex) + "/setRow", "{\"row\":0, \"value\": 2}",
+        topics->emplace_back(getBaseTopic() + "/max7219/" + String(deviceIndex) + "/setRow", "{\"row\":0, \"value\": 255}; value: Bitfield 0-255",
                              MessageDirection::IotZooClientOutbound);
         topics->emplace_back(getBaseTopic() + "/max7219/" + String(deviceIndex) + "/clear", "{}", MessageDirection::IotZooClientOutbound);
+        topics->emplace_back(getBaseTopic() + "/max7219/" + String(deviceIndex) + "/allOn", "Turns all pixels on",
+                             MessageDirection::IotZooClientOutbound);
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a
@@ -104,6 +106,16 @@ namespace IotZoo
                               {
                                   Serial.println("clear json: " + json);
                                   max7219->clear();
+                              });
+
+        mqttClient->subscribe(getBaseTopic() + "/max7219/" + String(deviceIndex) + "/allOn",
+                              [&](const String& json)
+                              {
+                                  Serial.println("all on. columnCount: " + String(max7219->getColumnCount()));
+                                  for (int i = 0; i < max7219->getColumnCount(); i++)
+                                  {
+                                      max7219->setColumn(i, 255);
+                                  }
                               });
     }
 
