@@ -50,6 +50,7 @@ namespace IotZoo
       private:
         DHT*    dht        = nullptr;
         uint8_t deviceType = DHT11;
+        ulong lastMillis = millis();
     };
 } // namespace IotZoo
 
