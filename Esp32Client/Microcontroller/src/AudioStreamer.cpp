@@ -3,7 +3,7 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/ (c) 2025 Holger Freudenreich under the MIT licence.
+//  /___/\____/_/       /____|____/\____/ (c) 2025 - 2026 Holger Freudenreich under the MIT licence.
 // --------------------------------------------------------------------------------------------------------------------
 // Connect a INMP441 microphone with a microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
@@ -32,6 +32,16 @@ namespace IotZoo
         Serial.println("i2s_set_pin ok");
         i2s_zero_dma_buffer(I2S_NUM_0);
         Serial.println("Constructor AudioStreamer ok");
+    }
+
+    double AudioStreamer::rmsToDecibel(double rms, double fullScale)
+    {
+        if (rms <= 0.0)
+        {
+            return -std::numeric_limits<double>::infinity();
+        }
+
+        return 20.0 * std::log10(rms / fullScale);
     }
 
     void AudioStreamer::loop()
@@ -77,9 +87,14 @@ namespace IotZoo
                         mqttClient->publish("iotzoo/picea/esp32/1C:69:20:EA:3C:E8/audio_stream/0/pcm", (uint8_t*)chunkBuffer,
                                             CHUNK_SIZE * sizeof(int16_t), false);
                     }
-                    if (features & AudioStreamerFeatures::SoundLevel)
+                    if (features & AudioStreamerFeatures::SoundLevelRms)
                     {
                         mqttClient->publish("iotzoo/picea/esp32/1C:69:20:EA:3C:E8/audio_stream/0/sound_level_rms", strRms);
+                    }
+                    if (features & AudioStreamerFeatures::SoundLevelDecibel)
+                    {
+                        double decibel = rmsToDecibel(rms);
+                        mqttClient->publish("iotzoo/picea/esp32/1C:69:20:EA:3C:E8/audio_stream/0/sound_level_decibel", String(decibel, 0));
                     }
                 }
                 bufferIndex = 0; // collect next chunk.
@@ -93,9 +108,14 @@ namespace IotZoo
         {
             topics->emplace_back(baseTopic + "/audio_stream/0/pcm", "pcm stream", MessageDirection::IotZooClientInbound);
         }
-        if (features & AudioStreamerFeatures::SoundLevel)
+        if (features & AudioStreamerFeatures::SoundLevelRms)
         {
             topics->emplace_back(baseTopic + "/audio_stream/0/sound_level_rms", "380 -> absolutely quiet, > 10000 extrem loud",
+                                 MessageDirection::IotZooClientInbound);
+        }
+        if (features & AudioStreamerFeatures::SoundLevelDecibel)
+        {
+            topics->emplace_back(baseTopic + "/audio_stream/0/sound_level_rms", "10 -> absolutely quiet, > 100 extrem loud",
                                  MessageDirection::IotZooClientInbound);
         }
     }

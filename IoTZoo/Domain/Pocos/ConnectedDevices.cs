@@ -445,6 +445,27 @@ public static class ConnectedDevices
         };
     }
 
+    public static ConnectedDevice FromHW507()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "HW507",
+            Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "23",
+                                    PinName               = "DATA_PIN"
+                                 }
+                              },
+              PropertyValues = new List<PropertyValue>()
+                          {
+                             new PropertyValue {Name = "DeviceType", Value = "DHT11"},
+                          }
+        };
+    }
+
     public static ConnectedDevice FromMicrophone()
     {
         return new ConnectedDevice

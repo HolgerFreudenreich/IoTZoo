@@ -35,7 +35,7 @@ public class PageBase : ComponentBase
     }
 
     [Inject]
-    IJSRuntime JsRuntime { get; set; } = null!;
+    protected IJSRuntime JsRuntime { get; set; } = null!;
 
     [Inject]
     protected IDialogService DialogService { get; set; } = null!;
