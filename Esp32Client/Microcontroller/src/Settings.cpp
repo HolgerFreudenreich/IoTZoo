@@ -3,7 +3,7 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \  P L A Y G R O U N D
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/   (c) 2025 Holger Freudenreich under the MIT licence.
+//  /___/\____/_/       /____|____/\____/   (c) 2025 - 2026 Holger Freudenreich under the MIT licence.
 //
 // --------------------------------------------------------------------------------------------------------------------
 // Save Settings permanently in flash memory.
@@ -94,6 +94,22 @@ namespace IotZoo
         preferences.begin(NamespaceNameConfig, false);
         preferences.putLong("interval_alive", interval);
         preferences.end();
+    }
+
+    bool Settings::isAliveAckLedEnabled()
+    {
+        preferences.begin(NamespaceNameConfig, true);
+        bool isActive = preferences.getBool("alive_led", true);
+        preferences.end();
+        return isActive;
+    }
+
+    bool Settings::setAliveLedEnabled(bool enabled)
+    {
+        preferences.begin(NamespaceNameConfig, false);
+        bool ok = preferences.putBool("alive_led", enabled) > 0;
+        preferences.end();
+        return ok;
     }
 
     bool Settings::storeData(const String& key, const String& data)

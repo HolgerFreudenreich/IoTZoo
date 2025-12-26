@@ -78,7 +78,7 @@ public class KnownMicrocontrollersPageBase : PageBase, IDisposable
    /// </summary>
    /// <param name="args"></param>
    /// <returns></returns>
-   private  void MqttClient_ConnectedAsync(MqttClientConnectedEventArgs args)
+   private void MqttClient_ConnectedAsync(MqttClientConnectedEventArgs args)
    {
       foreach (var microcontroller in Microcontrollers)
       {

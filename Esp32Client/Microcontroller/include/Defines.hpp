@@ -14,43 +14,50 @@
 namespace IotZoo
 {
 #define USE_MQTT
-#define USE_REST_SERVER // Do not uncomment, otherwise you cannot configure the microcontroller out of the IOTZOO UI over REST. To use MQTT for configuration is the better way because then the IOTZOO Client und the ESP32 can
-                        // be in different networks. But, if the MQTTBroker settings in the ESP32 are wrong, then there is a chance to correct this over REST.
+#define USE_REST_SERVER // Do not uncomment, otherwise you cannot configure the microcontroller out of the IOTZOO UI over REST. To use MQTT for
+                        // configuration is the better way because then the IOTZOO Client und the ESP32 can be in different networks. But, if the
+                        // MQTTBroker settings in the ESP32 are wrong, then there is a chance to correct this over REST.
 
 // --------------------------------------------------------------------------------------------------------------------
 // Comment feature(s) out if you run out of memory.
 // --------------------------------------------------------------------------------------------------------------------
-#define USE_DS18B20            // Temperatur Sensor | Default Pins: DAT: Pin 23
-
-#define USE_BUTTON             // briefly on, then off again after releasing
+#define USE_DS18B20 // Temperature Sensor | Default Pins: DAT: Pin 23
+#define USE_HW507 // Humidity Sensor | Default Pins: DAT: Pin 23
+#define USE_BUTTON // briefly on, then off again after releasing
 #define USE_GPS
-#define USE_SWITCH             // permanently off or on
+#define USE_SWITCH // permanently off or on
 
-#define USE_KEYPAD             // 4 x 4 Button Matrix | Default Pins: R1: 26, R2: 25, R3: 33, R4: 32, C1: 27, C2: 14, C3: 12, C4: 13
-#define USE_LED_AND_KEY        // 1 x 8 Button Row combined with 2 TM1638 4 digits displays | Default Pins: STB: 14, CLK: 27, DIO: 26
-#define USE_WS2818             // NeoPixel | Default Pins: DIN: 22
+#define USE_KEYPAD      // 4 x 4 Button Matrix | Default Pins: R1: 26, R2: 25, R3: 33, R4: 32, C1: 27, C2: 14, C3: 12, C4: 13
+#define USE_LED_AND_KEY // 1 x 8 Button Row combined with 2 TM1638 4 digits displays | Default Pins: STB: 14, CLK: 27, DIO: 26
+#define USE_WS2818      // NeoPixel | Default Pins: DIN: 22
+#ifdef USE_WS2818
+// #define USE_WS2818_PIXEL_MATRIX
+#endif
+
+#define USE_AUDIO_STREAMER // INMP441 microphone Default Pins: I2S_WS: 22, I2S_SCK: 15, I2S_SD: 35
+
 #define USE_TRAFFIC_LIGHT_LEDS // Default Pins: R: 5, Y: 18, G: 19
-//#define USE_REMOTE_GPIOS       // Default Pins: 36
-//#define USE_HC_SR501           // Motion detector, Default Pin: 21 (this is the pin in the middle of the motion detector).
-//#define USE_RD_03D              // Multi-Target Human Motion Detector
-//#define USE_STEPPER_MOTOR
+// #define USE_REMOTE_GPIOS       // Default Pins: 36
+// #define USE_HC_SR501           // Motion detector, Default Pin: 21 (this is the pin in the middle of the motion detector).
+// #define USE_RD_03D             // Multi-Target Human Motion Detector
+// #define USE_STEPPER_MOTOR
 
-//#define USE_KY025              // Reed Contact, Default Pin: 19
+// #define USE_KY025             // Reed Contact, Default Pin: 19
 // #define USE_HB0014            // Hitchi IR ttl
-#define USE_HW040             // Rotary Encoder, Default Pins: CLK: 32, DT: 21, MS: 33
+#define USE_HW040 // Rotary Encoder, Default Pins: CLK: 32, DT: 21, MS: 33
 
 // DISPLAYS
 #define USE_OLED_SSD1306 // OLED, Default Pins: SDA: 21, SCL: 22
-#define USE_LCD_160X           // 16 x 2, 16 x 4 LCD DISPLAY with I2C HW-061, Default Pins: SDA: 21, SCL: 22
-#define USE_TM1637_4           // 4 digits display. You can connect up to 10 items. Default Pins (Item 0): CLK: 27, DIO: 26
-//#define USE_TM1637_6             // 6 digits display. You can connect up to 10 items. Default Pins: CLK: 14, DIO: 27
-
+#define USE_LCD_160X     // 16 x 2, 16 x 4 LCD DISPLAY with I2C HW-061, Default Pins: SDA: 21, SCL: 22
+#define USE_TM1637_4     // 4 digits display. You can connect up to 10 items. Default Pins (Item 0): CLK: 27, DIO: 26
+// #define USE_TM1637_6             // 6 digits display. You can connect up to 10 items. Default Pins: CLK: 14, DIO: 27
+//#define USE_MAX7219 // 8x8 Led Dot Matrix, Default Poins: Data: 27, CLK: 25, CS: 26
 #define USE_BUZZER
 
 // #define USE_BLE_HEART_RATE_SENSOR // Bluetooth hearte rate sensor. Needs alot of the available RAM so do not use to many other defines!
 
-// A special project that must function without an Internet connection. Exercise bike with display Display of heart rate, pedaling speed and rotations.
-// #define USE_EXERCISE_BIKE_STANDALONE
+// A special project that must function without an Internet connection. Exercise bike with display Display of heart rate, pedaling speed and
+// rotations. #define USE_EXERCISE_BIKE_STANDALONE
 #ifdef USE_EXERCISE_BIKE_STANDALONE
 #define USE_BLE_HEART_RATE_SENSOR
 #define USE_KY025
@@ -58,7 +65,7 @@ namespace IotZoo
 #undef USE_MQTT   // Conflicts with USE_BLE_HEART_RATE_SENSOR, because of to much memory consumption.
 #define USE_MQTT2 // PubSubLibrary instead of EspMQTTClient to save memory.
 #endif
-}
+} // namespace IotZoo
 
 // #define ERASE_FLASH
 

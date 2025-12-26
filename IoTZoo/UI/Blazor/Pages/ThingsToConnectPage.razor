@@ -57,6 +57,17 @@
                      ExamplePayload="22.1">
 </KnownTopicComponent>
 <br />
+<br />
+<MudText Typo="Typo.h6">Digital Humidity Temperatur Sensor</MudText>
+<br />
+<MudText>Measures Humidity and Temperature</MudText>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/dht/<dht11/22>/<index>/humidity"
+                     Description="Humidity in percent. Humidity accuracy ±5 %"
+                     ExamplePayload="22%">
+</KnownTopicComponent>
+<br />
 <MudLink OnClick="@(() => OpenBrowserTab("https://www.analog.com/media/en/technical-documentation/data-sheets/DS18B20.pdf"))">Datasheet (External Link)</MudLink>
 <br />
 <br />
@@ -100,7 +111,6 @@
                      Description="Value of Rotary encoder <index> changed."
                      ExamplePayload="58">
 </KnownTopicComponent>
-
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic="/rotary_encoder/<index>/set_value"
                      Description="Sets the value of the rotary encoder <index>."
@@ -282,6 +292,19 @@
 <MudText>"brightness": 0 clears the entire display.</MudText>
 <br />
 <br />
+<MudText Typo="Typo.h6">MAX 7219 Dot Matrix</MudText>
+<br />
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/max7219/<display index>/setPoint"
+                     Description="Payload: {&quot;row&quot;: 0, &quot;col&quot;: 1, &quot;on&quot;: true}">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/max7219/<display index>/clear"
+                     Description="Payload: {}">
+</KnownTopicComponent>
+<br />
+<br />
 <MudDivider />
 <br />
 <br />
@@ -349,6 +372,17 @@
 </KnownTopicComponent>
 <br />
 <br />
+<MudDivider />
+<br />
+<br />
+<MudText Typo="Typo.h6">Microphone INMP441</MudText>
+<br />
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/audio_stream/<index>/sound_level_rms"
+                     Description="value between 390 (quiet) and 32767 (extrem loud)"
+                     ExamplePayload="551">
+</KnownTopicComponent>
 <MudDivider />
 <br />
 <br />
@@ -438,7 +472,17 @@
 <MudDivider />
 <br />
 <br />
-<MudText Typo="Typo.h6">Internal Topics</MudText>
+<MudText Typo="Typo.h6">Microcontroller Base Topics</MudText>
+<br />
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="/alive_config"
+                     Description="How frequently should the live message be sent? Should the Alive LED light up?"
+                     ExamplePayload="{&quot; aliveIntervalMs&quot;: 30000, &quot;aliveAckLedEnabled&quot; : false}">
+</KnownTopicComponent>
+<br />
+<br />
+<MudText Typo="Typo.h6">Server Internal Topics</MudText>
 <br />
 <br />
 <MudText>Topic: IOTZOO/SYSTEM/STARTED | Payload: none</MudText>
@@ -608,4 +652,3 @@
 <br />
 <MudText>Check if the counter has expired.</MudText>
 <MudText>$[&apos;Seconds&apos;] == 0 &amp;&amp; $[&apos;ProjectName&apos;] == &quot;picea&quot; &amp;&amp; $[&apos;CounterName&apos;] == &quot;Counter1&quot;</MudText>
-
