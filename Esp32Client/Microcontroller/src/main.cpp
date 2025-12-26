@@ -3,7 +3,7 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \  P L A Y G R O U N D
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/   (c) 2025 Holger Freudenreich under the MIT licence.
+//  /___/\____/_/       /____|____/\____/   (c) 2025 - 2026 Holger Freudenreich under the MIT licence.
 //
 // --------------------------------------------------------------------------------------------------------------------
 // Firmware for ESP8266 and ESP32 Microcontrollers
@@ -53,6 +53,9 @@ IotZoo::TM1638* tm1638 = nullptr;
 #ifdef USE_WS2818
 #include "WS2818.hpp"
 IotZoo::WS2818* ws2812 = nullptr;
+#ifdef USE_WS2818_PIXEL_MATRIX
+#include "PixelMatrix.hpp"
+#endif
 #endif
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
@@ -142,6 +145,11 @@ IotZoo::ButtonMatrixHandling buttonMatrixHandling;
 ButtonHandling buttonHandling;
 #endif
 
+#ifdef USE_AUDIO_STREAMER
+#include "AudioStreamer.hpp"
+AudioStreamer* audioStreamer;
+#endif
+
 #ifdef USE_GPS
 #include "Gps.hpp"
 Gps* gps = nullptr;
@@ -155,7 +163,7 @@ std::vector<Switch> switches{};
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.1.7";
+String firmwareVersion = "0.2.1";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -212,6 +220,11 @@ String identifyBoard()
 IotZoo::DS18B20* ds18B20SensorManager = nullptr;
 #endif
 
+#ifdef USE_HW507
+#include "HW507.hpp"
+IotZoo::HW507* hw507HumiditySensor = nullptr;
+#endif
+
 #ifdef USE_MQTT
 #undef USE_MQTT2
 #endif
@@ -227,15 +240,19 @@ MqttClient* mqttClient = nullptr;
 #endif
 
 #ifdef USE_TM1637_4
-
 #include "./displays/TM1637/TM1637_4_Handling.hpp"
-IotZoo::TM1637_4_Handling tm1637_4Handling;
-#endif
+IotZoo::TM1637_4_Handling* tm1637_4Handling;
+#endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
 #include "./displays/TM1637/TM1637_6_Handling.hpp"
 IotZoo::TM1637_6_Handling tm1637_6Handling;
-#endif
+#endif // USE_TM1637_6
+
+#ifdef USE_MAX7219
+#include "./displays/Max7219.hpp"
+Max7219* max7219;
+#endif // USE_MAX7219
 
 #if defined(USE_MQTT) || defined(USE_MQTT2)
 const String NamespaceNameFallback = "iotzoo";
@@ -385,12 +402,13 @@ void AddMicrocontrollerNestedJsonObject(JsonDocument* jsonDocument)
 
 void AddAliveNestedJsonObject(JsonDocument* jsonDocument)
 {
-    JsonObject jsonObjectAlive           = jsonDocument->createNestedObject("Alive");
-    jsonObjectAlive["AliveCounter"]      = aliveCounter;
-    jsonObjectAlive["LoopCounter"]       = loopCounter;
-    jsonObjectAlive["LoopDurationMs"]    = loopDurationMs;
-    jsonObjectAlive["ReconnectionCount"] = mqttClient->getConnectionEstablishedCount() - 1;
-    jsonObjectAlive["AliveIntervalMs"]   = settings->getAliveIntervalMillis();
+    JsonObject jsonObjectAlive            = jsonDocument->createNestedObject("Alive");
+    jsonObjectAlive["AliveCounter"]       = aliveCounter;
+    jsonObjectAlive["LoopCounter"]        = loopCounter;
+    jsonObjectAlive["LoopDurationMs"]     = loopDurationMs;
+    jsonObjectAlive["ReconnectionCount"]  = mqttClient->getConnectionEstablishedCount() - 1;
+    jsonObjectAlive["AliveIntervalMs"]    = settings->getAliveIntervalMillis();
+    jsonObjectAlive["AliveAckLedEnabled"] = settings->isAliveAckLedEnabled();
 }
 
 void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
@@ -426,10 +444,20 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
 #else
     jsonObjectSupportedDevices["WS2818"] = false;
 #endif
+#ifdef USE_HW507
+    jsonObjectSupportedDevices["HW507"] = true;
+#else
+    jsonObjectSupportedDevices["HW507"] = false;
+#endif
 #ifdef USE_BUTTON
     jsonObjectSupportedDevices["BUTTON"] = true;
 #else
     jsonObjectSupportedDevices["BUTTON"] = false;
+#endif
+#ifdef USE_AUDIO_STREAMER
+    jsonObjectSupportedDevices["AUDIO_STREAMER"] = true;
+#else
+    jsonObjectSupportedDevices["AUDIO_STREAMER"] = false;
 #endif
 #ifdef USE_GPS
     jsonObjectSupportedDevices["GPS"] = true;
@@ -465,6 +493,11 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
     jsonObjectSupportedDevices["HT1621"] = true;
 #else
     jsonObjectSupportedDevices["HT1621"] = false;
+#endif
+#ifdef USE_MAX7219
+    jsonObjectSupportedDevices["MAX7219"] = true;
+#else
+    jsonObjectSupportedDevices["MAX7219"] = false;
 #endif
 #ifdef USE_LCD_160X
     jsonObjectSupportedDevices["LCD160x"] = true;
@@ -623,7 +656,10 @@ void onAliveAck(const String& rawData)
     {
         if (rawData != "0")
         {
-            digitalWrite(LED_BUILTIN, HIGH); // turn the LED on.
+            if (settings->isAliveAckLedEnabled())
+            {
+                digitalWrite(LED_BUILTIN, HIGH); // turn the LED on.
+            }
         }
         Serial.println("Received alive_ack: " + rawData + ", millis: " + String(millis()));
 
@@ -678,7 +714,7 @@ void onLoadAndPublishConfigurationByKey(const String& key)
 
 #ifdef USE_MQTT2
 /// @brief /esp32/<mac>/status requested (from IoTZooClient) via MQTT.
-void onStatusRequested2(char* topic, byte* payload, unsigned int length)
+void onStatusRequested2(char* topic, uint8_t* payload, unsigned int length)
 {
     Serial.println("Received " + String(topic));
     // Convert the payload into a String
@@ -723,7 +759,6 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     {
         Serial.println("ws2812 is nullptr!");
     }
-
 #endif
 
 #ifdef USE_HW040
@@ -755,6 +790,13 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     buttonHandling.onMqttConnectionEstablished();
 #endif
 
+#ifdef USE_AUDIO_STREAMER
+    if (nullptr != audioStreamer)
+    {
+        audioStreamer->onMqttConnectionEstablished();
+    }
+#endif
+
 #ifdef USE_GPS
     if (nullptr != gps)
     {
@@ -770,7 +812,10 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 #endif
 
 #ifdef USE_TM1637_4
-    tm1637_4Handling.onMqttConnectionEstablished(mqttClient, getBaseTopic());
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->onMqttConnectionEstablished(mqttClient, getBaseTopic());
+    }
 #endif
 
 #ifdef USE_TM1637_6
@@ -789,7 +834,14 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     {
         ht1621->onMqttConnectionEstablished();
     }
-#endif
+#endif // USE_HT1621
+
+#ifdef USE_MAX7219
+    if (nullptr != max7219)
+    {
+        max7219->onMqttConnectionEstablished();
+    }
+#endif // USE_MAX7219
 
 #ifdef USE_REMOTE_GPIOS
     for (auto& remoteGpio : remoteGpios)
@@ -816,12 +868,26 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
                               }
                           });
 
-    String topicIntervalAlive = getBaseTopic() + "/alive_interval_ms";
+    String topicIntervalAlive = getBaseTopic() + "/alive_config";
     mqttClient->subscribe(topicIntervalAlive,
-                          [&](const String& payload)
+                          [&](const String& json)
                           {
-                              settings->setAliveIntervalMillis(std::stol(payload.c_str()));
-                              Serial.println("alive interval is changed to " + String(settings->getAliveIntervalMillis()));
+                              StaticJsonDocument<256> jsonDocument;
+                              if (!deserializeStaticJsonAndPublishError(jsonDocument, json))
+                              {
+                                  return;
+                              }
+
+                              String key = jsonDocument["key"].as<String>();
+
+                              unsigned long aliveIntervalMs    = jsonDocument["aliveIntervalMs"];
+                              bool          aliveAckLedEnabled = jsonDocument["aliveAckLedEnabled"];
+
+                              settings->setAliveIntervalMillis(aliveIntervalMs);
+                              Serial.println("aliveIntervalMs: " + String(settings->getAliveIntervalMillis()));
+
+                              settings->setAliveLedEnabled(aliveAckLedEnabled);
+                              Serial.println("aliveAckLedEnabled " + String(settings->isAliveAckLedEnabled()));
                           });
 
     // Save the device configurations.
@@ -931,6 +997,49 @@ void makeInstanceConfiguredDevices()
                 }
 #endif // USE_BUTTON
 
+#ifdef USE_AUDIO_STREAMER
+                if (deviceType == "INMP441")
+                {
+                    int pinSd  = arrPins[0]["MicrocontrollerGpoPin"];
+                    int pinWs  = arrPins[1]["MicrocontrollerGpoPin"];
+                    int pinSck = arrPins[2]["MicrocontrollerGpoPin"];
+
+                    u8_t  features = AudioStreamerFeatures::Undefined;
+                    u16_t minRms   = 400;
+                    for (JsonVariant property : arrProperties)
+                    {
+                        String propertyName = property["Name"];
+
+                        if (propertyName == "AllowStreaming")
+                        {
+                            bool allowStreaming = property["Value"] == "true";
+                            if (allowStreaming)
+                            {
+                                features |= AudioStreamerFeatures::Streaming;
+                            }
+                        }
+                        else if (propertyName == "AllowSoundLevel")
+                        {
+                            bool allowSoundLevel = property["Value"] == "true";
+                            if (allowSoundLevel)
+                            {
+                                features |= AudioStreamerFeatures::SoundLevelRms;
+                                features |= AudioStreamerFeatures::SoundLevelDecibel;
+                            }
+                        }
+                        else if (propertyName == "MinRms")
+                        {
+                            u16_t minRms = property["Value"];
+                        }
+                    }
+
+                    audioStreamer =
+                        new IotZoo::AudioStreamer(deviceIndex, settings, mqttClient, getBaseTopic(), features, minRms, pinSd, pinWs, pinSck);
+
+                    Serial.println("AudioStreamer initialized.");
+                }
+#endif // USE_AUDIO_STREAMER
+
 #ifdef USE_GPS
                 if (deviceType == "GPS")
                 {
@@ -963,10 +1072,38 @@ void makeInstanceConfiguredDevices()
                     uint8_t backlightPin = arrPins[3]["MicrocontrollerGpoPin"];
 
                     ht1621 = new IotZoo::HT1621(deviceIndex, settings, mqttClient, getBaseTopic(), csPin, wsPin, dataPin, backlightPin);
-
-                    Serial.println("HT1621 6 digit LED Display initialized.");
+                    if (nullptr != ht1621)
+                    {
+                        Serial.println("HT1621 6 digit LED Display initialized.");
+                    }
                 }
 #endif // USE_HT1621
+
+#ifdef USE_MAX7219
+                if (deviceType == "MAX7219")
+                {
+                    uint8_t dataPin         = arrPins[0]["MicrocontrollerGpoPin"];
+                    uint8_t clkPin          = arrPins[1]["MicrocontrollerGpoPin"];
+                    uint8_t csPin           = arrPins[2]["MicrocontrollerGpoPin"];
+                    uint8_t numberOfDevices = 1;
+
+                    for (JsonVariant property : arrProperties)
+                    {
+                        String propertyName = property["Name"];
+
+                        if (propertyName == "numberOfDevices")
+                        {
+                            numberOfDevices = property["Value"];
+                        }
+                    }
+
+                    max7219 = new IotZoo::Max7219(deviceIndex, settings, mqttClient, getBaseTopic(), numberOfDevices, dataPin, clkPin, csPin);
+                    if (nullptr != max7219)
+                    {
+                        Serial.println("Max7219 8x8 LED Matrix initialized.");
+                    }
+                }
+#endif // USE_MAX7219
 
 #ifdef USE_SWITCH
                 if (deviceType == "Switch")
@@ -1156,8 +1293,26 @@ void makeInstanceConfiguredDevices()
                 }
 #endif // USE_DS18B20
 
+#ifdef USE_HW507
+                if (deviceType == "HW507")
+                {
+                    uint8_t dataPin    = arrPins[0]["DATA_PIN"];
+                    uint8_t deviceType = DHT11;
+                    for (JsonVariant property : arrProperties)
+                    {
+                        String propertyName = property["Name"];
+
+                        if (propertyName == "DeviceType")
+                        {
+                            deviceType == property["Value"];
+                        }
+                    }
+                    hw507HumiditySensor = new IotZoo::HW507(deviceIndex, settings, mqttClient, getBaseTopic(), deviceType, dataPin);
+                }
+#endif // USE_HW507
+
 #ifdef USE_WS2818
-                if (deviceType == "NEO" || deviceType == "Neo Pixel")
+                if (deviceType == "NEO")
                 {
                     Serial.println("Configuration of NEO pixels...");
                     int dioPin       = arrPins[0]["MicrocontrollerGpoPin"];
@@ -1175,6 +1330,40 @@ void makeInstanceConfiguredDevices()
                     ws2812 = new WS2818(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLeds);
                     Serial.println("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
                 }
+#ifdef USE_WS2818_PIXEL_MATRIX
+                else if (deviceType == "PixelMatrix")
+                {
+                    Serial.println("Configuration of NEO pixel matrix...");
+                    int  dioPin                = arrPins[0]["MicrocontrollerGpoPin"];
+                    uint numberOfLedsPerColumn = 8;
+                    uint numberOfLedsPerRow    = 8;
+                    uint extensions            = 0;
+
+                    for (JsonVariant property : arrProperties)
+                    {
+                        String propertyName  = property["Name"];
+                        String propertyValue = property["Value"];
+                        if (propertyName == "numberOfLedsPerColumn")
+                        {
+                            numberOfLedsPerColumn = std::stoi(propertyValue.c_str());
+                        }
+                        else if (propertyName == "numberOfLedsPerRow")
+                        {
+                            numberOfLedsPerRow = std::stoi(propertyValue.c_str());
+                        }
+                        else if (propertyName == "extensions")
+                        {
+                            extensions = std::stoi(propertyValue.c_str());
+                        }
+                        extensions = 1;
+                    }
+                    ws2812 = new PixelMatrix(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLedsPerColumn, numberOfLedsPerRow,
+                                             (PixelMatrixExtensions)extensions);
+                    Serial.println("Neo pixel matrix configuration loaded! DIO Pin is " + String(dioPin) +
+                                   ", numberOfLedsPerColumn: " + String(numberOfLedsPerColumn) +
+                                   ", numberOfLedsPerRow: " + String(numberOfLedsPerRow) + ", Extensions: " + String(extensions));
+                }
+#endif // USE_WS2818_PIXEL_MATRIX
 #endif // USE_WS2818
 
 #ifdef USE_TM1637_4
@@ -1203,10 +1392,13 @@ void makeInstanceConfiguredDevices()
                             serverDownText = propertyValue;
                         }
                     }
-
-                    tm1637_4Handling.addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
-                    Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
-                                   ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
+                    tm1637_4Handling = new TM1637_4_Handling();
+                    if (nullptr != tm1637_4Handling)
+                    {
+                        tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+                        Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
+                                       ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
+                    }
                 }
 #endif // USE_TM1637_4
 
@@ -1674,7 +1866,10 @@ void setup()
 #endif
 
 #ifdef USE_TM1637_4
-    tm1637_4Handling.setup();
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->setup();
+    }
 #endif
 
 #ifdef USE_TM1637_6
@@ -1796,6 +1991,10 @@ void registerTopics()
     // Alive message of the microcontroller
     topics.emplace_back(getBaseTopic() + "/alive", "Alive message of the microcontroller", MessageDirection::IotZooClientInbound);
 
+    // How should the device send alive messages
+    topics.emplace_back(getBaseTopic() + "/alive_config", "{\"aliveIntervalMs\": 15000, \"aliveAckLedEnabled\": true}",
+                        MessageDirection::IotZooClientInbound);
+
     // Acknowledge fo the alive message from the IotZooClient.
     topics.emplace_back(getBaseTopic() + "/alive_ack", "Alive message of the microcontroller", MessageDirection::IotZooClientOutbound);
 
@@ -1865,7 +2064,10 @@ void registerTopics()
 #endif
 
 #ifdef USE_TM1637_4
-    tm1637_4Handling.addMqttTopicsToRegister(&topics);
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->addMqttTopicsToRegister(&topics);
+    }
 #endif
 
 #ifdef USE_TM1637_6
@@ -1876,6 +2078,13 @@ void registerTopics()
     if (nullptr != ht1621)
     {
         ht1621->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_MAX7219
+    if (nullptr != max7219)
+    {
+        max7219->addMqttTopicsToRegister(&topics);
     }
 #endif
 
@@ -1918,12 +2127,26 @@ void registerTopics()
                                 "The Temperature in °C of Sensor " + String(index), MessageDirection::IotZooClientInbound);
         }
     }
-#endif
+#endif // USE_DS18B20
+
+#ifdef USE_HW507
+    if (nullptr != hw507HumiditySensor)
+    {
+        hw507HumiditySensor->addMqttTopicsToRegister(&topics);
+    }
+#endif // USE_HW507
 
 #ifdef USE_WS2818
     if (nullptr != ws2812)
     {
         ws2812->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_AUDIO_STREAMER
+    if (nullptr != audioStreamer)
+    {
+        audioStreamer->addMqttTopicsToRegister(&topics);
     }
 #endif
 
@@ -1949,7 +2172,10 @@ void onIotZooClientUnavailable()
     mqttClient->publish("i_am_lost", jsonMicrocontroller);
     // server dead?
 #ifdef USE_TM1637_4
-    tm1637_4Handling.onIotZooClientUnavailable();
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->onIotZooClientUnavailable();
+    }
 #endif
 
 #ifdef USE_TM1637_6
@@ -1999,7 +2225,7 @@ void loop()
 {
     try
     {
-
+        Serial.print("_");
         lastLoopStartTime = millis();
         loopCounter++;
 
@@ -2041,10 +2267,24 @@ void loop()
         buttonHandling.loop();
 #endif
 
+#ifdef USE_AUDIO_STREAMER
+        if (nullptr != audioStreamer)
+        {
+            audioStreamer->loop();
+        }
+#endif
+
 #ifdef USE_WS2818
         if (nullptr != ws2812)
         {
             ws2812->loop();
+        }
+#endif
+
+#ifdef USE_HW507
+        if (nullptr != hw507HumiditySensor)
+        {
+            hw507HumiditySensor->loop();
         }
 #endif
 
@@ -2076,7 +2316,7 @@ void loop()
         }
 
 #ifdef USE_TM1637_4
-        TM1637* tm1637 = tm1637_4Handling.getDisplayByDeviceIndex(2);
+        TM1637* tm1637 = tm1637_4Handling->getDisplayByDeviceIndex(2);
         if (nullptr != tm1637)
         {
             tm1637->showNumber(reedContactCounter, true);

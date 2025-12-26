@@ -17,17 +17,17 @@ namespace Domain.Interfaces;
 
 public interface IDataTransferService
 {
-   bool AlwaysEnqueueTopic { get; set; }
-   string DateTimeFormat { get; set; }
-   string NamespaceName { get; set; }
-   int MqttMessagesQueueSize { get; set; }
-   MqttBrokerSettings MqttBrokerSettings { get; set; }
-   Project? SelectedProject { get; set; }
-   ISettingsCrudService SettingsService { get; set; }
-   Queue<TopicEntry> ReceivedTopicsQueue { get; set; }
-   long TopicsPerSecond { get; set; }
-   PhilipsHueBridgeSettings PhilipsHueBridgeSettings { get; set; }
-   bool IsDarkMode { get; set; }
-   ScreenMode CurrentScreen { get; set; }
-
+    bool AlwaysEnqueueTopic { get; set; }
+    string DateTimeFormat { get; set; }
+    string NamespaceName { get; set; }
+    int MqttMessagesQueueSize { get; set; }
+    MqttBrokerSettings MqttBrokerSettings { get; set; }
+    Project? SelectedProject { get; set; }
+    ISettingsCrudService SettingsService { get; set; }
+    Queue<TopicEntry> ReceivedTopicsQueue { get; set; }
+    long TopicsPerSecond { get; set; }
+    PhilipsHueBridgeSettings PhilipsHueBridgeSettings { get; set; }
+    bool IsDarkMode { get; set; }
+    ScreenMode CurrentScreen { get; set; }
+    KnownTopic? SelectedKnownTopic { get; set; }
 }

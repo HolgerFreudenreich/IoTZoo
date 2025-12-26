@@ -3,7 +3,7 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \  P L A Y G R O U N D
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/   (c) 2025 Holger Freudenreich under the MIT licence.
+//  /___/\____/_/       /____|____/\____/   (c) 2025 - 2026 Holger Freudenreich under the MIT licence.
 //
 // --------------------------------------------------------------------------------------------------------------------
 // GPS support
@@ -35,7 +35,7 @@ namespace IotZoo
     /// @param topics
     void Gps::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        String examplePayload = "{\"Lat\": 52.63, \"Lon\": 9.61, \"Alt\": 32.1, \"DateTimeUtc\": \"2025-10-05 17:30:36\"}";
+        String examplePayload = "{\"lat\": 52.63, \"lon\": 9.61, \"alt\": 32.1, \"dateTimeUtc\": \"2025-10-05 17:30:36\"}";
 
         topics->emplace_back(getBaseTopic() + "/gps/position" + String(deviceIndex), examplePayload, MessageDirection::IotZooClientInbound);
     }

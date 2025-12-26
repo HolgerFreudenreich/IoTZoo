@@ -18,18 +18,11 @@ namespace IotZoo.Pages;
 
 public class InstructionsRunOnDockerPageBase : PageBase
 {
-   [Inject]
-   protected IJSRuntime JsRuntime { get; set; } = null!;
 
    protected override void OnInitialized()
    {
       DataTransferService.CurrentScreen = ScreenMode.InstructionsRunOnDocker;
       base.OnInitialized();
    }
-
-   protected void CopyToClipboard(string text)
-   {
-      JsRuntime.InvokeVoidAsync("clipboardCopy.copyText", text);
-      Snackbar.Add("Copied to clipboard", MudBlazor.Severity.Info);
-   }
+ 
 }

@@ -4,7 +4,7 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \  P L A Y G R O U N D
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/   (c) 2025 Holger Freudenreich under the MIT licence.
+//  /___/\____/_/       /____|____/\____/   (c) 2025 - 2026 Holger Freudenreich under the MIT licence.
 //
 // --------------------------------------------------------------------------------------------------------------------
 // Firmware for ESP8266 and ESP32 Microcontrollers
@@ -15,15 +15,16 @@
 #include "Defines.hpp"
 #ifdef USE_MQTT
 #include "MqttClient.hpp"
-#include <ArduinoJson.h>
 #endif
 #ifdef USE_MQTT2
 #include "MqttClient2.hpp"
 #endif
+#include <ArduinoJson.h>
 #include "./pocos/Topic.hpp"
 #ifdef ARDUINO_ESP32_DEV
 #include "Settings.hpp"
 #endif
+
 using namespace std;
 
 namespace IotZoo
@@ -62,8 +63,7 @@ namespace IotZoo
         /// @param mqttClient
         /// @param baseTopic
         virtual void onMqttConnectionEstablished()
-        {
-            Serial.println("do override onMqttConnectionEstablished!");
+        {            
             mqttCallbacksAreRegistered = true;
         }
 
@@ -80,6 +80,21 @@ namespace IotZoo
             return baseTopic;
         }
 
+        String getDeviceName() const
+        {
+            return deviceName;
+        }
+
+        int getDeviceIdex() const
+        {
+           return deviceIndex;
+        }
+
+        MqttClient* getMqttClient() const
+        {
+            return mqttClient;
+        }
+        
         void publishError(const String& errMsg)
         {
             String topic = getBaseTopic() + "/error";
@@ -107,9 +122,10 @@ namespace IotZoo
         }
 
       protected:
-        MqttClient* mqttClient = nullptr;
-        Settings*   settings = nullptr;
+        MqttClient* mqttClient  = nullptr;
+        Settings*   settings    = nullptr;
         int         deviceIndex = -1;
+        String      deviceName;
         String      baseTopic;
         bool        mqttCallbacksAreRegistered = false;
     };

@@ -3,7 +3,7 @@
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \  P L A Y G R O U N D
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/   (c) 2025 Holger Freudenreich under the MIT licence.
+//  /___/\____/_/       /____|____/\____/   (c) 2025 - 2026 Holger Freudenreich under the MIT licence.
 //
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
@@ -27,7 +27,7 @@ namespace IotZoo
 
       public:
         MqttClient(const char* mqttClientName, const char* wifiSsid, const char* wifiPassword, const char* mqttServerIp,
-                   const char* mqttUsername = nullptr, const char* mqttPassword = nullptr, const short mqttServerPort = 1883, int bufferSize = 16384);
+                   const char* mqttUsername = nullptr, const char* mqttPassword = nullptr, const short mqttServerPort = 1883, int bufferSize = 16384 * 2);
 
         virtual ~MqttClient();
 
@@ -35,6 +35,11 @@ namespace IotZoo
                                    const bool retain = false); // Must be set before the first loop() call.
 
         bool publish(const String& topic, const String& payload, bool retain = false);
+
+        bool publish(const String& topic, const uint8_t* payload, unsigned int payloadLength, boolean retained = false)
+        {
+            return printSuccess(mqttClient->publish(topic.c_str(), payload, payloadLength, retained));
+        }
 
         /// @brief
         /// @param topic

@@ -141,6 +141,20 @@
                   <MudText Typo="Typo.h6">Show Topic History</MudText>
                </TooltipContent>
             </MudTooltip> *@
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => PublishTopic(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Primary"
+                          StartIcon="@Icons.Material.Filled.Publish"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Publish Topic</MudText>
+               </TooltipContent>
+            </MudTooltip>
          </div>
       </MudTd>
       <MudTd DataLabel="Id">@context.KnownTopicId</MudTd>

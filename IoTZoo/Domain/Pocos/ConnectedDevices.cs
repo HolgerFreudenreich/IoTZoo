@@ -15,13 +15,13 @@ namespace Domain.Pocos;
 
 public static class ConnectedDevices
 {
-   public static ConnectedDevice FromDS18B20()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "DS18B20",
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromDS18B20()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "DS18B20",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -29,18 +29,18 @@ public static class ConnectedDevices
                                     PinName               = "DAT"
                                  }
                               },
-         PropertyValues = new List<PropertyValue> { new PropertyValue("Interval", "10000"),
+            PropertyValues = new List<PropertyValue> { new PropertyValue("Interval", "10000"),
                                                     new PropertyValue("Resolution", "11") }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromTM1637_4()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "TM1637_4",
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromTM1637_4()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "TM1637_4",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -53,18 +53,18 @@ public static class ConnectedDevices
                                     PinName               = "DIO"
                                  }
          },
-         PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "flipDisplay", Value = "false" },
+            PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "flipDisplay", Value = "false" },
                                                     new PropertyValue { Name = "serverDownText", Value = "----" } }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromTM1637_6()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "TM1637_6",
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromTM1637_6()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "TM1637_6",
+            Pins = new List<DevicePin>
                     {
                       new DevicePin
                       {
@@ -77,18 +77,18 @@ public static class ConnectedDevices
                         PinName               = "DIO"
                       }
                     },
-         PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "flipDisplay", Value = "false" },
+            PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "flipDisplay", Value = "false" },
                                                     new PropertyValue { Name = "serverDownText", Value = "-------" } }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromTM1638()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "TM1638",
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromTM1638()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "TM1638",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -106,19 +106,19 @@ public static class ConnectedDevices
                                     PinName               = "DIO" // GPIO connected to data line of module
                                  }
          },
-         PropertyValues = new List<PropertyValue> {
+            PropertyValues = new List<PropertyValue> {
                                                     new PropertyValue { Name = "serverDownText", Value = "---------" }
          }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromHT1621()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "HT1621",
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromHT1621()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "HT1621",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -134,23 +134,51 @@ public static class ConnectedDevices
                                  {
                                     MicrocontrollerGpoPin = "25",
                                     PinName               = "DATA_PIN"
-                                 },                                 
+                                 },
                                  new DevicePin
                                  {
                                     MicrocontrollerGpoPin = "33",
                                     PinName               = "BACKLIGHT_PIN"
                                  }
                               }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromLedTrafficLights()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "LEDS Traffic Light",
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromMax7219()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "MAX7219",
+            Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "27",
+                                    PinName               = "DATA_PIN"
+                                 },
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "25",
+                                    PinName               = "CLK_PIN"
+                                 },
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "26",
+                                    PinName               = "CS_PIN"
+                                 }
+                              },
+            PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "numberOfDevices", Value = "1" } }
+        };
+    }
+
+    public static ConnectedDevice FromLedTrafficLights()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "LEDS Traffic Light",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -168,16 +196,16 @@ public static class ConnectedDevices
                                     PinName               = "G"
                                  }
                               }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromRemoteGpio()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "Remote GPIO", // do not change, @see main.cpp
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromRemoteGpio()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "Remote GPIO", // do not change, @see main.cpp
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -185,16 +213,16 @@ public static class ConnectedDevices
                                     PinName               = "GPIO"
                                  },
                               }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromNeoPixel()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "NEO", // do not change, @see main.cpp
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromNeoPixel()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "NEO", // do not change, @see main.cpp
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -202,17 +230,37 @@ public static class ConnectedDevices
                                     PinName               = "DIN"
                                  },
                               },
-         PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "numberOfLeds", Value = "256" } }
-      };
-   }
+            PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "numberOfLeds", Value = "256" } }
+        };
+    }
 
-   public static ConnectedDevice FromHW040()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "HW-040",
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromNeoPixelMatrix()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "PixelMatrix", // do not change, @see main.cpp
+            Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "22",
+                                    PinName               = "DIN"
+                                 },
+                              },
+            PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "numberOfLedsPerColumn", Value = "8" },
+                                                       new PropertyValue { Name = "numberOfLedsPerRow", Value = "8" },
+                                                       new PropertyValue { Name = "extensions", Value = "1" } }
+        };
+    }
+
+    public static ConnectedDevice FromHW040()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "HW-040",
+            Pins = new List<DevicePin>
                               {
                                  // Do not change the order, the c++ code simply maps to the index!
                                  new DevicePin
@@ -231,7 +279,7 @@ public static class ConnectedDevices
                                  PinName               = "SW"
                               }
                               },
-         PropertyValues = new List<PropertyValue>()
+            PropertyValues = new List<PropertyValue>()
                           {
                              new PropertyValue {Name = "Acceleration", Value     = "250"},
                              new PropertyValue {Name  = "BoundaryMinValue", Value = "0"},
@@ -239,16 +287,16 @@ public static class ConnectedDevices
                              new PropertyValue {Name  = "CircleValue", Value      = "false"},
                              new PropertyValue {Name  = "EncoderSteps", Value = "2"}
                           }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromKeypad4x4()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "Keypad 4x4",
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromKeypad4x4()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "Keypad 4x4",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -291,16 +339,16 @@ public static class ConnectedDevices
                                     PinName               = "R4"
                                  }
                               }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice From28BYJ48StepperMotor()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "28BY48Stepper",
-         Pins = new List<DevicePin>
+    public static ConnectedDevice From28BYJ48StepperMotor()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "28BY48Stepper",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -323,20 +371,20 @@ public static class ConnectedDevices
                                     PinName               = "IN4"
                                  }
                               }
-      };
-   }
+        };
+    }
 
-   /// <summary>
-   /// Motion detector
-   /// </summary>
-   /// <returns></returns>
-   public static ConnectedDevice FromHcSr501PirSensor()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "HC-SR501",
-         Pins = new List<DevicePin>
+    /// <summary>
+    /// Motion detector
+    /// </summary>
+    /// <returns></returns>
+    public static ConnectedDevice FromHcSr501PirSensor()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "HC-SR501",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -344,20 +392,20 @@ public static class ConnectedDevices
                                     PinName               = "IN"
                                  }
                               }
-      };
-   }
+        };
+    }
 
-   /// <summary>
-   /// Motion detector
-   /// </summary>
-   /// <returns></returns>
-   public static ConnectedDevice FromRd03DPresenseSensor()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "Rd-03D",
-         Pins = new List<DevicePin>
+    /// <summary>
+    /// Motion detector
+    /// </summary>
+    /// <returns></returns>
+    public static ConnectedDevice FromRd03DPresenseSensor()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "Rd-03D",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -370,23 +418,23 @@ public static class ConnectedDevices
                                     PinName               = "TX"
                                  }
                               }
-         ,
-         PropertyValues = new List<PropertyValue>()
+           ,
+            PropertyValues = new List<PropertyValue>()
                           {
                              new PropertyValue {Name = "MultiTargetMode", Value = "true"},
                              new PropertyValue {Name = "TimeoutMillis", Value = "25000"},
                              new PropertyValue {Name = "MaxDistanceMillimeters", Value = "5500"},
                           }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromButton()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "Button",
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromButton()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "Button",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -394,16 +442,70 @@ public static class ConnectedDevices
                                     PinName               = "BTN_PIN" // connect this PIN to GROUND.
                                  }
                               }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromBuzzer()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "Buzzer",
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromHW507()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "HW507",
+            Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "23",
+                                    PinName               = "DATA_PIN"
+                                 }
+                              },
+              PropertyValues = new List<PropertyValue>()
+                          {
+                             new PropertyValue {Name = "DeviceType", Value = "DHT11"},
+                          }
+        };
+    }
+
+    public static ConnectedDevice FromMicrophone()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "INMP441",
+            Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "22",
+                                    PinName               = "SD"
+                                 },
+                                  new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "35",
+                                    PinName               = "WS" // connect this PIN to GROUND.
+                                 },
+                                   new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "15",
+                                    PinName               = "SCK" // connect this PIN to GROUND.
+                                 }
+                              },
+            PropertyValues = new List<PropertyValue>()
+                          {
+                             new PropertyValue {Name = "AllowStreaming", Value = "false"}, // Streaming uses a lot of bandwidth and the quality is not that good because only 16 bit sample rate.
+                             new PropertyValue {Name = "AllowSoundLevel", Value = "true"},
+                             new PropertyValue {Name = "MinRms", Value = "400"},
+                          }
+        };
+    }
+
+    public static ConnectedDevice FromBuzzer()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "Buzzer",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -416,8 +518,8 @@ public static class ConnectedDevices
                                     PinName               = "LED_PIN"
                                  }
                               }
-      };
-   }
+        };
+    }
 
     public static ConnectedDevice FromGps()
     {
@@ -442,12 +544,12 @@ public static class ConnectedDevices
     }
 
     public static ConnectedDevice FromSwitch()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "Switch",
-         Pins = new List<DevicePin>
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "Switch",
+            Pins = new List<DevicePin>
                               {
                                  new DevicePin
                                  {
@@ -455,16 +557,16 @@ public static class ConnectedDevices
                                     PinName               = "SWITCH_PIN" // connect this PIN to GROUND.
                                  }
                               }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromOledSSD1306()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "OLED_SSD1306", // do not change this name, the same name must be used in main.cpp of the client.
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromOledSSD1306()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "OLED_SSD1306", // do not change this name, the same name must be used in main.cpp of the client.
+            Pins = new List<DevicePin>
                      {
                        new DevicePin
                        {
@@ -480,21 +582,21 @@ public static class ConnectedDevices
                          IsReadOnly = true
                        }
                      }
-         ,
-         PropertyValues = new List<PropertyValue>
+           ,
+            PropertyValues = new List<PropertyValue>
          {
             new PropertyValue("I2CAddress", "0x3C")
          }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice FromLcd160x()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "LCD160x", // do not change this name, the same name must be used in main.cpp of the client.
-         Pins = new List<DevicePin>
+    public static ConnectedDevice FromLcd160x()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "LCD160x", // do not change this name, the same name must be used in main.cpp of the client.
+            Pins = new List<DevicePin>
                      {
                        new DevicePin
                        {
@@ -509,26 +611,26 @@ public static class ConnectedDevices
                          IsReadOnly = true
                        }
                      },
-         PropertyValues = new List<PropertyValue>
+            PropertyValues = new List<PropertyValue>
          {
             new PropertyValue("Columns", "20"),
             new PropertyValue("Rows", "4"),
             new PropertyValue("I2CAddress", "0x27")
          }
-      };
-   }
+        };
+    }
 
-   public static ConnectedDevice BleHeartRateMonitor()
-   {
-      return new ConnectedDevice
-      {
-         IsEnabled = true,
-         DeviceType = "BleHeartRateSensor", // do not change this name, the same name must be used in main.cpp of the client.
-         PropertyValues = new List<PropertyValue>
+    public static ConnectedDevice BleHeartRateMonitor()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "BleHeartRateSensor", // do not change this name, the same name must be used in main.cpp of the client.
+            PropertyValues = new List<PropertyValue>
          {
             new PropertyValue("AdvertisingTimeoutSeconds", "60"),
 
          }
-      };
-   }
+        };
+    }
 }
