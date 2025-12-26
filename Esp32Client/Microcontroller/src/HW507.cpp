@@ -20,7 +20,7 @@ namespace IotZoo
     HW507::HW507(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t deviceType,
                  uint8_t pinData)
         : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
-    {        
+    {
         if (0 == pinData)
         {
             pinData = 23;
@@ -46,7 +46,11 @@ namespace IotZoo
     {
         String topic    = getBaseTopic() + "/dht/" + this->getHumiditySensorType() + "/humidity";
         float  humidity = dht->readHumidity();
-        mqttClient->publish(topic, String(humidity, 1));
+        if (millis() - lastMillis > 10000)
+        {
+            mqttClient->publish(topic, String(humidity, 1));
+            lastMillis = millis();
+        }
     }
 } // namespace IotZoo
 
