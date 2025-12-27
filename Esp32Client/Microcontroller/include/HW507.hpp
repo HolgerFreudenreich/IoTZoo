@@ -21,7 +21,7 @@ namespace IotZoo
     class HW507 : public DeviceBase
     {
       public:
-        HW507(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t deviceType, uint8_t pinData);
+        HW507(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t deviceType, uint8_t pinData, u_int16_t intervalMs);
 
         void addMqttTopicsToRegister(std::vector<Topic>* const topics) const;
 
@@ -51,6 +51,7 @@ namespace IotZoo
         DHT*    dht        = nullptr;
         uint8_t deviceType = DHT11;
         ulong lastMillis = millis();
+        ulong intervalMs = 0;
     };
 } // namespace IotZoo
 
