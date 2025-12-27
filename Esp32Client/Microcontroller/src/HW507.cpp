@@ -18,15 +18,12 @@
 namespace IotZoo
 {
     HW507::HW507(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t deviceType,
-                 uint8_t pinData)
+                 uint8_t pinData, uint16_t intervalMs)
         : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
-        if (0 == pinData)
-        {
-            pinData = 23;
-            Serial.print("pinData not set!");
-        }
-        Serial.print("Constructor HW507, deviceType: " + String(deviceType) + ", dataPin: " + String(pinData));
+        this->intervalMs = intervalMs;
+        Serial.print("Constructor HW507, deviceType: " + String(deviceType) + ", dataPin: " + String(pinData) +
+                     ", intervalMs: " + String(intervalMs));
         dht = new DHT(pinData, deviceType);
     }
 
@@ -46,9 +43,12 @@ namespace IotZoo
     {
         String topic    = getBaseTopic() + "/dht/" + this->getHumiditySensorType() + "/humidity";
         float  humidity = dht->readHumidity();
-        if (millis() - lastMillis > 10000)
+        if (millis() - lastMillis > intervalMs)
         {
-            mqttClient->publish(topic, String(humidity, 1));
+            if (humidity > 0 && humidity < 100)
+            {
+                mqttClient->publish(topic, String(humidity, 1));
+            }
             lastMillis = millis();
         }
     }

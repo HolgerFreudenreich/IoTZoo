@@ -1297,6 +1297,7 @@ void makeInstanceConfiguredDevices()
                 if (deviceType == "HW507")
                 {
                     uint8_t dataPin    = arrPins[0]["DATA_PIN"];
+                    u16_t intervalMs = 10000;
                     uint8_t deviceType = DHT11;
                     for (JsonVariant property : arrProperties)
                     {
@@ -1306,8 +1307,12 @@ void makeInstanceConfiguredDevices()
                         {
                             deviceType == property["Value"];
                         }
+                        else if (propertyName == "IntervalMs")
+                        {
+                            intervalMs == property["Value"];
+                        }
                     }
-                    hw507HumiditySensor = new IotZoo::HW507(deviceIndex, settings, mqttClient, getBaseTopic(), deviceType, dataPin);
+                    hw507HumiditySensor = new IotZoo::HW507(deviceIndex, settings, mqttClient, getBaseTopic(), deviceType, dataPin, intervalMs);
                 }
 #endif // USE_HW507
 

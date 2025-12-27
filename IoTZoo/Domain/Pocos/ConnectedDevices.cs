@@ -459,9 +459,10 @@ public static class ConnectedDevices
                                     PinName               = "DATA_PIN"
                                  }
                               },
-              PropertyValues = new List<PropertyValue>()
+            PropertyValues = new List<PropertyValue>()
                           {
                              new PropertyValue {Name = "DeviceType", Value = "DHT11"},
+                               new PropertyValue {Name = "IntervalMs", Value = "10000"},
                           }
         };
     }
