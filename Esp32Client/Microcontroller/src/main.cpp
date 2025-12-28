@@ -1296,7 +1296,7 @@ void makeInstanceConfiguredDevices()
 #ifdef USE_HW507
                 if (deviceType == "HW507")
                 {
-                    uint8_t dataPin    = arrPins[0]["DATA_PIN"];
+                    uint8_t dataPin    = arrPins[0]["MicrocontrollerGpoPin"];
                     u16_t intervalMs = 10000;
                     uint8_t deviceType = DHT11;
                     for (JsonVariant property : arrProperties)

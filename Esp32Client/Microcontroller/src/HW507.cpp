@@ -14,6 +14,7 @@
 #ifdef USE_HW507
 
 #include "HW507.hpp"
+#include <math.h>
 
 namespace IotZoo
 {
@@ -22,8 +23,13 @@ namespace IotZoo
         : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
         this->intervalMs = intervalMs;
-        Serial.print("Constructor HW507, deviceType: " + String(deviceType) + ", dataPin: " + String(pinData) +
+        if (0 == pinData)
+        {
+            pinData = 23;
+        }
+        Serial.println("Constructor HW507, deviceType: " + String(deviceType) + ", dataPin: " + String(pinData) +
                      ", intervalMs: " + String(intervalMs));
+        pinMode(pinData, INPUT_PULLUP);
         dht = new DHT(pinData, deviceType);
     }
 
@@ -41,12 +47,19 @@ namespace IotZoo
 
     void HW507::loop()
     {
-        String topic    = getBaseTopic() + "/dht/" + this->getHumiditySensorType() + "/humidity";
-        float  humidity = dht->readHumidity();
+        String topic = getBaseTopic() + "/dht/" + this->getHumiditySensorType() + "/humidity";
+
         if (millis() - lastMillis > intervalMs)
         {
-            if (humidity > 0 && humidity < 100)
+            float humidity = dht->readHumidity();
+            if (isnan(humidity))
             {
+                publishError("humidity: no valid value!");
+            }
+            else
+            {
+                Serial.println("humidity: " + String(humidity));
+
                 mqttClient->publish(topic, String(humidity, 1));
             }
             lastMillis = millis();
