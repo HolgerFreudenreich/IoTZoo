@@ -1285,6 +1285,7 @@ void makeInstanceConfiguredDevices()
                     }
                     if (nullptr != ds18B20SensorManager)
                     {
+                        pinMode(datPin, OUTPUT);
                         ds18B20SensorManager->setup(datPin, resolution, transmissionInterval);
                     }
 
@@ -1964,9 +1965,14 @@ void loopDS18B20()
 
             Serial.print(topic + "/" + String(temperatureCelsius));
             Serial.println(" ºC");
-            if (temperatureCelsius > -55 && temperatureCelsius < 125)
+            if (temperatureCelsius != DEVICE_DISCONNECTED_C)
             {
                 mqttClient->publish(topic, String(temperatureCelsius, 1));
+            }
+            else
+            {
+                mqttClient->publish(topic, "device is not ready");
+
             }
             indexTemperatureSensor++;
         }
