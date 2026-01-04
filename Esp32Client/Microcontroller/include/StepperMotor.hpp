@@ -115,7 +115,7 @@ namespace IotZoo
             Serial.println("ended");
         }
 
-        void loop();
+        void loop() override;
 
       protected:
         StepperControl*  stepperControl;

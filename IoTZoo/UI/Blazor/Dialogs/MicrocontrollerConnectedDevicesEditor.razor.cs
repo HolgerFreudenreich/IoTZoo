@@ -69,6 +69,21 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
         }
     }
 
+    protected async Task AddReedContact()
+    {
+        try
+        {
+            Snackbar.Add("Adding reed contact configuration to the microcontroller...", Severity.Info);
+            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromReedContact());
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
+        }
+    }
+
     /// <summary>
     /// Microphone INMP441
     /// </summary>

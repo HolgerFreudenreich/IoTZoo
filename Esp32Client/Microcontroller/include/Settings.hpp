@@ -83,9 +83,10 @@ namespace IotZoo
 
         void setAliveIntervalMillis(long interval);
 
-        bool isAliveAckLedEnabled();
-
-        bool setAliveLedEnabled(bool isActive);
+        // 0 = off, 1 = on, 2 = turned on during the day
+        short getAliveAckLedMode();
+        // @param mode 0 = off, 1 = on, 2 = turned on during the day
+        bool setAliveLedMode(short mode);
 
         bool storeData(const String& key, const String& data);
 

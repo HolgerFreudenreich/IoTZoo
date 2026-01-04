@@ -95,15 +95,6 @@ std::vector<TrafficLight> trafficLightLeds{};
 std::vector<RemoteGpio> remoteGpios{};
 #endif
 
-#ifdef USE_KY025
-const int digitalPinReedContact = 19;
-
-long          reedContactCounter = 0;
-unsigned long lastRotationMillis = 0;
-double        oldRpm             = -1.0;
-double        rpm                = 0.0;
-#endif
-
 #ifdef USE_HB0014
 const int     digitalPinInfraredLed   = 34;
 int           digitalValueInfrared    = 0; // digital readings
@@ -145,9 +136,14 @@ IotZoo::ButtonMatrixHandling buttonMatrixHandling;
 ButtonHandling buttonHandling;
 #endif
 
+#ifdef USE_KY025
+#include "ReedContactKY025.hpp"
+KY025* ky025 = nullptr;
+#endif
+
 #ifdef USE_AUDIO_STREAMER
 #include "AudioStreamer.hpp"
-AudioStreamer* audioStreamer;
+AudioStreamer* audioStreamer = nullptr;
 #endif
 
 #ifdef USE_GPS
@@ -160,10 +156,17 @@ Gps* gps = nullptr;
 std::vector<Switch> switches{};
 #endif
 
+enum class DayMode
+{
+    Unknown = -1,
+    Night   = 0,
+    Day     = 1,
+};
+
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.2.1";
+String firmwareVersion = "0.2.3";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -175,6 +178,8 @@ long          loopCounter           = 0;
 long          loopDurationMs        = 0;
 
 static const uint8_t LED_BUILTIN = 2;
+
+DayMode dayMode = DayMode::Unknown;
 
 // --------------------------------------------------------------------------------------------------------------------
 // usings
@@ -256,9 +261,8 @@ Max7219* max7219;
 
 #if defined(USE_MQTT) || defined(USE_MQTT2)
 const String NamespaceNameFallback = "iotzoo";
-/// @brief Get the base MQTT Topic.
-/// @return
-String getBaseTopic()
+
+String getNamespaceAndProjectNameForTopic()
 {
     String namespaceName = settings->getNamespaceName(NamespaceNameFallback);
     if (namespaceName.length() > 0)
@@ -270,9 +274,14 @@ String getBaseTopic()
     {
         projectName += "/";
     }
-    // Serial.println("baseTopic: " + projectName + identifyBoard() + "/" + macAddress);
+    return namespaceName + projectName;
+}
 
-    return namespaceName + projectName + identifyBoard() + "/" + macAddress;
+/// @brief Get the base MQTT Topic.
+/// @return
+String getBaseTopic()
+{
+    return getNamespaceAndProjectNameForTopic() + identifyBoard() + "/" + macAddress;
 }
 
 void publishError(const String& errMsg)
@@ -408,7 +417,7 @@ void AddAliveNestedJsonObject(JsonDocument* jsonDocument)
     jsonObjectAlive["LoopDurationMs"]     = loopDurationMs;
     jsonObjectAlive["ReconnectionCount"]  = mqttClient->getConnectionEstablishedCount() - 1;
     jsonObjectAlive["AliveIntervalMs"]    = settings->getAliveIntervalMillis();
-    jsonObjectAlive["AliveAckLedEnabled"] = settings->isAliveAckLedEnabled();
+    jsonObjectAlive["AliveAckLedEnabled"] = settings->getAliveAckLedMode();
 }
 
 void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
@@ -453,6 +462,11 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
     jsonObjectSupportedDevices["BUTTON"] = true;
 #else
     jsonObjectSupportedDevices["BUTTON"] = false;
+#endif
+#ifdef USE_KY025
+    jsonObjectSupportedDevices["KY025"] = true;
+#else
+    jsonObjectSupportedDevices["KY025"] = false;
 #endif
 #ifdef USE_AUDIO_STREAMER
     jsonObjectSupportedDevices["AUDIO_STREAMER"] = true;
@@ -656,9 +670,16 @@ void onAliveAck(const String& rawData)
     {
         if (rawData != "0")
         {
-            if (settings->isAliveAckLedEnabled())
+            if (settings->getAliveAckLedMode() == 1)
             {
                 digitalWrite(LED_BUILTIN, HIGH); // turn the LED on.
+            }
+            else if (settings->getAliveAckLedMode() == 2)
+            {
+                if (dayMode == DayMode::Day)
+                {
+                    digitalWrite(LED_BUILTIN, HIGH); // turn the LED on.
+                }
             }
         }
         Serial.println("Received alive_ack: " + rawData + ", millis: " + String(millis()));
@@ -790,6 +811,13 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     buttonHandling.onMqttConnectionEstablished();
 #endif
 
+#ifdef USE_KY025
+    if (nullptr != ky025)
+    {
+        ky025->onMqttConnectionEstablished();
+    }
+#endif
+
 #ifdef USE_AUDIO_STREAMER
     if (nullptr != audioStreamer)
     {
@@ -868,6 +896,22 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
                               }
                           });
 
+    mqttClient->subscribe(getNamespaceAndProjectNameForTopic() + "is_day_mode",
+                          [&](const String& payload)
+                          {
+                              Serial.println("is_day_mode: " + payload);
+                              if (payload == "True" || payload == "1")
+                              {
+                                  dayMode = DayMode::Day;
+                                  Serial.println("The sun has risen. We have have daylight.");
+                              }
+                              else
+                              {
+                                  dayMode = DayMode::Night;
+                                  Serial.println("The sun has set. We have no daylight.");
+                              }
+                          });
+
     String topicIntervalAlive = getBaseTopic() + "/alive_config";
     mqttClient->subscribe(topicIntervalAlive,
                           [&](const String& json)
@@ -880,14 +924,14 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 
                               String key = jsonDocument["key"].as<String>();
 
-                              unsigned long aliveIntervalMs    = jsonDocument["aliveIntervalMs"];
-                              bool          aliveAckLedEnabled = jsonDocument["aliveAckLedEnabled"];
+                              unsigned long aliveIntervalMs = jsonDocument["aliveIntervalMs"];
+                              short         aliveAckLedMode = jsonDocument["aliveAckLedMode"];
 
                               settings->setAliveIntervalMillis(aliveIntervalMs);
                               Serial.println("aliveIntervalMs: " + String(settings->getAliveIntervalMillis()));
 
-                              settings->setAliveLedEnabled(aliveAckLedEnabled);
-                              Serial.println("aliveAckLedEnabled " + String(settings->isAliveAckLedEnabled()));
+                              settings->setAliveLedMode(aliveAckLedMode);
+                              Serial.println("aliveAckLedEnabled " + String(settings->getAliveAckLedMode()));
                           });
 
     // Save the device configurations.
@@ -979,7 +1023,7 @@ void makeInstanceConfiguredDevices()
             int    deviceIndex = value["DeviceIndex"];
             bool   isEnabled   = value["IsEnabled"];
 
-            Serial.println("DeviceName: '" + deviceType + "', IsEnabled: " + String(isEnabled));
+            Serial.println("DeviceType: '" + deviceType + "', DeviceIndex: " + String(deviceIndex) + "', IsEnabled: " + String(isEnabled));
 
             if (isEnabled)
             {
@@ -994,6 +1038,28 @@ void makeInstanceConfiguredDevices()
                     buttonHandling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), buttonPin);
 
                     Serial.println("Button initialized.");
+                }
+#endif // USE_BUTTON
+
+#ifdef USE_KY025
+                if (deviceType == "Reed-Contact")
+                {
+                    int dataPin = arrPins[0]["MicrocontrollerGpoPin"];
+
+                    u16_t intervalMs = 10000;
+
+                    for (JsonVariant property : arrProperties)
+                    {
+                        String propertyName = property["Name"];
+                        if (propertyName == "IntervalMs")
+                        {
+                            intervalMs == property["Value"];
+                        }
+                    }
+
+                    ky025 = new KY025(deviceIndex, settings, mqttClient, getBaseTopic(), intervalMs, dataPin);
+
+                    Serial.println("Reed contact KY-025 initialized.");
                 }
 #endif // USE_BUTTON
 
@@ -1285,6 +1351,7 @@ void makeInstanceConfiguredDevices()
                     }
                     if (nullptr != ds18B20SensorManager)
                     {
+                        pinMode(datPin, OUTPUT);
                         ds18B20SensorManager->setup(datPin, resolution, transmissionInterval);
                     }
 
@@ -1297,7 +1364,7 @@ void makeInstanceConfiguredDevices()
                 if (deviceType == "HW507")
                 {
                     uint8_t dataPin    = arrPins[0]["MicrocontrollerGpoPin"];
-                    u16_t intervalMs = 10000;
+                    u16_t   intervalMs = 10000;
                     uint8_t deviceType = DHT11;
                     for (JsonVariant property : arrProperties)
                     {
@@ -1796,22 +1863,6 @@ void notifyCallbackHeartRate(NimBLERemoteCharacteristic* pBLERemoteCharacteristi
 }
 #endif // USE_BLE_HEART_RATE_SENSOR
 
-#ifdef USE_KY025
-void IRAM_ATTR isr()
-{
-    // Serial.print("1"); // crashes!!!
-
-    int diff = millis() - lastRotationMillis;
-    if (diff > 300.0)
-    {
-        reedContactCounter++;
-        oldRpm = rpm;
-        rpm    = 1.0 / (diff / 60000.0);
-    }
-    lastRotationMillis = millis();
-}
-#endif
-
 #ifdef USE_BLE_HEART_RATE_SENSOR
 void connectToHeartRateSensor(int advertisingTimeout)
 {
@@ -1911,11 +1962,6 @@ void setup()
     makeInstanceConfiguredDevices();
     lastAliveTime = millis() - settings->getAliveIntervalMillis();
 
-#ifdef USE_KY025
-    pinMode(digitalPinReedContact, INPUT_PULLUP);
-    attachInterrupt(digitalPinReedContact, isr, FALLING);
-#endif
-
 #ifdef USE_HB0014
     pinMode(digitalPinInfraredLed, INPUT);
 #ifdef USE_OLED_SSD1306
@@ -1964,9 +2010,13 @@ void loopDS18B20()
 
             Serial.print(topic + "/" + String(temperatureCelsius));
             Serial.println(" ºC");
-            if (temperatureCelsius > -55 && temperatureCelsius < 125)
+            if (temperatureCelsius != DEVICE_DISCONNECTED_C)
             {
                 mqttClient->publish(topic, String(temperatureCelsius, 1));
+            }
+            else
+            {
+                mqttClient->publish(topic, "device is not ready");
             }
             indexTemperatureSensor++;
         }
@@ -1997,13 +2047,14 @@ void registerTopics()
     topics.emplace_back(getBaseTopic() + "/alive", "Alive message of the microcontroller", MessageDirection::IotZooClientInbound);
 
     // How should the device send alive messages
-    topics.emplace_back(getBaseTopic() + "/alive_config", "{\"aliveIntervalMs\": 15000, \"aliveAckLedEnabled\": true}",
+    topics.emplace_back(getBaseTopic() + "/alive_config", "{\"aliveIntervalMs\": 15000, \"aliveAckLedMode\": 2}",
                         MessageDirection::IotZooClientInbound);
 
     // Acknowledge fo the alive message from the IotZooClient.
     topics.emplace_back(getBaseTopic() + "/alive_ack", "Alive message of the microcontroller", MessageDirection::IotZooClientOutbound);
 
     topics.emplace_back(getBaseTopic() + "/terminated", "Microcontroller terminated!", MessageDirection::IotZooClientInbound);
+
     // settings
     if (settings != nullptr)
     {
@@ -2230,7 +2281,6 @@ void loop()
 {
     try
     {
-        Serial.print("_");
         lastLoopStartTime = millis();
         loopCounter++;
 
@@ -2248,8 +2298,8 @@ void loop()
         }
         if (!mqttClient->isConnected())
         {
-            Serial.print(".");
-            delay(50);
+            Serial.print("⚠");
+            delay(200);
             return;
         }
 
@@ -2270,6 +2320,13 @@ void loop()
 
 #ifdef USE_BUTTON
         buttonHandling.loop();
+#endif
+
+#ifdef USE_KY025
+        if (nullptr != ky025)
+        {
+            ky025->loop();
+        }
 #endif
 
 #ifdef USE_AUDIO_STREAMER
@@ -2314,52 +2371,6 @@ void loop()
         }
 #endif // USE_LED_AND_KEY
 
-#ifdef USE_KY025
-        if (millis() - lastRotationMillis < 10000)
-        {
-            Serial.println(reedContactCounter);
-        }
-
-#ifdef USE_TM1637_4
-        TM1637* tm1637 = tm1637_4Handling->getDisplayByDeviceIndex(2);
-        if (nullptr != tm1637)
-        {
-            tm1637->showNumber(reedContactCounter, true);
-        }
-#if defined(USE_MQTT) || defined(USE_MQTT2)
-        String topic = getBaseTopic() + "/rpm/0";
-        if (rpm > 0)
-        {
-            Serial.println(String(rpm) + " rpm");
-        }
-        mqttClient->publish(topic.c_str(), String(rpm, 0).c_str());
-#endif
-#endif // USE_KY025
-
-#ifdef USE_EXERCISE_BIKE_STANDALONE
-        if (millis() - lastRotationMillis > 3000)
-        {
-            rpm = 0.0;
-        }
-
-#ifdef USE_TM1637_4
-        auto displayRpm = tm1637_4Handling.displays1637.begin();
-        std::advance(displayRpm, 1);
-        // displayRpm->showNumber(reedContactCounter);
-        displayRpm->showNumber((int)rpm);
-#endif
-#endif
-
-#if defined(USE_MQTT) || defined(USE_MQTT2)
-        if (oldRpm != rpm)
-        {
-            String topic = getBaseTopic() + "/reed_contact_counter/0";
-            mqttClient->publish(topic.c_str(), String(reedContactCounter).c_str());
-        }
-#endif
-
-#endif
-
 #ifdef USE_REST_SERVER
         webServer.handleClient();
 #endif
@@ -2391,7 +2402,7 @@ void loop()
 
 #ifdef USE_HB0014
         digitalValueInfrared = digitalRead(digitalPinInfraredLed);
-        // Serial.println(String(millis()) + " Reed contact: " + String(digitalValueReedContact));
+
         if (digitalValueInfrared == HIGH && digitalValueOldInfrared == LOW)
         {
             long diff = millis() - lastMillisInfrared;

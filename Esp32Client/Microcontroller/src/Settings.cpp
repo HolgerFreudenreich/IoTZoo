@@ -96,18 +96,19 @@ namespace IotZoo
         preferences.end();
     }
 
-    bool Settings::isAliveAckLedEnabled()
+    // 0 = off, 1 = on, 2 = turned on during the day 
+    short Settings::getAliveAckLedMode()
     {
-        preferences.begin(NamespaceNameConfig, true);
-        bool isActive = preferences.getBool("alive_led", true);
+        preferences.begin(NamespaceNameConfig, true);       
+        short isActive = preferences.getUShort("alive_led", 2); // default = turned on during the day (off at night)
         preferences.end();
         return isActive;
     }
 
-    bool Settings::setAliveLedEnabled(bool enabled)
+    bool Settings::setAliveLedMode(short aliveLedMode)
     {
         preferences.begin(NamespaceNameConfig, false);
-        bool ok = preferences.putBool("alive_led", enabled) > 0;
+        bool ok = preferences.getUShort("alive_led", aliveLedMode) == aliveLedMode;
         preferences.end();
         return ok;
     }

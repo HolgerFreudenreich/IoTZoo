@@ -43,12 +43,21 @@ namespace IotZoo
 
     std::vector<float> DS18B20::requestTemperatures()
     {
-        std::vector<float> temperatures;
-        dallasTemperatureSensors->requestTemperatures();
-        for (int i = 0; i < numberOfDevices; i++)
+        std::vector<float>           temperatures;
+        DallasTemperature::request_t request = dallasTemperatureSensors->requestTemperatures();
+
+        if (request.result)
         {
-            float temperatureCelsius = dallasTemperatureSensors->getTempCByIndex(i);         
-            temperatures.push_back(temperatureCelsius);
+            delay(250); // Do not remove this delay!
+            for (int i = 0; i < numberOfDevices; i++)
+            {
+                float temperatureCelsius = dallasTemperatureSensors->getTempCByIndex(i);
+                temperatures.push_back(temperatureCelsius);
+            }
+        }
+        else
+        {
+            Serial.println("DS18B20 is not working.");
         }
         return temperatures;
     }
@@ -71,7 +80,6 @@ namespace IotZoo
         Serial.println("Start the DS18B20 sensor!");
         // Start the DS18B20 sensor
         dallasTemperatureSensors->begin();
-        delay(200);
         numberOfDevices = dallasTemperatureSensors->getDeviceCount();
         Serial.print("Found ");
         Serial.print(numberOfDevices, DEC);

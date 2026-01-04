@@ -27,13 +27,19 @@ namespace IotZoo
     class TM1637 : public TM1637DisplayBase
     {
       protected:
-        TM1637Display* displayTm1637 = nullptr;
+        std::unique_ptr<TM1637Display> displayTm1637;
 
       public:
-        TM1637(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, 
-            Tm1637DisplayType displayType, int clkPin, int dioPin, bool flipDisplay, const String& serverDownText);
+        TM1637(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, Tm1637DisplayType displayType, int clkPin,
+               int dioPin, bool flipDisplay, const String& serverDownText);
 
-        ~TM1637() override;
+        // emplace_back must not lead to the destruction of displayTm1637! Either make the list large enough in TM1637_Handling::TM1637_Handling with
+        // displays1637.reserve(9); or do this to prevent reallocations:
+        TM1637(const TM1637&)            = delete;
+        TM1637& operator=(const TM1637&) = delete;
+        TM1637(TM1637&&)                 = default;
+        TM1637& operator=(TM1637&&)      = default;
+        ~TM1637()                        = default;
 
         void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 

@@ -18,6 +18,7 @@ namespace IotZoo
     TM1637_Handling::TM1637_Handling(Tm1637DisplayType tm1637DisplayType) : DeviceHandlingBase()
     {
         this->tm1637DisplayType = tm1637DisplayType;
+        //displays1637.reserve(6); // Damit bei emplace_back nicht umkopiert wird und der Microcontroller dadurch abstürzt
     }
 
     void TM1637_Handling::setup()
