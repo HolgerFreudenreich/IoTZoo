@@ -27,7 +27,7 @@ namespace IotZoo
 
         void onMqttConnectionEstablished() override;
 
-        void loop();
+        void loop() override;
 
         String getHumiditySensorType() const
         {

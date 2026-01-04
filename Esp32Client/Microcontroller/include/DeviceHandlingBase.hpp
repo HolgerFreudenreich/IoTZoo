@@ -31,6 +31,12 @@ namespace IotZoo
       public:
         DeviceHandlingBase()
         {
+           Serial.println("Constructor DeviceHandlingBase()");
+        }
+
+        virtual ~DeviceHandlingBase()
+        {
+            Serial.println("~DeviceHandlingBase()");
         }
 
         /// @brief The IotZooMqtt client is not available, so tell this this user. Providing false information is worse

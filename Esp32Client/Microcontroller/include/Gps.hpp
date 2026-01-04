@@ -40,7 +40,7 @@ namespace IotZoo
         /// @param topics
         void addMqttTopicsToRegister(std::vector<Topic>* const topics) const;
 
-        void loop();
+        void loop() override;
 
         void smartDelay(unsigned long ms);
     };

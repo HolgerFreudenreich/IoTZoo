@@ -38,7 +38,7 @@ namespace IotZoo
         {
             Serial.println("Constructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
         }
-
+    
         virtual ~DeviceBase()
         {
             Serial.println("Destructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);

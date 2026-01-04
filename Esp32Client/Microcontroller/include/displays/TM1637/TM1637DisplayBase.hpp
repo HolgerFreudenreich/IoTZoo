@@ -38,6 +38,8 @@ namespace IotZoo
             Serial.println("Constructor TM1637DisplayBase");
         }
 
+        virtual ~TM1637DisplayBase() = default;
+
         virtual int getDefaultDisplayLength() const = 0;
 
         virtual Tm1637DisplayType getDisplayType() const = 0;

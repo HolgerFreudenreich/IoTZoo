@@ -103,7 +103,7 @@ namespace IotZoo
         /// @param topics
         void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
-        void loop();
+        void loop() override;
     };
 } // namespace IotZoo
 

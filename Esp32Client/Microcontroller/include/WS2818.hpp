@@ -43,7 +43,7 @@ namespace IotZoo
 
         virtual void setup();
 
-        virtual void loop();
+        void loop() override;
 
         /// @brief Example: iotzoo/esp32/08:D1:F9:E0:31:78/neo/0/setPixelColor
         /// @param json

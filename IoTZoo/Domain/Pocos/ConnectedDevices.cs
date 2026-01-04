@@ -445,6 +445,28 @@ public static class ConnectedDevices
         };
     }
 
+    public static ConnectedDevice FromReedContact()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "Reed-Contact",
+            Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "19",
+                                    PinName               = "DATA_PIN"
+                                 }
+                              }
+             ,
+            PropertyValues = new List<PropertyValue>()
+                          {
+                             new PropertyValue {Name = "IntervalMs", Value = "1000"},
+                          }
+        };
+    }
+
     public static ConnectedDevice FromHW507()
     {
         return new ConnectedDevice

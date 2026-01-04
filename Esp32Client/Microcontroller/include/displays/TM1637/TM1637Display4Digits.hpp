@@ -25,7 +25,7 @@ namespace IotZoo
                              uint8_t pinDio)
             : TM1637DisplayBase(deviceIndex, settings, mqttClient, baseTopic)
         {
-            Serial.println("Constructor TM1637Display4Digits");
+            Serial.println("Constructor TM1637Display4Digits, deviceIndex: " + String(deviceIndex) + ", pinClk: " + String(pinClk) + ", pinDio: " + String(pinDio));
             tm1637_4_Display = new TM1637TinyDisplay(pinClk, pinDio); // concrete implementation of the underlying hardware
         }
 
