@@ -2084,6 +2084,13 @@ void registerTopics()
     buttonHandling.addMqttTopicsToRegister(&topics);
 #endif
 
+#ifdef USE_KY025
+    if (nullptr != ky025)
+    {
+        ky025->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
 #ifdef USE_BUZZER
     if (nullptr != buzzer)
     {

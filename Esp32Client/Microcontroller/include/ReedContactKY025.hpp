@@ -30,7 +30,7 @@ namespace IotZoo
 
         void onMqttConnectionEstablished() override;
 
-      private:
+      private:      
         u16_t intervalMs;
         unsigned long lastMillis = millis();
     };
