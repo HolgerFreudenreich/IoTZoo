@@ -28,11 +28,10 @@ namespace IotZoo
 
         void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
-        void onMqttConnectionEstablished() override;
-
       private:      
         u16_t intervalMs;
-        unsigned long lastMillis = millis();
+
+        unsigned long lastLoopMillis = 0;
     };
 } // namespace IotZoo
 

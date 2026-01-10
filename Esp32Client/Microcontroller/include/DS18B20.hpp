@@ -14,13 +14,15 @@
 #ifndef __DS18B20_HPP__
 #define __DS18B20_HPP__
 
+#include "DeviceBase.hpp"
+
 #include <DallasTemperature.h>
 #include <OneWire.h>
 #include <list>
 
 namespace IotZoo
 {
-    class DS18B20
+    class DS18B20 : DeviceBase
     {
       protected:
         OneWire*           oneWire                  = nullptr;
@@ -35,15 +37,18 @@ namespace IotZoo
         long lastPublishedTemperatureMillis = millis();
 
       public:
-        DS18B20();
+        // @param resolution resolution of a device to 9, 10, 11, or 12 bits.
+        // @param transmissionIntervalMs Interval at which the temperatures are sent via MQTT.
+        DS18B20(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, uint8_t pinData,
+                u_int8_t resolution, int transmissionIntervalMs);
 
-        virtual ~DS18B20();
+        ~DS18B20() override;
 
-        /// @brief
-        /// @param gpioNumber GPIO where the DS18B20 is connected to.
-        /// @param resolution resolution of a device to 9, 10, 11, or 12 bits.
-        /// @param transmissionIntervalMs Interval at which the temperatures are sent via MQTT.
-        void setup(int gpioNumber, u_int8_t resolution, int transmissionIntervalMs);
+        /// @brief Let the user know what the device can do.
+        /// @param topics
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const;
+
+        void loop();
 
         std::vector<float> requestTemperatures();
 
