@@ -20,7 +20,7 @@ namespace IotZoo
                    int clkPin, int dioPin, bool flipDisplay, const String& serverDownText)
         : TM1637DisplayBase(deviceIndex, settings, mqttClient, baseTopic)
     {
-        Serial.println("Constructor TM1637. DisplayType:" + displayType);
+        Serial.println("Constructor TM1637.");
         displayTm1637 = std::make_unique<TM1637Display>(deviceIndex, settings, mqttClient, baseTopic, displayType, clkPin, dioPin, flipDisplay, serverDownText);
     }
 

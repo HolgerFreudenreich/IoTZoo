@@ -231,16 +231,7 @@ IotZoo::HW507* hw507HumiditySensor = nullptr;
 #endif
 
 #ifdef USE_MQTT
-#undef USE_MQTT2
-#endif
-
-#ifdef USE_MQTT
 #include "MqttClient.hpp"
-MqttClient* mqttClient = nullptr;
-#endif
-
-#ifdef USE_MQTT2
-#include "MqttClient2.hpp"
 MqttClient* mqttClient = nullptr;
 #endif
 
@@ -259,7 +250,7 @@ IotZoo::TM1637_6_Handling tm1637_6Handling;
 Max7219* max7219;
 #endif // USE_MAX7219
 
-#if defined(USE_MQTT) || defined(USE_MQTT2)
+#if defined(USE_MQTT)
 const String NamespaceNameFallback = "iotzoo";
 
 String getNamespaceAndProjectNameForTopic()
@@ -357,7 +348,7 @@ bool onReceivedMicrocontrollerConfiguration(const String& json)
 IotZoo::HW040Handling hw040Handling;
 #endif
 
-#if defined(USE_MQTT) || defined(USE_MQTT2)
+#if defined(USE_MQTT)
 
 String serializeTopic(const Topic& topic)
 {
@@ -649,7 +640,7 @@ String createAliveJson()
 // Periodically send an alive message.
 // ------------------------------------------------------------------------------------------------
 
-#if defined(USE_MQTT) || defined(USE_MQTT2)
+#if defined(USE_MQTT)
 void publishAliveMessage()
 {
     Serial.println("publishAliveMessage");
@@ -733,20 +724,6 @@ void onLoadAndPublishConfigurationByKey(const String& key)
     }
 };
 
-#ifdef USE_MQTT2
-/// @brief /esp32/<mac>/status requested (from IoTZooClient) via MQTT.
-void onStatusRequested2(char* topic, uint8_t* payload, unsigned int length)
-{
-    Serial.println("Received " + String(topic));
-    // Convert the payload into a String
-    payload[length] = '\0';
-    String rawData((char*)payload);
-    rawData.toLowerCase();
-    onStatusRequested(rawData);
-}
-
-#endif
-
 #endif
 
 // ------------------------------------------------------------------------------------------------
@@ -809,13 +786,6 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 
 #ifdef USE_BUTTON
     buttonHandling.onMqttConnectionEstablished();
-#endif
-
-#ifdef USE_KY025
-    if (nullptr != ky025)
-    {
-        ky025->onMqttConnectionEstablished();
-    }
 #endif
 
 #ifdef USE_AUDIO_STREAMER
@@ -1311,347 +1281,341 @@ void makeInstanceConfiguredDevices()
 
 #ifdef USE_DS18B20
                 if (deviceType == "DS18B20")
+                    ;
+
+                int datPin = arrPins[0]["MicrocontrollerGpoPin"];
+
+                int transmissionInterval = 20000;
+                int resolution           = 11;
+
+                for (JsonVariant property : arrProperties)
                 {
-                    // Add 1 DS18B20 temperature sensors manager which can support 1..64 DS18B20 temperature sensors.
-                    ds18B20SensorManager = new IotZoo::DS18B20();
-
-                    int datPin = arrPins[0]["MicrocontrollerGpoPin"];
-
-                    int transmissionInterval = 20000;
-                    int resolution           = 11;
-
-                    for (JsonVariant property : arrProperties)
+                    String propertyName  = property["Name"];
+                    String propertyValue = property["Value"];
+                    if (propertyName == "Interval")
                     {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
-                        if (propertyName == "Interval")
-                        {
-                            transmissionInterval = std::stoi(propertyValue.c_str());
-                        }
-                        else if (propertyName == "Resolution")
-                        {
-                            resolution = std::stoi(propertyValue.c_str());
-                        }
-                        if (transmissionInterval < 5000)
-                        {
-                            transmissionInterval = 5000;
-                        }
-                        if (transmissionInterval > 900000) // 15 min
-                        {
-                            transmissionInterval = 900000;
-                        }
-                        if (resolution < 9)
-                        {
-                            resolution = 9;
-                        }
-                        if (resolution > 11)
-                        {
-                            resolution = 11;
-                        }
+                        transmissionInterval = std::stoi(propertyValue.c_str());
                     }
-                    if (nullptr != ds18B20SensorManager)
+                    else if (propertyName == "Resolution")
                     {
-                        pinMode(datPin, OUTPUT);
-                        ds18B20SensorManager->setup(datPin, resolution, transmissionInterval);
+                        resolution = std::stoi(propertyValue.c_str());
                     }
-
-                    Serial.println("DS18B20 sensors configuration loaded! Dat Pin is " + String(datPin) + ", Resolution: " + String(resolution) +
-                                   ", Transmission interval: " + String(transmissionInterval));
+                    if (transmissionInterval < 5000)
+                    {
+                        transmissionInterval = 5000;
+                    }
+                    if (transmissionInterval > 900000) // 15 min
+                    {
+                        transmissionInterval = 900000;
+                    }
+                    if (resolution < 9)
+                    {
+                        resolution = 9;
+                    }
+                    if (resolution > 11)
+                    {
+                        resolution = 11;
+                    }
                 }
+
+                // Add 1 DS18B20 temperature sensors manager which can support 1..64 DS18B20 temperature sensors.
+                ds18B20SensorManager = new DS18B20(deviceIndex, settings, mqttClient, getBaseTopic(), datPin, resolution, transmissionInterval);
+
+                Serial.println("DS18B20 sensors configuration loaded! Dat Pin is " + String(datPin) + ", Resolution: " + String(resolution) +
+                               ", Transmission interval ms: " + String(transmissionInterval));
+            }
 #endif // USE_DS18B20
 
 #ifdef USE_HW507
-                if (deviceType == "HW507")
+            if (deviceType == "HW507")
+            {
+                uint8_t dataPin    = arrPins[0]["MicrocontrollerGpoPin"];
+                u16_t   intervalMs = 10000;
+                uint8_t deviceType = DHT11;
+                for (JsonVariant property : arrProperties)
                 {
-                    uint8_t dataPin    = arrPins[0]["MicrocontrollerGpoPin"];
-                    u16_t   intervalMs = 10000;
-                    uint8_t deviceType = DHT11;
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName = property["Name"];
+                    String propertyName = property["Name"];
 
-                        if (propertyName == "DeviceType")
-                        {
-                            deviceType == property["Value"];
-                        }
-                        else if (propertyName == "IntervalMs")
-                        {
-                            intervalMs == property["Value"];
-                        }
+                    if (propertyName == "DeviceType")
+                    {
+                        deviceType == property["Value"];
                     }
-                    hw507HumiditySensor = new IotZoo::HW507(deviceIndex, settings, mqttClient, getBaseTopic(), deviceType, dataPin, intervalMs);
+                    else if (propertyName == "IntervalMs")
+                    {
+                        intervalMs == property["Value"];
+                    }
                 }
+                hw507HumiditySensor = new IotZoo::HW507(deviceIndex, settings, mqttClient, getBaseTopic(), deviceType, dataPin, intervalMs);
+            }
 #endif // USE_HW507
 
 #ifdef USE_WS2818
-                if (deviceType == "NEO")
-                {
-                    Serial.println("Configuration of NEO pixels...");
-                    int dioPin       = arrPins[0]["MicrocontrollerGpoPin"];
-                    int numberOfLeds = 256;
+            if (deviceType == "NEO")
+            {
+                Serial.println("Configuration of NEO pixels...");
+                int dioPin       = arrPins[0]["MicrocontrollerGpoPin"];
+                int numberOfLeds = 256;
 
-                    for (JsonVariant property : arrProperties)
+                for (JsonVariant property : arrProperties)
+                {
+                    String propertyName  = property["Name"];
+                    String propertyValue = property["Value"];
+                    if (propertyName == "numberOfLeds")
                     {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
-                        if (propertyName == "numberOfLeds")
-                        {
-                            numberOfLeds = std::stoi(propertyValue.c_str());
-                        }
+                        numberOfLeds = std::stoi(propertyValue.c_str());
                     }
-                    ws2812 = new WS2818(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLeds);
-                    Serial.println("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
                 }
+                ws2812 = new WS2818(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLeds);
+                Serial.println("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
+            }
 #ifdef USE_WS2818_PIXEL_MATRIX
-                else if (deviceType == "PixelMatrix")
-                {
-                    Serial.println("Configuration of NEO pixel matrix...");
-                    int  dioPin                = arrPins[0]["MicrocontrollerGpoPin"];
-                    uint numberOfLedsPerColumn = 8;
-                    uint numberOfLedsPerRow    = 8;
-                    uint extensions            = 0;
+            else if (deviceType == "PixelMatrix")
+            {
+                Serial.println("Configuration of NEO pixel matrix...");
+                int  dioPin                = arrPins[0]["MicrocontrollerGpoPin"];
+                uint numberOfLedsPerColumn = 8;
+                uint numberOfLedsPerRow    = 8;
+                uint extensions            = 0;
 
-                    for (JsonVariant property : arrProperties)
+                for (JsonVariant property : arrProperties)
+                {
+                    String propertyName  = property["Name"];
+                    String propertyValue = property["Value"];
+                    if (propertyName == "numberOfLedsPerColumn")
                     {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
-                        if (propertyName == "numberOfLedsPerColumn")
-                        {
-                            numberOfLedsPerColumn = std::stoi(propertyValue.c_str());
-                        }
-                        else if (propertyName == "numberOfLedsPerRow")
-                        {
-                            numberOfLedsPerRow = std::stoi(propertyValue.c_str());
-                        }
-                        else if (propertyName == "extensions")
-                        {
-                            extensions = std::stoi(propertyValue.c_str());
-                        }
-                        extensions = 1;
+                        numberOfLedsPerColumn = std::stoi(propertyValue.c_str());
                     }
-                    ws2812 = new PixelMatrix(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLedsPerColumn, numberOfLedsPerRow,
-                                             (PixelMatrixExtensions)extensions);
-                    Serial.println("Neo pixel matrix configuration loaded! DIO Pin is " + String(dioPin) +
-                                   ", numberOfLedsPerColumn: " + String(numberOfLedsPerColumn) +
-                                   ", numberOfLedsPerRow: " + String(numberOfLedsPerRow) + ", Extensions: " + String(extensions));
+                    else if (propertyName == "numberOfLedsPerRow")
+                    {
+                        numberOfLedsPerRow = std::stoi(propertyValue.c_str());
+                    }
+                    else if (propertyName == "extensions")
+                    {
+                        extensions = std::stoi(propertyValue.c_str());
+                    }
+                    extensions = 1;
                 }
+                ws2812 = new PixelMatrix(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLedsPerColumn, numberOfLedsPerRow,
+                                         (PixelMatrixExtensions)extensions);
+                Serial.println("Neo pixel matrix configuration loaded! DIO Pin is " + String(dioPin) +
+                               ", numberOfLedsPerColumn: " + String(numberOfLedsPerColumn) + ", numberOfLedsPerRow: " + String(numberOfLedsPerRow) +
+                               ", Extensions: " + String(extensions));
+            }
 #endif // USE_WS2818_PIXEL_MATRIX
 #endif // USE_WS2818
 
 #ifdef USE_TM1637_4
-                if (deviceType == "TM1637_4")
+            if (deviceType == "TM1637_4")
+            {
+                Serial.println("TM1637_4 display");
+
+                int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
+                int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
+
+                bool   flipDisplay = false;
+                String serverDownText;
+                for (JsonVariant property : arrProperties)
                 {
-                    Serial.println("TM1637_4 display");
+                    String propertyName  = property["Name"];
+                    String propertyValue = property["Value"];
 
-                    int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
-
-                    bool   flipDisplay = false;
-                    String serverDownText;
-                    for (JsonVariant property : arrProperties)
+                    if (propertyName == "flipDisplay")
                     {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
-
-                        if (propertyName == "flipDisplay")
-                        {
-                            propertyValue.toLowerCase();
-                            flipDisplay = propertyValue == "true";
-                        }
-                        else if (propertyName == "serverDownText")
-                        {
-                            propertyValue.toLowerCase();
-                            serverDownText = propertyValue;
-                        }
+                        propertyValue.toLowerCase();
+                        flipDisplay = propertyValue == "true";
                     }
-                    tm1637_4Handling = new TM1637_4_Handling();
-                    if (nullptr != tm1637_4Handling)
+                    else if (propertyName == "serverDownText")
                     {
-                        tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
-                        Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
-                                       ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
+                        propertyValue.toLowerCase();
+                        serverDownText = propertyValue;
                     }
                 }
+                tm1637_4Handling = new TM1637_4_Handling();
+                if (nullptr != tm1637_4Handling)
+                {
+                    tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+                    Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
+                                   ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
+                }
+            }
 #endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
-                if (deviceType == "TM1637_6")
+            if (deviceType == "TM1637_6")
+            {
+                Serial.println("TM1637_6 display");
+
+                int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
+                int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
+
+                bool   flipDisplay = false;
+                String serverDownText;
+                for (JsonVariant property : arrProperties)
                 {
-                    Serial.println("TM1637_6 display");
+                    String propertyName  = property["Name"];
+                    String propertyValue = property["Value"];
 
-                    int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
-
-                    bool   flipDisplay = false;
-                    String serverDownText;
-                    for (JsonVariant property : arrProperties)
+                    if (propertyName == "flipDisplay")
                     {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
-
-                        if (propertyName == "flipDisplay")
-                        {
-                            propertyValue.toLowerCase();
-                            flipDisplay = propertyValue == "true";
-                        }
-                        else if (propertyName == "serverDownText")
-                        {
-                            propertyValue.toLowerCase();
-                            serverDownText = propertyValue;
-                        }
+                        propertyValue.toLowerCase();
+                        flipDisplay = propertyValue == "true";
                     }
-
-                    tm1637_6Handling.addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
-
-                    Serial.println("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin));
+                    else if (propertyName == "serverDownText")
+                    {
+                        propertyValue.toLowerCase();
+                        serverDownText = propertyValue;
+                    }
                 }
+
+                tm1637_6Handling.addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+
+                Serial.println("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin));
+            }
 #endif // USE_TM1637_6
 
 #ifdef USE_LED_AND_KEY
-                if (deviceType == "TM1638")
-                {
-                    Serial.println("TM1638_8 display");
+            if (deviceType == "TM1638")
+            {
+                Serial.println("TM1638_8 display");
 
-                    int strobePin = arrPins[0]["MicrocontrollerGpoPin"];
-                    int clkPin    = arrPins[1]["MicrocontrollerGpoPin"];
-                    int dioPin    = arrPins[2]["MicrocontrollerGpoPin"];
+                int strobePin = arrPins[0]["MicrocontrollerGpoPin"];
+                int clkPin    = arrPins[1]["MicrocontrollerGpoPin"];
+                int dioPin    = arrPins[2]["MicrocontrollerGpoPin"];
 
-                    tm1638 = new TM1638(deviceIndex, settings, mqttClient, getBaseTopic(), strobePin, clkPin, dioPin);
+                tm1638 = new TM1638(deviceIndex, settings, mqttClient, getBaseTopic(), strobePin, clkPin, dioPin);
 
-                    Serial.println("TM1638 display initialized! Strobe Pin is " + String(strobePin) + ", CLK Pin is " + String(clkPin) +
-                                   ", DIO Pin is " + String(dioPin));
-                }
+                Serial.println("TM1638 display initialized! Strobe Pin is " + String(strobePin) + ", CLK Pin is " + String(clkPin) + ", DIO Pin is " +
+                               String(dioPin));
+            }
 #endif // USE_LED_AND_KEY
 
 #ifdef USE_REMOTE_GPIOS
-                if (deviceType == "Remote GPIO")
-                {
-                    Serial.println("Remote GPIO");
+            if (deviceType == "Remote GPIO")
+            {
+                Serial.println("Remote GPIO");
 
-                    int gpioPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    remoteGpios.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), gpioPin);
-                    Serial.println("Remote GPIO PIN configuration loaded! Pin is " + String(gpioPin) + ". Size remoteGpios: " + remoteGpios.size());
-                }
+                int gpioPin = arrPins[0]["MicrocontrollerGpoPin"];
+                remoteGpios.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), gpioPin);
+                Serial.println("Remote GPIO PIN configuration loaded! Pin is " + String(gpioPin) + ". Size remoteGpios: " + remoteGpios.size());
+            }
 #endif // USE_REMOTE_GPIOS
 
 #ifdef USE_TRAFFIC_LIGHT_LEDS
-                if (deviceType == "LEDS Traffic Light")
+            if (deviceType == "LEDS Traffic Light")
+            {
+                Serial.println("LEDS Traffic Light");
+
+                int gpioLedRed    = -1;
+                int gpioLedYellow = -1;
+                int gpioLedGreen  = -1;
+
+                for (JsonVariant property : arrPins)
                 {
-                    Serial.println("LEDS Traffic Light");
+                    String propertyName  = property["PinName"];
+                    String propertyValue = property["MicrocontrollerGpoPin"];
+                    Serial.println("propertyName: " + propertyName + ", propertyValue: " + propertyValue);
 
-                    int gpioLedRed    = -1;
-                    int gpioLedYellow = -1;
-                    int gpioLedGreen  = -1;
-
-                    for (JsonVariant property : arrPins)
+                    if (propertyName == "R")
                     {
-                        String propertyName  = property["PinName"];
-                        String propertyValue = property["MicrocontrollerGpoPin"];
-                        Serial.println("propertyName: " + propertyName + ", propertyValue: " + propertyValue);
-
-                        if (propertyName == "R")
-                        {
-                            gpioLedRed = std::stoi(propertyValue.c_str());
-                            Serial.println("Red Gpio: " + gpioLedRed);
-                        }
-                        else if (propertyName == "Y")
-                        {
-                            gpioLedYellow = std::stoi(propertyValue.c_str());
-                            Serial.println("Yellow Gpio: " + gpioLedYellow);
-                        }
-                        else if (propertyName == "G")
-                        {
-                            gpioLedGreen = std::stoi(propertyValue.c_str());
-                            Serial.println("Green Gpio: " + gpioLedGreen);
-                        }
+                        gpioLedRed = std::stoi(propertyValue.c_str());
+                        Serial.println("Red Gpio: " + gpioLedRed);
                     }
-
-                    if (gpioLedRed != -1 && gpioLedYellow != -1 && gpioLedGreen != -1)
+                    else if (propertyName == "Y")
                     {
-                        trafficLightLeds.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), gpioLedRed, gpioLedYellow, gpioLedGreen);
+                        gpioLedYellow = std::stoi(propertyValue.c_str());
+                        Serial.println("Yellow Gpio: " + gpioLedYellow);
+                    }
+                    else if (propertyName == "G")
+                    {
+                        gpioLedGreen = std::stoi(propertyValue.c_str());
+                        Serial.println("Green Gpio: " + gpioLedGreen);
                     }
                 }
+
+                if (gpioLedRed != -1 && gpioLedYellow != -1 && gpioLedGreen != -1)
+                {
+                    trafficLightLeds.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), gpioLedRed, gpioLedYellow, gpioLedGreen);
+                }
+            }
 #endif // USE_TRAFFIC_LIGHT_LEDS
 
 #ifdef USE_HW040
-                if (deviceType == "HW-040")
+            if (deviceType == "HW-040")
+            {
+                Serial.println("HW-040 rotary encoder");
+                int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
+                int dtPin  = arrPins[1]["MicrocontrollerGpoPin"];
+                int swPin  = arrPins[2]["MicrocontrollerGpoPin"];
+
+                int  boundaryMinValue = 0;
+                int  boundaryMaxValue = 255;
+                bool circleValues     = false;
+                int  acceleration     = 250;
+                int  encoderSteps     = 2;
+                for (JsonVariant property : arrProperties)
                 {
-                    Serial.println("HW-040 rotary encoder");
-                    int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    int dtPin  = arrPins[1]["MicrocontrollerGpoPin"];
-                    int swPin  = arrPins[2]["MicrocontrollerGpoPin"];
+                    String propertyName  = property["Name"];
+                    String propertyValue = property["Value"];
 
-                    int  boundaryMinValue = 0;
-                    int  boundaryMaxValue = 255;
-                    bool circleValues     = false;
-                    int  acceleration     = 250;
-                    int  encoderSteps     = 2;
-                    for (JsonVariant property : arrProperties)
+                    if (propertyName == "BoundaryMinValue")
                     {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
-
-                        if (propertyName == "BoundaryMinValue")
-                        {
-                            boundaryMinValue = std::stoi(propertyValue.c_str());
-                        }
-
-                        if (propertyName == "BoundaryMaxValue")
-                        {
-                            boundaryMaxValue = std::stoi(propertyValue.c_str());
-                        }
-
-                        if (propertyName == "Acceleration")
-                        {
-                            acceleration = std::stoi(propertyValue.c_str());
-                        }
-
-                        if (propertyName == "EncoderSteps")
-                        {
-                            encoderSteps = std::stoi(propertyValue.c_str());
-                        }
-
-                        if (propertyName == "CircleValue")
-                        {
-                            circleValues = propertyValue == "true";
-                        }
+                        boundaryMinValue = std::stoi(propertyValue.c_str());
                     }
 
-                    hw040Handling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), boundaryMinValue, boundaryMaxValue, circleValues,
-                                            acceleration, encoderSteps, clkPin, dtPin, swPin, -1);
-                    Serial.println("HW-040 rotary encoder initialized! CLK Pin is " + String(clkPin) + ", DT Pin is " + String(dtPin) +
-                                   ", MS Pin is " + String(swPin) + ", boundaryMinValue is " + String(boundaryMinValue) + ", boundaryMaxValue is " +
-                                   String(boundaryMaxValue) + ", acceleration is " + String(acceleration) + ", circleValues is " +
-                                   String(circleValues) + ", encoderSteps is " + String(encoderSteps));
+                    if (propertyName == "BoundaryMaxValue")
+                    {
+                        boundaryMaxValue = std::stoi(propertyValue.c_str());
+                    }
+
+                    if (propertyName == "Acceleration")
+                    {
+                        acceleration = std::stoi(propertyValue.c_str());
+                    }
+
+                    if (propertyName == "EncoderSteps")
+                    {
+                        encoderSteps = std::stoi(propertyValue.c_str());
+                    }
+
+                    if (propertyName == "CircleValue")
+                    {
+                        circleValues = propertyValue == "true";
+                    }
                 }
+
+                hw040Handling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), boundaryMinValue, boundaryMaxValue, circleValues,
+                                        acceleration, encoderSteps, clkPin, dtPin, swPin, -1);
+                Serial.println("HW-040 rotary encoder initialized! CLK Pin is " + String(clkPin) + ", DT Pin is " + String(dtPin) + ", MS Pin is " +
+                               String(swPin) + ", boundaryMinValue is " + String(boundaryMinValue) + ", boundaryMaxValue is " +
+                               String(boundaryMaxValue) + ", acceleration is " + String(acceleration) + ", circleValues is " + String(circleValues) +
+                               ", encoderSteps is " + String(encoderSteps));
+            }
 #endif // USE_HW040
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
-                if (deviceType == "BleHeartRateSensor")
+            if (deviceType == "BleHeartRateSensor")
+            {
+                uint8_t advertisingTimeoutSeconds = 30;
+                for (JsonVariant property : arrProperties)
                 {
-                    uint8_t advertisingTimeoutSeconds = 30;
-                    for (JsonVariant property : arrProperties)
+                    String propertyName = property["Name"];
+
+                    if (propertyName == "AdvertisingTimeoutSeconds")
                     {
-                        String propertyName = property["Name"];
-
-                        if (propertyName == "AdvertisingTimeoutSeconds")
-                        {
-                            advertisingTimeoutSeconds = property["Value"].as<uint8_t>();
-                        }
+                        advertisingTimeoutSeconds = property["Value"].as<uint8_t>();
                     }
-
-                    heartRateSensor = new HeartRateSensor(deviceIndex, settings, mqttClient, getBaseTopic(), advertisingTimeoutSeconds);
-                    connectToHeartRateSensor(advertisingTimeoutSeconds);
                 }
-#endif // USE_BLE_HEART_RATE_SENSOR
+
+                heartRateSensor = new HeartRateSensor(deviceIndex, settings, mqttClient, getBaseTopic(), advertisingTimeoutSeconds);
+                connectToHeartRateSensor(advertisingTimeoutSeconds);
             }
+#endif // USE_BLE_HEART_RATE_SENSOR
         }
     }
-    Serial.println("Configuration is loaded");
 }
 
 #if defined(USE_REST_SERVER)
-#if defined(USE_MQTT) || defined(USE_MQTT2)
+#if defined(USE_MQTT)
 void handleGetAlive()
 {
     Serial.println("Get alive");
@@ -1806,70 +1770,18 @@ void notifyCallbackHeartRate(NimBLERemoteCharacteristic* pBLERemoteCharacteristi
         Serial.println("Pulse: " + String(data[1]));
     }
 
-#ifdef USE_EXERCISE_BIKE_STANDALONE
-#ifdef USE_TM1637_4
-    auto displayPulse = displays1637_4.begin();
-    displayPulse->showNumber(data[1]);
-#endif
-#endif
-
-#if defined(USE_MQTT) || defined(USE_MQTT2)
+#if defined(USE_MQTT)
     String topic = getBaseTopic() + "/pulse/0";
-#ifdef USE_KY025
-    if (rpm > 54.5 && rpm < 56)
-    {
-        topic = getBaseTopic() + "/pulse/0/pulse_rpm_55";
-    }
-    else if (rpm > 59.5 && rpm < 61)
-    {
-        topic = getBaseTopic() + "/pulse/0/pulse_rpm_60";
-    }
-    else if (rpm > 64.5 && rpm < 66)
-    {
-        topic = getBaseTopic() + "/pulse/0/pulse_rpm_65";
-    }
-    else if (rpm > 69.5 && rpm < 71)
-    {
-        topic = getBaseTopic() + "/pulse/0/pulse_rpm_70";
-    }
-    else if (rpm > 74.5 && rpm < 76)
-    {
-        topic = getBaseTopic() + "/pulse/0/pulse_rpm_75";
-    }
-    else if (rpm > 79.5 && rpm < 81)
-    {
-        topic = getBaseTopic() + "/pulse/0/pulse_rpm_80";
-    }
-    else if (rpm > 84.5 && rpm < 86)
-    {
-        topic = getBaseTopic() + "/pulse/0/pulse_rpm_85";
-    }
-    else if (rpm > 89.5 && rpm < 91)
-    {
-        topic = getBaseTopic() + "/pulse/0/pulse_rpm_90";
-    }
-    else if (rpm > 94.5 && rpm < 96)
-    {
-        topic = getBaseTopic() + "/pulse/0/pulse_rpm_95";
-    }
-    else if (rpm > 99.5 && rpm < 100)
-    {
-        topic = getBaseTopic() + "/pulse/0/pulse_rpm_100";
-    }
-
-#endif
-    mqttClient->publish(topic.c_str(), String(data[1]).c_str()); // Pulse
+    mqttClient->publish(topic.c_str(), String(data[1]).c_str()); // Pulse ❤️
 #endif
 }
-#endif // USE_BLE_HEART_RATE_SENSOR
 
-#ifdef USE_BLE_HEART_RATE_SENSOR
 void connectToHeartRateSensor(int advertisingTimeout)
 {
     String topic = getBaseTopic() + "/pulse/0/scan_started";
-#ifdef USE_MQTT2
-    mqttClient->publish(topic, "BLE scan started to find advertising heart rate sensor. Timeout is set to " + String(timeOut) + " s.");
-#endif
+
+    mqttClient->publish(topic, "BLE scan started to find advertising heart rate sensor. Timeout is set to " + String(advertisingTimeout) + " s.");
+
     if (nullptr != heartRateSensor)
     {
         heartRateSensor->setup(notifyCallbackHeartRate, // Callback method, called on heart rate received
@@ -1907,7 +1819,7 @@ void setup()
     // Routing REST Server
 
     // REST interface
-#if defined(USE_MQTT) || defined(USE_MQTT2)
+#if defined(USE_MQTT)
     webServer.on("/alive", HTTP_GET, handleGetAlive);
 #endif
     webServer.on("/deviceConfig", HTTP_GET, handleGetDeviceConfig);
@@ -1932,7 +1844,7 @@ void setup()
     tm1637_6Handling.setup();
 #endif
 
-#if defined(USE_MQTT) || defined(USE_MQTT2)
+#if defined(USE_MQTT)
     char* mqttClientName = new char[18]();
 
     for (int i = 0; i < 17; i++)
@@ -1951,13 +1863,6 @@ void setup()
     mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, nullptr, nullptr, 1883);
 
     Serial.println("BaseTopic: " + getBaseTopic());
-#ifdef USE_MQTT2
-    mqttClient->setup(macAddress);
-
-    String topicDeviceStatus = getBaseTopic() + "/status";
-    mqttClient->subscribe(topicDeviceStatus, onStatusRequested2, 0);
-#endif
-
 #endif
     makeInstanceConfiguredDevices();
     lastAliveTime = millis() - settings->getAliveIntervalMillis();
@@ -1982,47 +1887,6 @@ void publishViaMqtt(const String& topicName, const String& payload)
     Serial.println(payload);
     mqttClient->publish(topicName, payload);
 }
-#endif
-
-#ifdef USE_DS18B20
-void loopDS18B20()
-{
-    if (nullptr == ds18B20SensorManager)
-    {
-        return;
-    }
-    if (millis() - ds18B20SensorManager->getLastPublishedTemperatureMillis() < ds18B20SensorManager->getInterval())
-    {
-        return;
-    }
-
-    ds18B20SensorManager->setLastPublishedTemperatureMillis(millis());
-
-    if (nullptr != ds18B20SensorManager)
-    {
-        std::vector<float> temperatures = ds18B20SensorManager->requestTemperatures();
-        Serial.println("Count of Temperature sensors: " + String(temperatures.size()));
-        int indexTemperatureSensor = 0;
-
-        for (const auto& temperatureCelsius : temperatures)
-        {
-            String topic = getBaseTopic() + "/ds18b20_manager/0/sensor/" + String(indexTemperatureSensor) + "/celsius";
-
-            Serial.print(topic + "/" + String(temperatureCelsius));
-            Serial.println(" ºC");
-            if (temperatureCelsius != DEVICE_DISCONNECTED_C)
-            {
-                mqttClient->publish(topic, String(temperatureCelsius, 1));
-            }
-            else
-            {
-                mqttClient->publish(topic, "device is not ready");
-            }
-            indexTemperatureSensor++;
-        }
-    }
-}
-
 #endif
 
 /// @brief Register all from this microcontroller supported topics at the IOTZOO client.
@@ -2082,6 +1946,13 @@ void registerTopics()
 
 #ifdef USE_BUTTON
     buttonHandling.addMqttTopicsToRegister(&topics);
+#endif
+
+#ifdef USE_KY025
+    if (nullptr != ky025)
+    {
+        ky025->addMqttTopicsToRegister(&topics);
+    }
 #endif
 
 #ifdef USE_BUZZER
@@ -2173,15 +2044,7 @@ void registerTopics()
 #ifdef USE_DS18B20
     if (nullptr != ds18B20SensorManager)
     {
-        Serial.println("Register temperature sensors.");
-        // std::list<float> temperatures = ds18B20SensorManager->requestTemperatures();
-        int index = 0;
-        // for (auto &temperature : temperatures)
-        for (int index = 0; index < 10; index++)
-        {
-            topics.emplace_back(getBaseTopic() + "/ds18b20_manager/0/sensor/" + String(index) + "/celsius",
-                                "The Temperature in °C of Sensor " + String(index), MessageDirection::IotZooClientInbound);
-        }
+        ds18B20SensorManager->addMqttTopicsToRegister(&topics);
     }
 #endif // USE_DS18B20
 
@@ -2282,6 +2145,7 @@ void loop()
     try
     {
         lastLoopStartTime = millis();
+        Serial.print("_");
         loopCounter++;
 
         if (doRestart)
@@ -2289,7 +2153,7 @@ void loop()
             restart();
         }
 
-#if defined(USE_MQTT) || defined(USE_MQTT2)
+#if defined(USE_MQTT)
         mqttClient->loop();
         if (millis() - lastLoopStartTime > 10000)
         {
@@ -2375,13 +2239,6 @@ void loop()
         webServer.handleClient();
 #endif
 
-#ifdef USE_MQTT2
-        if (!mqttClient->isConnected())
-        {
-            mqttClient->connectToBroker(macAddress);
-        }
-#endif
-
         // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         // The preconditions are fulfilled (MQTT connected).
 
@@ -2397,7 +2254,10 @@ void loop()
 #endif
 
 #ifdef USE_DS18B20
-        loopDS18B20();
+        if (nullptr != ds18B20SensorManager)
+        {
+            ds18B20SensorManager->loop();
+        }
 #endif // USE_DS18B20
 
 #ifdef USE_HB0014
@@ -2450,7 +2310,7 @@ void loop()
         }
 #endif // USE_RD_03D
 
-#if defined(USE_MQTT) || defined(USE_MQTT2) && !defined(USE_BLE_HEART_RATE_SENSOR)
+#if defined(USE_MQTT)
         try
         {
             if (millis() - lastAliveTime > settings->getAliveIntervalMillis())
