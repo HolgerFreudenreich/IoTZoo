@@ -48,6 +48,9 @@ namespace IotZoo
     {
         size_t bytesRead = 0;
         i2s_read(I2S_NUM_0, i2sBuffer, sizeof(i2sBuffer), &bytesRead, portMAX_DELAY);
++
+        // Serial.println("Bytes read from I2S: " + String(bytesRead));
+
         int sampleCount = bytesRead / sizeof(int32_t);
 
         for (int i = 0; i < sampleCount; i++)
@@ -84,17 +87,17 @@ namespace IotZoo
                             */
                     if (features & AudioStreamerFeatures::Streaming)
                     {
-                        mqttClient->publish("iotzoo/picea/esp32/1C:69:20:EA:3C:E8/audio_stream/0/pcm", (uint8_t*)chunkBuffer,
+                        mqttClient->publish(baseTopic + "/audio_stream/" + getDeviceIdex() + "/pcm", (uint8_t*)chunkBuffer,
                                             CHUNK_SIZE * sizeof(int16_t), false);
                     }
                     if (features & AudioStreamerFeatures::SoundLevelRms)
                     {
-                        mqttClient->publish("iotzoo/picea/esp32/1C:69:20:EA:3C:E8/audio_stream/0/sound_level_rms", strRms);
+                        mqttClient->publish(baseTopic + "/audio_stream/" + getDeviceIdex() + "/sound_level_rms", strRms);
                     }
                     if (features & AudioStreamerFeatures::SoundLevelDecibel)
                     {
                         double decibel = rmsToDecibel(rms);
-                        mqttClient->publish("iotzoo/picea/esp32/1C:69:20:EA:3C:E8/audio_stream/0/sound_level_decibel", String(decibel, 0));
+                        mqttClient->publish(baseTopic + "/audio_stream/" + getDeviceIdex() + "/sound_level_decibel", String(decibel, 0));
                     }
                 }
                 bufferIndex = 0; // collect next chunk.
@@ -106,16 +109,16 @@ namespace IotZoo
     {
         if (features & AudioStreamerFeatures::Streaming)
         {
-            topics->emplace_back(baseTopic + "/audio_stream/0/pcm", "pcm stream", MessageDirection::IotZooClientInbound);
+            topics->emplace_back(baseTopic + "/audio_stream/" + getDeviceIdex() + "/pcm", "pcm stream", MessageDirection::IotZooClientInbound);
         }
         if (features & AudioStreamerFeatures::SoundLevelRms)
         {
-            topics->emplace_back(baseTopic + "/audio_stream/0/sound_level_rms", "380 -> absolutely quiet, > 10000 extrem loud",
+            topics->emplace_back(baseTopic + "/audio_stream/ " + getDeviceIndex() + "/sound_level_rms", "380 -> absolutely quiet, > 10000 extrem loud",
                                  MessageDirection::IotZooClientInbound);
         }
         if (features & AudioStreamerFeatures::SoundLevelDecibel)
         {
-            topics->emplace_back(baseTopic + "/audio_stream/0/sound_level_rms", "10 -> absolutely quiet, > 100 extrem loud",
+            topics->emplace_back(baseTopic + "/audio_stream/ " + getDeviceIdex() + "/sound_level_rms", "10 -> absolutely quiet, > 100 extrem loud",
                                  MessageDirection::IotZooClientInbound);
         }
     }

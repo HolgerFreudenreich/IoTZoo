@@ -58,6 +58,10 @@ namespace IotZoo
         {
             level = 4;
         }
+        else if (subject.indexOf("rang") > -1) // purple
+        {
+            level = 5;
+        }
         Serial.println("level: " + String(level));
         return level;
     }
@@ -65,7 +69,10 @@ namespace IotZoo
     void AlarmZonesDeviceExtension::onAlarmReceived(const String& subject)
     {
         Serial.println("onAlarmReceived subject: " + subject);
-        uint level      = getAlarmLevel(subject);
+        String subjectLocal = subject;
+        subjectLocal.toLowerCase();
+
+        uint level      = getAlarmLevel(subjectLocal);
         uint brightness = 4;
         if (level == 0)
         {
@@ -79,7 +86,7 @@ namespace IotZoo
         if (level == 1)
         {
             color = pixelMatrix->getPixels()->Color(255, 175, 0); // motion -> yellow/orange
-            return;                                               // ignore motion
+           // return;                                               // ignore motion
         }
         else if (level == 2)
         {
@@ -93,61 +100,64 @@ namespace IotZoo
         {
             color = pixelMatrix->getPixels()->Color(255, 0, 0); // person -> red
         }
+        else if (level == 5)
+        {
+            color = pixelMatrix->getPixels()->Color(128, 0, 128); // alarm rang -> purple
+        }
 
         if (pixelMatrix->GetNumberOfLedsPerColumn() == 8 && pixelMatrix->GetNumberOfLedsPerRow() == 8)
         {
-
-            if (subject.indexOf("Dachboden") > -1)
+            if (subjectLocal.indexOf("dachboden") > -1)
             {
                 pixelMatrix->setPixelColor(color, 27, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 34, 3, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Schuppen") > -1)
+            else if (subjectLocal.indexOf("schuppen") > -1)
             {
                 pixelMatrix->setPixelColor(color, 51, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 58, 3, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Vorne") > -1)
+            else if (subjectLocal.indexOf("vorne") > -1)
             {
                 pixelMatrix->setPixelColor(color, 0, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 13, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 16, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 29, 3, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Hinten") > -1)
+            else if (subjectLocal.indexOf("hinten") > -1)
             {
                 pixelMatrix->setPixelColor(color, 21, 1, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 26, 1, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 37, 1, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 42, 1, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Terrasse") > -1)
+            else if (subjectLocal.indexOf("terrasse") > -1)
             {
                 pixelMatrix->setPixelColor(color, 2, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 11, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 18, 3, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Parkplatz") > -1)
+            else if (subjectLocal.indexOf("parkplatz") > -1)
             {
                 pixelMatrix->setPixelColor(color, 32, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 44, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 48, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 60, 4, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Garten") > -1)
+            else if (subjectLocal.indexOf("garten") > -1)
             {
                 pixelMatrix->setPixelColor(color, 42, 2, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 52, 2, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 58, 2, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Westen") > -1)
+            else if (subjectLocal.indexOf("westen") > -1)
             {
                 pixelMatrix->setPixelColor(color, 52, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 41, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 36, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 25, 3, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Osten") > -1)
+            else if (subjectLocal.indexOf("osten") > -1)
             {
                 pixelMatrix->setPixelColor(color, 21, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 24, 3, brightness, millisUntilTurnOff);
@@ -156,7 +166,7 @@ namespace IotZoo
                 pixelMatrix->setPixelColor(color, 52, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 56, 4, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Feld") > -1)
+            else if (subjectLocal.indexOf("feld") > -1)
             {
                 pixelMatrix->setPixelColor(color, 7, 1, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 8, 1, brightness, millisUntilTurnOff);
@@ -167,10 +177,14 @@ namespace IotZoo
                 pixelMatrix->setPixelColor(color, 55, 1, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 56, 1, brightness, millisUntilTurnOff);
             }
+            else if (subjectLocal.indexOf("klingel") > -1)
+            {
+                pixelMatrix->setPixelColor(color, 4, 3, brightness, millisUntilTurnOff);
+            }
         }
         else if (pixelMatrix->GetNumberOfLedsPerColumn() == 16 && pixelMatrix->GetNumberOfLedsPerRow() == 16)
         {
-            if (subject.indexOf("Dachboden") > -1)
+            if (subjectLocal.indexOf("dachboden") > -1)
             {
                 pixelMatrix->setPixelColor(color, 102, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 118, 4, brightness, millisUntilTurnOff);
@@ -179,7 +193,7 @@ namespace IotZoo
                 pixelMatrix->setPixelColor(color, 166, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 182, 4, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Schuppen") > -1)
+            else if (subjectLocal.indexOf("schuppen") > -1)
             {
                 pixelMatrix->setPixelColor(color, 93, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 96, 3, brightness, millisUntilTurnOff);
@@ -187,25 +201,25 @@ namespace IotZoo
                 pixelMatrix->setPixelColor(color, 128, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 157, 3, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Garten") > -1)
+            else if (subjectLocal.indexOf("garten") > -1)
             {
                 pixelMatrix->setPixelColor(color, 128, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 157, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 160, 3, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Vorne") > -1)
+            else if (subjectLocal.indexOf("vorne") > -1)
             {
                 pixelMatrix->setPixelColor(color, 6, 10, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 16, 9, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 40, 8, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Hinten") > -1)
+            else if (subjectLocal.indexOf("hinten") > -1)
             {
                 pixelMatrix->setPixelColor(color, 146, 12, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 162, 12, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 178, 12, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Terrasse") > -1)
+            else if (subjectLocal.indexOf("terrasse") > -1)
             {
                 pixelMatrix->setPixelColor(color, 77, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 80, 3, brightness, millisUntilTurnOff);
@@ -213,7 +227,7 @@ namespace IotZoo
                 pixelMatrix->setPixelColor(color, 112, 3, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 141, 3, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Parkplatz") > -1)
+            else if (subjectLocal.indexOf("parkplatz") > -1)
             {
                 pixelMatrix->setPixelColor(color, 0, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 28, 4, brightness, millisUntilTurnOff);
@@ -221,7 +235,7 @@ namespace IotZoo
                 pixelMatrix->setPixelColor(color, 60, 4, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 64, 4, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Westen") > -1)
+            else if (subjectLocal.indexOf("westen") > -1)
             {
                 pixelMatrix->setPixelColor(color, 161, 8, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 183, 8, brightness, millisUntilTurnOff);
@@ -229,7 +243,7 @@ namespace IotZoo
                 pixelMatrix->setPixelColor(color, 215, 8, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 225, 8, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Osten") > -1)
+            else if (subjectLocal.indexOf("osten") > -1)
             {
                 pixelMatrix->setPixelColor(color, 168, 6, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 178, 6, brightness, millisUntilTurnOff);
@@ -238,9 +252,14 @@ namespace IotZoo
                 pixelMatrix->setPixelColor(color, 232, 6, brightness, millisUntilTurnOff);
                 pixelMatrix->setPixelColor(color, 242, 6, brightness, millisUntilTurnOff);
             }
-            else if (subject.indexOf("Feld") > -1)
+            else if (subjectLocal.indexOf("feld") > -1)
             {
                 pixelMatrix->setPixelColor(color, 240, 16, brightness, millisUntilTurnOff);
+            }
+            else if (subjectLocal.indexOf("klingel") > -1)
+            {
+                pixelMatrix->setPixelColor(color, 6, 5, brightness, millisUntilTurnOff);
+                pixelMatrix->setPixelColor(color, 21, 5, brightness, millisUntilTurnOff);
             }
         }
         pixelMatrix->getPixels()->show();
