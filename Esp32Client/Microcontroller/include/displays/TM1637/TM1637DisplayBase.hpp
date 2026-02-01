@@ -139,6 +139,7 @@ namespace IotZoo
 
         void setServerDownText(const String& serverDownText)
         {
+            Serial.println("TM1637DisplayBase::setServerDownText: " + serverDownText);
             this->serverDownText = serverDownText;
         }
 
@@ -148,7 +149,7 @@ namespace IotZoo
         }
 
       protected:
-        String serverDownText = "-";
+        String serverDownText = "----";
     };
 
 } // namespace IotZoo

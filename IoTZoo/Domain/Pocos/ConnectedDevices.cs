@@ -445,6 +445,23 @@ public static class ConnectedDevices
         };
     }
 
+    public static ConnectedDevice FromUvSensor()
+    {
+        return new ConnectedDevice
+        {
+            IsEnabled = true,
+            DeviceType = "UV",
+            Pins = new List<DevicePin>
+                              {
+                                 new DevicePin
+                                 {
+                                    MicrocontrollerGpoPin = "34",
+                                    PinName               = "ADC_PIN"
+                                 }
+                              }
+        };
+    }
+
     public static ConnectedDevice FromReedContact()
     {
         return new ConnectedDevice

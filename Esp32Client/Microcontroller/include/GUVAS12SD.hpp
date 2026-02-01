@@ -32,6 +32,10 @@ namespace IotZoo
                 this->pinAdc = 35; // Fallback ADC Pin
                 Serial.println("Warning: pinAdc was 0, set to default pin 35.");
             }
+
+            analogSetPinAttenuation(this->pinAdc, ADC_11db);
+            analogReadResolution(12); // 0..4095
+
             Serial.println("Constructor UV Sensor pinAdc: " + String(pinAdc));
         }
 
@@ -63,7 +67,7 @@ namespace IotZoo
                 Serial.println(uvIndex);
                 mqttClient->publish(getBaseTopic() + "/uv/" + String(deviceIndex), String(uvIndex, 3U));
                 lastLoopMillis = millis();
-            }          
+            }
         }
 
       protected:

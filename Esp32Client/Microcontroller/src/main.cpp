@@ -164,7 +164,7 @@ enum class DayMode
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.2.3";
+String firmwareVersion = "0.2.4";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -665,6 +665,9 @@ void publishAliveMessage()
 /// @param rawData
 void onAliveAck(const String& rawData)
 {
+    Serial.println("Received alive_ack: " + rawData + ", millis: " + String(millis()));
+
+    lastServerAliveMillis = millis();
     if (rawData.length() > 0)
     {
         if (rawData != "0")
@@ -681,9 +684,6 @@ void onAliveAck(const String& rawData)
                 }
             }
         }
-        Serial.println("Received alive_ack: " + rawData + ", millis: " + String(millis()));
-
-        lastServerAliveMillis = millis();
     }
 }
 
