@@ -445,12 +445,12 @@ public static class ConnectedDevices
         };
     }
 
-    public static ConnectedDevice FromUvSensor()
+    public static ConnectedDevice FromAnalogPin()
     {
         return new ConnectedDevice
         {
             IsEnabled = true,
-            DeviceType = "UV",
+            DeviceType = "ADC",
             Pins = new List<DevicePin>
                               {
                                  new DevicePin
@@ -458,7 +458,11 @@ public static class ConnectedDevices
                                     MicrocontrollerGpoPin = "34",
                                     PinName               = "ADC_PIN"
                                  }
-                              }
+                              },
+            PropertyValues = new List<PropertyValue>()
+                          {
+                             new PropertyValue {Name = "IntervalMs", Value = "1000"},
+                          }
         };
     }
 

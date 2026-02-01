@@ -11,7 +11,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
 
-#ifdef USE_UV
+#ifdef USE_ANALOG_INPUT_PIN
 
 #pragma once
 
@@ -19,27 +19,29 @@
 
 namespace IotZoo
 {
-    class UvSensorGUVAS12SD : public DeviceBase
+    // Use 3.3 Volt as reference voltage! 5.0 Volt will damage the ESP32 ADC pin!
+    class AnalogInputPin : public DeviceBase
     {
       public:
-        UvSensorGUVAS12SD(int deviceIndex, IotZoo::Settings* const settings, IotZoo::MqttClient* const mqttClient, const String& baseTopic,
-                          uint8_t pinAdc)
+        AnalogInputPin(int deviceIndex, IotZoo::Settings* const settings, IotZoo::MqttClient* const mqttClient, const String& baseTopic,
+                       uint8_t pinAdc, uint32_t intervalMs)
             : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
         {
             this->pinAdc = pinAdc;
+            this->intervalMs = intervalMs;
             if (pinAdc == 0)
             {
                 this->pinAdc = 35; // Fallback ADC Pin
                 Serial.println("Warning: pinAdc was 0, set to default pin 35.");
             }
-
+            
             analogSetPinAttenuation(this->pinAdc, ADC_11db);
             analogReadResolution(12); // 0..4095
 
-            Serial.println("Constructor UV Sensor pinAdc: " + String(pinAdc));
+            Serial.println("Constructor AnalogInputPin pinAdc: " + String(pinAdc));
         }
 
-        ~UvSensorGUVAS12SD() override
+        ~AnalogInputPin() override
         {
             Serial.println("Destructor UV Sensor on Pin " + String(pinAdc));
         }
@@ -48,33 +50,32 @@ namespace IotZoo
         /// @param topics
         void addMqttTopicsToRegister(std::vector<IotZoo::Topic>* const topics) const override
         {
-            topics->emplace_back(getBaseTopic() + "/uv/" + String(deviceIndex), "3.4", MessageDirection::IotZooClientInbound);
+            topics->emplace_back(getBaseTopic() + "/volt/" + String(deviceIndex), "3.3", MessageDirection::IotZooClientInbound);
         }
 
         void loop() override
         {
-            if (millis() - lastLoopMillis > 5000)
+            if (millis() - lastLoopMillis > intervalMs)
             {
                 float analogSignal = analogRead(pinAdc);
                 float voltage      = analogSignal * 3.3 / 4095.0;
-                uvIndex            = voltage / 0.1;
 
                 Serial.print("Signal: ");
                 Serial.println(analogSignal);
                 Serial.print("Volt: ");
                 Serial.println(voltage, 3);
-                Serial.print("UV-Index: ");
-                Serial.println(uvIndex);
-                mqttClient->publish(getBaseTopic() + "/uv/" + String(deviceIndex), String(uvIndex, 3U));
+                mqttClient->publish(getBaseTopic() + "/volt/" + String(deviceIndex), String(voltage, 3U));
+
                 lastLoopMillis = millis();
-            }
+            }            
         }
 
       protected:
         uint8_t       pinAdc;
+        uint32_t      intervalMs;
         float         uvIndex;
         unsigned long lastLoopMillis = 0;
     };
 
 } // namespace IotZoo
-#endif // USE_UV
+#endif // USE_ANALOG_INPUT_PIN
