@@ -248,10 +248,10 @@ IotZoo::TM1637_6_Handling tm1637_6Handling;
 Max7219* max7219;
 #endif // USE_MAX7219
 
-#ifdef USE_UV
-#include "GUVAS12SD.hpp"
-UvSensorGUVAS12SD* uvSensorGUVAS12SD = nullptr;
-#endif // USE_UV
+#ifdef USE_ANALOG_INPUT_PIN
+#include "AnalogInputPin.hpp"
+std::vector<AnalogInputPin> analogInputPins;
+#endif // USE_ANALOG_INPUT_PIN
 
 #if defined(USE_MQTT)
 const String NamespaceNameFallback = "iotzoo";
@@ -492,10 +492,10 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
 #else
     jsonObjectSupportedDevices["TM1637_6"] = false;
 #endif
-#ifdef USE_UV
-    jsonObjectSupportedDevices["UV"] = true;
+#ifdef USE_ANALOG_INPUT_PIN
+    jsonObjectSupportedDevices["AnalogInputPins"] = true;
 #else
-    jsonObjectSupportedDevices["UV"] = false;
+    jsonObjectSupportedDevices["AnalogInputPins"] = false;
 #endif
 #ifdef USE_LED_AND_KEY
     jsonObjectSupportedDevices["TM1638LedAndKey"] = true;
@@ -796,12 +796,12 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     buttonHandling.onMqttConnectionEstablished();
 #endif
 
-#ifdef USE_UV
-    if (nullptr != uvSensorGUVAS12SD)
+#ifdef USE_ANALOG_INPUT_PIN
+    for (auto& analogInputPin : analogInputPins)
     {
-        uvSensorGUVAS12SD->onMqttConnectionEstablished();
+        analogInputPin.onMqttConnectionEstablished();
     }
-#endif // USE_UV
+#endif // USE_ANALOG_INPUT_PIN
 
 #ifdef USE_AUDIO_STREAMER
     if (nullptr != audioStreamer)
@@ -1187,14 +1187,36 @@ void makeInstanceConfiguredDevices()
                 }
 #endif // USE_KEYPAD
 
-#ifdef USE_UV
-                if (deviceType == "UV")
+#ifdef USE_ANALOG_INPUT_PIN
+                if (deviceType == "ADC")
                 {
-                    int analogPin     = arrPins[0]["MicrocontrollerGpoPin"];
-                    uvSensorGUVAS12SD = new UvSensorGUVAS12SD(deviceIndex, settings, mqttClient, getBaseTopic(), analogPin);
-                    Serial.println("UV Sensor initialized on pin " + String(analogPin) + ".");
+                    int   analogPin  = arrPins[0]["MicrocontrollerGpoPin"];
+                    u16_t intervalMs = 1000;
+                    for (JsonVariant property : arrProperties)
+                    {
+                        String propertyName  = property["Name"];
+                        String propertyValue = property["Value"];
+                        if (propertyName == "Interval")
+                        {
+                            intervalMs = propertyValue.toInt();
+                        }
+                    }
+
+                    if (analogPin != 32 && analogPin != 33 && analogPin != 34 && analogPin != 35 && analogPin != 36 && analogPin != 39)
+                    {
+                        Serial.println("Warning: analogPin " + String(analogPin) +
+                                       " is not an ADC pin (34, 35, 36, 39 are valid ADC pins on ESP32)!");
+                        mqttClient->publish(getBaseTopic() + "/error/" + String(deviceIndex),
+                                            "Warning: pinAdc is not an ADC pin (32, 33 34, 35, 36, 39 are valid ADC pins on ESP32)!");
+                        continue;
+                    }
+                    else
+                    {
+                        analogInputPins.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), analogPin, intervalMs);
+                        Serial.println("Analog Input Pin initialized on pin " + String(analogPin) + ".");
+                    }
                 }
-#endif // USE_UV
+#endif // USE_ANALOG_INPUT_PIN
 
 #ifdef USE_STEPPER_MOTOR
                 if (deviceType == "28BY48Stepper")
@@ -2211,12 +2233,12 @@ void loop()
         buttonHandling.loop();
 #endif
 
-#ifdef USE_UV
-        if (nullptr != uvSensorGUVAS12SD)
+#ifdef USE_ANALOG_INPUT_PIN
+        for (auto& analogInputPin : analogInputPins)
         {
-            uvSensorGUVAS12SD->loop();
+            analogInputPin.loop();
         }
-#endif // USE_UV
+#endif // USE_ANALOG_INPUT_PIN
 
 #ifdef USE_KY025
         if (nullptr != ky025)
