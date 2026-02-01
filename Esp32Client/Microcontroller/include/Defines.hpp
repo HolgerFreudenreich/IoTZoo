@@ -53,7 +53,7 @@ namespace IotZoo
 // #define USE_TM1637_6             // 6 digits display. You can connect up to 10 items. Default Pins: CLK: 14, DIO: 27
 //#define USE_MAX7219 // 8x8 Led Dot Matrix, Default Poins: Data: 27, CLK: 25, CS: 26
 #define USE_BUZZER
-
+#define USE_UV // GUVA-S12SD Ultraviolet Sensor | Default Pins: ADC: Pin 35
 // #define USE_BLE_HEART_RATE_SENSOR // Bluetooth hearte rate sensor. Needs alot of the available RAM so do not use to many other defines!
 
 // A special project that must function without an Internet connection. Exercise bike with display Display of heart rate, pedaling speed and

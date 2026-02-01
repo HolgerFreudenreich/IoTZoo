@@ -69,6 +69,21 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
         }
     }
 
+    protected async Task AddUvSensor()
+    {
+        try
+        {
+            Snackbar.Add("Adding UV sensor configuration to the microcontroller...", Severity.Info);
+            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromUvSensor());
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
+        }
+    }
+
     protected async Task AddReedContact()
     {
         try

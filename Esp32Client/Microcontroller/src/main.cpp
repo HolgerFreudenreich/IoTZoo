@@ -13,13 +13,11 @@
 // --------------------------------------------------------------------------------------------------------------------
 #include "ConnectionSettings.hpp"
 #include "Defines.hpp"
-
-#include <Arduino.h>
-#include <ArduinoJson.h>
-// #include <pins_arduino.h>
 #include "pocos/Microcontroller.hpp"
 #include "pocos/Topic.hpp"
 
+#include <Arduino.h>
+#include <ArduinoJson.h>
 #include <WiFi.h>
 #include <list>
 
@@ -166,7 +164,7 @@ enum class DayMode
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.2.3";
+String firmwareVersion = "0.2.4";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -249,6 +247,11 @@ IotZoo::TM1637_6_Handling tm1637_6Handling;
 #include "./displays/Max7219.hpp"
 Max7219* max7219;
 #endif // USE_MAX7219
+
+#ifdef USE_UV
+#include "GUVAS12SD.hpp"
+UvSensorGUVAS12SD* uvSensorGUVAS12SD = nullptr;
+#endif // USE_UV
 
 #if defined(USE_MQTT)
 const String NamespaceNameFallback = "iotzoo";
@@ -489,6 +492,11 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
 #else
     jsonObjectSupportedDevices["TM1637_6"] = false;
 #endif
+#ifdef USE_UV
+    jsonObjectSupportedDevices["UV"] = true;
+#else
+    jsonObjectSupportedDevices["UV"] = false;
+#endif
 #ifdef USE_LED_AND_KEY
     jsonObjectSupportedDevices["TM1638LedAndKey"] = true;
 #else
@@ -657,6 +665,9 @@ void publishAliveMessage()
 /// @param rawData
 void onAliveAck(const String& rawData)
 {
+    Serial.println("Received alive_ack: " + rawData + ", millis: " + String(millis()));
+
+    lastServerAliveMillis = millis();
     if (rawData.length() > 0)
     {
         if (rawData != "0")
@@ -673,9 +684,6 @@ void onAliveAck(const String& rawData)
                 }
             }
         }
-        Serial.println("Received alive_ack: " + rawData + ", millis: " + String(millis()));
-
-        lastServerAliveMillis = millis();
     }
 }
 
@@ -787,6 +795,13 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 #ifdef USE_BUTTON
     buttonHandling.onMqttConnectionEstablished();
 #endif
+
+#ifdef USE_UV
+    if (nullptr != uvSensorGUVAS12SD)
+    {
+        uvSensorGUVAS12SD->onMqttConnectionEstablished();
+    }
+#endif // USE_UV
 
 #ifdef USE_AUDIO_STREAMER
     if (nullptr != audioStreamer)
@@ -1085,7 +1100,7 @@ void makeInstanceConfiguredDevices()
 
                     gps = new Gps(deviceIndex, settings, mqttClient, getBaseTopic(), pinRx, pinTx);
                 }
-#endif // USE_BUTTON
+#endif // USE_GPS
 
 #ifdef USE_BUZZER
                 if (deviceType == "Buzzer")
@@ -1171,6 +1186,15 @@ void makeInstanceConfiguredDevices()
                     Serial.println("Buttonmatrix initialized.");
                 }
 #endif // USE_KEYPAD
+
+#ifdef USE_UV
+                if (deviceType == "UV")
+                {
+                    int analogPin     = arrPins[0]["MicrocontrollerGpoPin"];
+                    uvSensorGUVAS12SD = new UvSensorGUVAS12SD(deviceIndex, settings, mqttClient, getBaseTopic(), analogPin);
+                    Serial.println("UV Sensor initialized on pin " + String(analogPin) + ".");
+                }
+#endif // USE_UV
 
 #ifdef USE_STEPPER_MOTOR
                 if (deviceType == "28BY48Stepper")
@@ -1617,733 +1641,740 @@ void makeInstanceConfiguredDevices()
 
 #if defined(USE_REST_SERVER)
 #if defined(USE_MQTT)
-    void handleGetAlive()
-    {
-        Serial.println("Get alive");
-        String json = createAliveJson();
-        webServer.send(200, "application/json", json.c_str());
-    }
+void handleGetAlive()
+{
+    Serial.println("Get alive");
+    String json = createAliveJson();
+    webServer.send(200, "application/json", json.c_str());
+}
 #endif
 #endif
 
 #ifdef USE_REST_SERVER
-    /// @brief http get delivers the configuration of the connected sensors/devices. http://raspberrypi/deviceConfig
-    void handleGetDeviceConfig()
-    {
-        Serial.println("GET device config");
-        String json = settings->loadDeviceConfigurations();
-        webServer.send(200, "application/json", json.c_str());
-    }
+/// @brief http get delivers the configuration of the connected sensors/devices. http://raspberrypi/deviceConfig
+void handleGetDeviceConfig()
+{
+    Serial.println("GET device config");
+    String json = settings->loadDeviceConfigurations();
+    webServer.send(200, "application/json", json.c_str());
+}
 
-    /// @brief
-    /// @param index Index of the GPIO pin.
-    /// @return State of the GPIO pin at Index @see index.
-    void handleGetGpioState(int index)
-    {
+/// @brief
+/// @param index Index of the GPIO pin.
+/// @return State of the GPIO pin at Index @see index.
+void handleGetGpioState(int index)
+{
 #ifdef USE_REMOTE_GPIOS
-        auto remoteGpio = remoteGpios.begin();
-        std::advance(remoteGpio, index);
-        int data = remoteGpio->readDigitalValue();
-        Serial.println("GPIO Pin " + String(remoteGpio->getGpioPin()) + " is in state " + String(data));
-        webServer.send(200, "text/plain", String(data));
+    auto remoteGpio = remoteGpios.begin();
+    std::advance(remoteGpio, index);
+    int data = remoteGpio->readDigitalValue();
+    Serial.println("GPIO Pin " + String(remoteGpio->getGpioPin()) + " is in state " + String(data));
+    webServer.send(200, "text/plain", String(data));
 #endif
-    }
+}
 
-    void handleGetGpio0State()
-    {
-        handleGetGpioState(0);
-    }
+void handleGetGpio0State()
+{
+    handleGetGpioState(0);
+}
 
-    void handleGetGpio1State()
-    {
-        handleGetGpioState(1);
-    }
+void handleGetGpio1State()
+{
+    handleGetGpioState(1);
+}
 
-    void handleGetGpio2State()
-    {
-        handleGetGpioState(2);
-    }
+void handleGetGpio2State()
+{
+    handleGetGpioState(2);
+}
 
-    void handleGetGpio3State()
-    {
-        handleGetGpioState(3);
-    }
+void handleGetGpio3State()
+{
+    handleGetGpioState(3);
+}
 
-    void handleGetGpio4State()
-    {
-        handleGetGpioState(4);
-    }
+void handleGetGpio4State()
+{
+    handleGetGpioState(4);
+}
 
 #ifdef USE_REST_SERVER
 
-    /// @brief Blazor app sends device config.
-    void handlePostDeviceConfig()
+/// @brief Blazor app sends device config.
+void handlePostDeviceConfig()
+{
+    Serial.println("Received device config (POST).");
+    if (webServer.hasArg("plain") == false)
     {
-        Serial.println("Received device config (POST).");
-        if (webServer.hasArg("plain") == false)
-        {
-            // handle error here
-            Serial.println("rest problem");
-        }
-        String body = webServer.arg("plain");
-        settings->saveDeviceConfigurations(body);
-        Serial.println(body);
-        // Respond to the client
-        webServer.send(200, "application/json", "{}");
+        // handle error here
+        Serial.println("rest problem");
+    }
+    String body = webServer.arg("plain");
+    settings->saveDeviceConfigurations(body);
+    Serial.println(body);
+    // Respond to the client
+    webServer.send(200, "application/json", "{}");
+}
+
+/// @brief Blazor app sends microcontroller config.
+void handlePostMicrocontrollerConfig()
+{
+    Serial.println("Received microcontroller config (POST).");
+
+    if (webServer.hasArg("plain") == false)
+    {
+        // handle error here
+        Serial.println("rest problem");
+    }
+    String body = webServer.arg("plain");
+    Serial.println(body);
+    // JSON data buffer
+    DynamicJsonDocument jsonDocument(1024); // on heap
+    if (!deserializeStaticJsonAndPublishError(jsonDocument, body))
+    {
+        return;
     }
 
-    /// @brief Blazor app sends microcontroller config.
-    void handlePostMicrocontrollerConfig()
+    String mqttBrokerIp  = jsonDocument["IpMqttBroker"];
+    String projectName   = jsonDocument["ProjectName"];
+    String namespaceName = jsonDocument["NamespaceName"];
+
+    Serial.println("MqttBrokerIp: " + mqttBrokerIp);
+    Serial.println("Project: " + projectName);
+    if (!settings->setMqttBrokerIp(mqttBrokerIp))
     {
-        Serial.println("Received microcontroller config (POST).");
-
-        if (webServer.hasArg("plain") == false)
-        {
-            // handle error here
-            Serial.println("rest problem");
-        }
-        String body = webServer.arg("plain");
-        Serial.println(body);
-        // JSON data buffer
-        DynamicJsonDocument jsonDocument(1024); // on heap
-        if (!deserializeStaticJsonAndPublishError(jsonDocument, body))
-        {
-            return;
-        }
-
-        String mqttBrokerIp  = jsonDocument["IpMqttBroker"];
-        String projectName   = jsonDocument["ProjectName"];
-        String namespaceName = jsonDocument["NamespaceName"];
-
-        Serial.println("MqttBrokerIp: " + mqttBrokerIp);
-        Serial.println("Project: " + projectName);
-        if (!settings->setMqttBrokerIp(mqttBrokerIp))
-        {
-            Serial.println("MqttBrokerIp not saved!");
-        }
-        if (!settings->setNamespaceName(namespaceName))
-        {
-            Serial.println("NamespaceName not saved!");
-        }
-        if (!settings->setProjectName(projectName))
-        {
-            Serial.println("ProjectName not saved!");
-        }
-        // Respond to the client
-        webServer.send(200, "application/json", "{}");
-
-        doRestart = true;
+        Serial.println("MqttBrokerIp not saved!");
     }
+    if (!settings->setNamespaceName(namespaceName))
+    {
+        Serial.println("NamespaceName not saved!");
+    }
+    if (!settings->setProjectName(projectName))
+    {
+        Serial.println("ProjectName not saved!");
+    }
+    // Respond to the client
+    webServer.send(200, "application/json", "{}");
+
+    doRestart = true;
+}
 
 #endif
 
-    void connectToWiFi()
+void connectToWiFi()
+{
+    Serial.print("Connecting to ");
+    Serial.println(ssid);
+
+    WiFi.begin(ssid, password);
+
+    while (WiFi.status() != WL_CONNECTED)
     {
-        Serial.print("Connecting to ");
-        Serial.println(ssid);
-
-        WiFi.begin(ssid, password);
-
-        while (WiFi.status() != WL_CONNECTED)
-        {
-            Serial.print("+");
-            delay(250);
-        }
-
-        WiFi.setAutoReconnect(true);
-
-        Serial.print("Connected. IP: ");
-        Serial.println(WiFi.localIP());
-        Serial.println("AutoReconnect: " + String(WiFi.getAutoReconnect()));
+        Serial.print("+");
+        delay(250);
     }
+
+    WiFi.setAutoReconnect(true);
+
+    Serial.print("Connected. IP: ");
+    Serial.println(WiFi.localIP());
+    Serial.println("AutoReconnect: " + String(WiFi.getAutoReconnect()));
+}
 #endif
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
-    /// @brief Callback from the heart rate sensor (heart rate changed)
-    /// @param pBLERemoteCharacteristic
-    /// @param pData heartRate/Pulse
-    /// @param length
-    /// @param isNotify
-    void notifyCallbackHeartRate(NimBLERemoteCharacteristic * pBLERemoteCharacteristic, uint8_t* data, size_t length, bool isNotify)
+/// @brief Callback from the heart rate sensor (heart rate changed)
+/// @param pBLERemoteCharacteristic
+/// @param pData heartRate/Pulse
+/// @param length
+/// @param isNotify
+void notifyCallbackHeartRate(NimBLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* data, size_t length, bool isNotify)
+{
+    if (data[1] > 0)
     {
-        if (data[1] > 0)
-        {
-            Serial.println("Pulse: " + String(data[1]));
-        }
+        Serial.println("Pulse: " + String(data[1]));
+    }
 
 #if defined(USE_MQTT)
-        String topic = getBaseTopic() + "/pulse/0";
-        mqttClient->publish(topic.c_str(), String(data[1]).c_str()); // Pulse ❤️
+    String topic = getBaseTopic() + "/pulse/0";
+    mqttClient->publish(topic.c_str(), String(data[1]).c_str()); // Pulse ❤️
 #endif
-    }
+}
 
-    void connectToHeartRateSensor(int advertisingTimeout)
+void connectToHeartRateSensor(int advertisingTimeout)
+{
+    String topic = getBaseTopic() + "/pulse/0/scan_started";
+
+    mqttClient->publish(topic, "BLE scan started to find advertising heart rate sensor. Timeout is set to " + String(advertisingTimeout) + " s.");
+
+    if (nullptr != heartRateSensor)
     {
-        String topic = getBaseTopic() + "/pulse/0/scan_started";
-
-        mqttClient->publish(topic, "BLE scan started to find advertising heart rate sensor. Timeout is set to " + String(advertisingTimeout) + " s.");
-
-        if (nullptr != heartRateSensor)
-        {
-            heartRateSensor->setup(notifyCallbackHeartRate, // Callback method, called on heart rate received
-                                   advertisingTimeout);     // Scan duration
-        }
+        heartRateSensor->setup(notifyCallbackHeartRate, // Callback method, called on heart rate received
+                               advertisingTimeout);     // Scan duration
     }
+}
 #endif // USE_BLE_HEART_RATE_SENSOR
 
-    // ------------------------------------------------------------------------------------------------
-    void setup()
-    {
-        Serial.begin(115200);
-        Serial.println("*** SETUP ***");
-        pinMode(LED_BUILTIN, OUTPUT);
+// ------------------------------------------------------------------------------------------------
+void setup()
+{
+    Serial.begin(115200);
+    Serial.println("*** SETUP ***");
+    pinMode(LED_BUILTIN, OUTPUT);
 
-        randomSeed(micros());
+    randomSeed(micros());
 
-        macAddress = getMacAddress();
+    macAddress = getMacAddress();
 
 #ifdef ERASE_FLASH
-        // helps if the config is destroyed ...
-        nvs_flash_erase(); // erase the NVS partition and...
-        nvs_flash_init();  // initialize the NVS partition.
-        Serial.println("Flash is now empty.");
+    // helps if the config is destroyed ...
+    nvs_flash_erase(); // erase the NVS partition and...
+    nvs_flash_init();  // initialize the NVS partition.
+    Serial.println("Flash is now empty.");
 #endif
-        settings = new Settings();
+    settings = new Settings();
 
 #ifdef ERASE_FLASH
-        while (true)
-            ;
+    while (true)
+        ;
 #endif
 
 #if defined(USE_REST_SERVER)
-        connectToWiFi();
-        // Routing REST Server
+    connectToWiFi();
+    // Routing REST Server
 
-        // REST interface
+    // REST interface
 #if defined(USE_MQTT)
-        webServer.on("/alive", HTTP_GET, handleGetAlive);
+    webServer.on("/alive", HTTP_GET, handleGetAlive);
 #endif
-        webServer.on("/deviceConfig", HTTP_GET, handleGetDeviceConfig);
-        webServer.on("/deviceConfig", HTTP_POST, handlePostDeviceConfig);
-        webServer.on("/microcontrollerConfig", HTTP_POST, handlePostMicrocontrollerConfig);
-        webServer.on("/gpio/0", HTTP_GET, handleGetGpio0State);
-        webServer.on("/gpio/1", HTTP_GET, handleGetGpio1State);
-        webServer.on("/gpio/2", HTTP_GET, handleGetGpio2State);
-        webServer.on("/gpio/3", HTTP_GET, handleGetGpio3State);
-        webServer.on("/gpio/4", HTTP_GET, handleGetGpio4State);
-        webServer.begin();
+    webServer.on("/deviceConfig", HTTP_GET, handleGetDeviceConfig);
+    webServer.on("/deviceConfig", HTTP_POST, handlePostDeviceConfig);
+    webServer.on("/microcontrollerConfig", HTTP_POST, handlePostMicrocontrollerConfig);
+    webServer.on("/gpio/0", HTTP_GET, handleGetGpio0State);
+    webServer.on("/gpio/1", HTTP_GET, handleGetGpio1State);
+    webServer.on("/gpio/2", HTTP_GET, handleGetGpio2State);
+    webServer.on("/gpio/3", HTTP_GET, handleGetGpio3State);
+    webServer.on("/gpio/4", HTTP_GET, handleGetGpio4State);
+    webServer.begin();
 #endif
 
 #ifdef USE_TM1637_4
-        if (nullptr != tm1637_4Handling)
-        {
-            tm1637_4Handling->setup();
-        }
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->setup();
+    }
 #endif
 
 #ifdef USE_TM1637_6
-        tm1637_6Handling.setup();
+    tm1637_6Handling.setup();
 #endif
 
 #if defined(USE_MQTT)
-        char* mqttClientName = new char[18]();
+    char* mqttClientName = new char[18]();
 
-        for (int i = 0; i < 17; i++)
-        {
-            mqttClientName[i] = macAddress[i];
-        }
+    for (int i = 0; i < 17; i++)
+    {
+        mqttClientName[i] = macAddress[i];
+    }
 
-        String strMqttBrokerIp = settings->getMqttBrokerIp(MqttBrokerIpFallback);
-        Serial.println("MQTT Broker Ip: " + strMqttBrokerIp);
-        char* mqttBrokerIp = new char[18]();
-        for (int i = 0; i < 17; i++)
-        {
-            mqttBrokerIp[i] = strMqttBrokerIp[i];
-        }
+    String strMqttBrokerIp = settings->getMqttBrokerIp(MqttBrokerIpFallback);
+    Serial.println("MQTT Broker Ip: " + strMqttBrokerIp);
+    char* mqttBrokerIp = new char[18]();
+    for (int i = 0; i < 17; i++)
+    {
+        mqttBrokerIp[i] = strMqttBrokerIp[i];
+    }
 
-        mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, nullptr, nullptr, 1883);
+    mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, nullptr, nullptr, 1883);
 
-        Serial.println("BaseTopic: " + getBaseTopic());
+    Serial.println("BaseTopic: " + getBaseTopic());
 #endif
-        makeInstanceConfiguredDevices();
-        lastAliveTime = millis() - settings->getAliveIntervalMillis();
+    makeInstanceConfiguredDevices();
+    lastAliveTime = millis() - settings->getAliveIntervalMillis();
 
 #ifdef USE_HB0014
-        pinMode(digitalPinInfraredLed, INPUT);
+    pinMode(digitalPinInfraredLed, INPUT);
 #ifdef USE_OLED_SSD1306
-        if (nullptr != oled1306)
-        {
-            oled1306->setTextLine(1, "?");
-            oled1306->setTextLine(2, "Watt");
-        }
-#endif
-#endif
+    if (nullptr != oled1306)
+    {
+        oled1306->setTextLine(1, "?");
+        oled1306->setTextLine(2, "Watt");
     }
+#endif
+#endif
+}
 
 #ifdef USE_MQTT
 
-    void publishViaMqtt(const String& topicName, const String& payload)
-    {
-        Serial.println(topicName);
-        Serial.println(payload);
-        mqttClient->publish(topicName, payload);
-    }
+void publishViaMqtt(const String& topicName, const String& payload)
+{
+    Serial.println(topicName);
+    Serial.println(payload);
+    mqttClient->publish(topicName, payload);
+}
 #endif
 
-    /// @brief Register all from this microcontroller supported topics at the IOTZOO client.
-    void registerTopics()
-    {
+/// @brief Register all from this microcontroller supported topics at the IOTZOO client.
+void registerTopics()
+{
 #ifdef USE_MQTT
-        Serial.println("Register Known Topics at the IOTZOO client.");
+    Serial.println("Register Known Topics at the IOTZOO client.");
 
-        String lastWillTopic = getBaseTopic() + "/terminated";
-        mqttClient->enableLastWillMessage(lastWillTopic.c_str(), "SHUTDOWN", 0);
+    String lastWillTopic = getBaseTopic() + "/terminated";
+    mqttClient->enableLastWillMessage(lastWillTopic.c_str(), "SHUTDOWN", 0);
 
-        // so now the IOTZOO client knows this microcontroller.
-        // ... let's tell it more about the connected devices and what you can do with it...
-        std::vector<Topic> topics{};
+    // so now the IOTZOO client knows this microcontroller.
+    // ... let's tell it more about the connected devices and what you can do with it...
+    std::vector<Topic> topics{};
 
-        topics.emplace_back(getBaseTopic() + "/register_microcontroller", "Registers all the known topics of the microcontroller.",
+    topics.emplace_back(getBaseTopic() + "/register_microcontroller", "Registers all the known topics of the microcontroller.",
+                        MessageDirection::IotZooClientInbound);
+    // necessary? register_microcontroller should be enough.
+    topics.emplace_back(getBaseTopic() + "/started", "Microcontroller started", MessageDirection::IotZooClientInbound);
+
+    // Alive message of the microcontroller
+    topics.emplace_back(getBaseTopic() + "/alive", "Alive message of the microcontroller", MessageDirection::IotZooClientInbound);
+
+    // How should the device send alive messages
+    topics.emplace_back(getBaseTopic() + "/alive_config", "{\"aliveIntervalMs\": 15000, \"aliveAckLedMode\": 2}",
+                        MessageDirection::IotZooClientInbound);
+
+    // Acknowledge fo the alive message from the IotZooClient.
+    topics.emplace_back(getBaseTopic() + "/alive_ack", "Alive message of the microcontroller", MessageDirection::IotZooClientOutbound);
+
+    topics.emplace_back(getBaseTopic() + "/terminated", "Microcontroller terminated!", MessageDirection::IotZooClientInbound);
+
+    // settings
+    if (settings != nullptr)
+    {
+        topics.emplace_back(getBaseTopic() + "/settings/load", "Loads data with by the key given in the payload",
+                            MessageDirection::IotZooClientOutbound);
+        // answer to /settings/load
+        topics.emplace_back(getBaseTopic() + "/settings/key", "Answer of /load in json format {\"key\": \"data\"}",
                             MessageDirection::IotZooClientInbound);
-        // necessary? register_microcontroller should be enough.
-        topics.emplace_back(getBaseTopic() + "/started", "Microcontroller started", MessageDirection::IotZooClientInbound);
 
-        // Alive message of the microcontroller
-        topics.emplace_back(getBaseTopic() + "/alive", "Alive message of the microcontroller", MessageDirection::IotZooClientInbound);
-
-        // How should the device send alive messages
-        topics.emplace_back(getBaseTopic() + "/alive_config", "{\"aliveIntervalMs\": 15000, \"aliveAckLedMode\": 2}",
-                            MessageDirection::IotZooClientInbound);
-
-        // Acknowledge fo the alive message from the IotZooClient.
-        topics.emplace_back(getBaseTopic() + "/alive_ack", "Alive message of the microcontroller", MessageDirection::IotZooClientOutbound);
-
-        topics.emplace_back(getBaseTopic() + "/terminated", "Microcontroller terminated!", MessageDirection::IotZooClientInbound);
-
-        // settings
-        if (settings != nullptr)
-        {
-            topics.emplace_back(getBaseTopic() + "/settings/load", "Loads data with by the key given in the payload",
-                                MessageDirection::IotZooClientOutbound);
-            // answer to /settings/load
-            topics.emplace_back(getBaseTopic() + "/settings/key", "Answer of /load in json format {\"key\": \"data\"}",
-                                MessageDirection::IotZooClientInbound);
-
-            topics.emplace_back(getBaseTopic() + "/settings/save", "{\"key\": \"data\"}", MessageDirection::IotZooClientOutbound);
-        }
+        topics.emplace_back(getBaseTopic() + "/settings/save", "{\"key\": \"data\"}", MessageDirection::IotZooClientOutbound);
+    }
 #ifdef USE_BLE_HEART_RATE_SENSOR
-        if (nullptr != heartRateSensor)
-        {
-            heartRateSensor->addMqttTopicsToRegister(&topics);
-        }
+    if (nullptr != heartRateSensor)
+    {
+        heartRateSensor->addMqttTopicsToRegister(&topics);
+    }
 #endif
 
 #ifdef USE_STEPPER_MOTOR
-        if (nullptr != stepperMotor)
-        {
-            stepperMotor->addMqttTopicsToRegister(&topics);
-        }
+    if (nullptr != stepperMotor)
+    {
+        stepperMotor->addMqttTopicsToRegister(&topics);
+    }
 #endif
 
 #ifdef USE_BUTTON
-        buttonHandling.addMqttTopicsToRegister(&topics);
+    buttonHandling.addMqttTopicsToRegister(&topics);
 #endif
+
+#ifdef USE_KY025
+    if (nullptr != ky025)
+    {
+        ky025->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_BUZZER
+    if (nullptr != buzzer)
+    {
+        buzzer->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_SWITCH
+    for (auto& buttonSwitch : switches)
+    {
+        buttonSwitch.addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_REMOTE_GPIOS
+    for (auto& remoteGpio : remoteGpios)
+    {
+        remoteGpio.addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_LCD_160X
+    if (nullptr != lcdDisplay)
+    {
+        lcdDisplay->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_OLED_SSD1306
+    if (nullptr != oled1306)
+    {
+        oled1306->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_TM1637_4
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_TM1637_6
+    tm1637_6Handling.addMqttTopicsToRegister(&topics);
+#endif
+
+#ifdef USE_HT1621
+    if (nullptr != ht1621)
+    {
+        ht1621->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_MAX7219
+    if (nullptr != max7219)
+    {
+        max7219->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_HW040
+    hw040Handling.addMqttTopicsToRegister(&topics);
+#endif
+
+#ifdef USE_HC_SR501
+    motionDetectorsHrsc501Handling.addMqttTopicsToRegister(&topics);
+#endif
+
+#ifdef USE_RD_03D
+    if (nullptr != rd03d)
+    {
+        rd03d->addMqttTopicsToRegister(&topics);
+    }
+#endif // USE_RD_03D
+
+#ifdef USE_LED_AND_KEY
+    if (nullptr != tm1638)
+    {
+        tm1638->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_KEYPAD
+    buttonMatrixHandling.addMqttTopicsToRegister(&topics);
+#endif
+
+#ifdef USE_DS18B20
+    if (nullptr != ds18B20SensorManager)
+    {
+        ds18B20SensorManager->addMqttTopicsToRegister(&topics);
+    }
+#endif // USE_DS18B20
+
+#ifdef USE_HW507
+    if (nullptr != hw507HumiditySensor)
+    {
+        hw507HumiditySensor->addMqttTopicsToRegister(&topics);
+    }
+#endif // USE_HW507
+
+#ifdef USE_WS2818
+    if (nullptr != ws2812)
+    {
+        ws2812->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_AUDIO_STREAMER
+    if (nullptr != audioStreamer)
+    {
+        audioStreamer->addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+#ifdef USE_TRAFFIC_LIGHT_LEDS
+    for (auto& trafficLight : trafficLightLeds)
+    {
+        trafficLight.addMqttTopicsToRegister(&topics);
+    }
+#endif
+
+    pushTopicsToIotZooClient(topics);
+#endif // USE_MQTT
+    topicsRegistered = true;
+}
+
+/// @brief Called when the IotZoo Client has not responded to the alive message.
+void onIotZooClientUnavailable()
+{
+    Serial.println("*** IoT-Zoo client is unavailable! Please start it! ***");
+
+    String jsonMicrocontroller = serializeMicrocontroller();
+
+    mqttClient->publish("i_am_lost", jsonMicrocontroller);
+    // server dead?
+#ifdef USE_TM1637_4
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->onIotZooClientUnavailable();
+    }
+#endif
+
+#ifdef USE_TM1637_6
+    tm1637_6Handling.onIotZooClientUnavailable();
+#endif
+
+#ifdef USE_LED_AND_KEY
+    if (nullptr != tm1638)
+    {
+        tm1638->onIotZooClientUnavailable();
+    }
+#endif // USE_LED_AND_KEY
+
+#ifdef USE_HT1621
+    if (nullptr != ht1621)
+    {
+        ht1621->onIotZooClientUnavailable();
+    }
+#endif
+
+#ifdef USE_OLED_SSD1306
+    if (nullptr != oled1306)
+    {
+        oled1306->onIotZooClientUnavailable();
+    }
+#endif
+
+#ifdef USE_LCD_160X
+    if (nullptr != lcdDisplay)
+    {
+        lcdDisplay->onIotZooClientUnavailable();
+    }
+#endif
+
+#ifdef USE_STEPPER_MOTOR
+    if (nullptr != stepperMotor)
+    {
+        stepperMotor->onIotZooClientUnavailable();
+    }
+#endif
+}
+
+// ------------------------------------------------------------------------------------------------
+// The loop.
+// ------------------------------------------------------------------------------------------------
+void loop()
+{
+    try
+    {
+        lastLoopStartTime = millis();
+        Serial.print("_");
+        loopCounter++;
+
+        if (doRestart)
+        {
+            restart();
+        }
+
+#if defined(USE_MQTT)
+        mqttClient->loop();
+        if (millis() - lastLoopStartTime > 10000)
+        {
+            Serial.print("BROKEN MQTT");
+            restart();
+        }
+        if (!mqttClient->isConnected())
+        {
+            Serial.print("⚠");
+            delay(200);
+            return;
+        }
+
+        if (!topicsRegistered)
+        {
+            registerTopics();
+            String topic = getBaseTopic() + "/started";
+            mqttClient->publish(topic, "STARTED");
+        }
+#endif
+
+#ifdef USE_BLE_HEART_RATE_SENSOR
+        if (nullptr != heartRateSensor)
+        {
+            heartRateSensor->loop();
+        }
+#endif // USE_BLE_HEART_RATE_SENSOR
+
+#ifdef USE_BUTTON
+        buttonHandling.loop();
+#endif
+
+#ifdef USE_UV
+        if (nullptr != uvSensorGUVAS12SD)
+        {
+            uvSensorGUVAS12SD->loop();
+        }
+#endif // USE_UV
 
 #ifdef USE_KY025
         if (nullptr != ky025)
         {
-            ky025->addMqttTopicsToRegister(&topics);
-        }
-#endif
-
-#ifdef USE_BUZZER
-        if (nullptr != buzzer)
-        {
-            buzzer->addMqttTopicsToRegister(&topics);
-        }
-#endif
-
-#ifdef USE_SWITCH
-        for (auto& buttonSwitch : switches)
-        {
-            buttonSwitch.addMqttTopicsToRegister(&topics);
-        }
-#endif
-
-#ifdef USE_REMOTE_GPIOS
-        for (auto& remoteGpio : remoteGpios)
-        {
-            remoteGpio.addMqttTopicsToRegister(&topics);
-        }
-#endif
-
-#ifdef USE_LCD_160X
-        if (nullptr != lcdDisplay)
-        {
-            lcdDisplay->addMqttTopicsToRegister(&topics);
-        }
-#endif
-
-#ifdef USE_OLED_SSD1306
-        if (nullptr != oled1306)
-        {
-            oled1306->addMqttTopicsToRegister(&topics);
-        }
-#endif
-
-#ifdef USE_TM1637_4
-        if (nullptr != tm1637_4Handling)
-        {
-            tm1637_4Handling->addMqttTopicsToRegister(&topics);
-        }
-#endif
-
-#ifdef USE_TM1637_6
-        tm1637_6Handling.addMqttTopicsToRegister(&topics);
-#endif
-
-#ifdef USE_HT1621
-        if (nullptr != ht1621)
-        {
-            ht1621->addMqttTopicsToRegister(&topics);
-        }
-#endif
-
-#ifdef USE_MAX7219
-        if (nullptr != max7219)
-        {
-            max7219->addMqttTopicsToRegister(&topics);
-        }
-#endif
-
-#ifdef USE_HW040
-        hw040Handling.addMqttTopicsToRegister(&topics);
-#endif
-
-#ifdef USE_HC_SR501
-        motionDetectorsHrsc501Handling.addMqttTopicsToRegister(&topics);
-#endif
-
-#ifdef USE_RD_03D
-        if (nullptr != rd03d)
-        {
-            rd03d->addMqttTopicsToRegister(&topics);
-        }
-#endif // USE_RD_03D
-
-#ifdef USE_LED_AND_KEY
-        if (nullptr != tm1638)
-        {
-            tm1638->addMqttTopicsToRegister(&topics);
-        }
-#endif
-
-#ifdef USE_KEYPAD
-        buttonMatrixHandling.addMqttTopicsToRegister(&topics);
-#endif
-
-#ifdef USE_DS18B20
-        if (nullptr != ds18B20SensorManager)
-        {
-            ds18B20SensorManager->addMqttTopicsToRegister(&topics);
-        }
-#endif // USE_DS18B20
-
-#ifdef USE_HW507
-        if (nullptr != hw507HumiditySensor)
-        {
-            hw507HumiditySensor->addMqttTopicsToRegister(&topics);
-        }
-#endif // USE_HW507
-
-#ifdef USE_WS2818
-        if (nullptr != ws2812)
-        {
-            ws2812->addMqttTopicsToRegister(&topics);
+            ky025->loop();
         }
 #endif
 
 #ifdef USE_AUDIO_STREAMER
         if (nullptr != audioStreamer)
         {
-            audioStreamer->addMqttTopicsToRegister(&topics);
+            audioStreamer->loop();
         }
 #endif
 
-#ifdef USE_TRAFFIC_LIGHT_LEDS
-        for (auto& trafficLight : trafficLightLeds)
+#ifdef USE_WS2818
+        if (nullptr != ws2812)
         {
-            trafficLight.addMqttTopicsToRegister(&topics);
+            ws2812->loop();
         }
 #endif
 
-        pushTopicsToIotZooClient(topics);
-#endif // USE_MQTT
-        topicsRegistered = true;
-    }
-
-    /// @brief Called when the IotZoo Client has not responded to the alive message.
-    void onIotZooClientUnavailable()
-    {
-        Serial.println("*** IoT-Zoo client is unavailable! Please start it! ***");
-
-        String jsonMicrocontroller = serializeMicrocontroller();
-
-        mqttClient->publish("i_am_lost", jsonMicrocontroller);
-        // server dead?
-#ifdef USE_TM1637_4
-        if (nullptr != tm1637_4Handling)
+#ifdef USE_HW507
+        if (nullptr != hw507HumiditySensor)
         {
-            tm1637_4Handling->onIotZooClientUnavailable();
+            hw507HumiditySensor->loop();
         }
 #endif
 
-#ifdef USE_TM1637_6
-        tm1637_6Handling.onIotZooClientUnavailable();
+#ifdef USE_GPS
+        if (nullptr != gps)
+        {
+            gps->loop();
+        }
+#endif
+
+#ifdef USE_SWITCH
+        for (auto& buttonSwitch : switches)
+        {
+            buttonSwitch.loop();
+        }
 #endif
 
 #ifdef USE_LED_AND_KEY
         if (nullptr != tm1638)
         {
-            tm1638->onIotZooClientUnavailable();
+            tm1638->loop();
         }
 #endif // USE_LED_AND_KEY
 
-#ifdef USE_HT1621
-        if (nullptr != ht1621)
-        {
-            ht1621->onIotZooClientUnavailable();
-        }
+#ifdef USE_REST_SERVER
+        webServer.handleClient();
 #endif
 
-#ifdef USE_OLED_SSD1306
-        if (nullptr != oled1306)
-        {
-            oled1306->onIotZooClientUnavailable();
-        }
-#endif
+        // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        // The preconditions are fulfilled (MQTT connected).
 
-#ifdef USE_LCD_160X
-        if (nullptr != lcdDisplay)
-        {
-            lcdDisplay->onIotZooClientUnavailable();
-        }
+#ifdef USE_HW040
+        hw040Handling.loop();
 #endif
 
 #ifdef USE_STEPPER_MOTOR
         if (nullptr != stepperMotor)
         {
-            stepperMotor->onIotZooClientUnavailable();
+            stepperMotor->loop();
         }
-#endif
-    }
-
-    // ------------------------------------------------------------------------------------------------
-    // The loop.
-    // ------------------------------------------------------------------------------------------------
-    void loop()
-    {
-        try
-        {
-            lastLoopStartTime = millis();
-            Serial.print("_");
-            loopCounter++;
-
-            if (doRestart)
-            {
-                restart();
-            }
-
-#if defined(USE_MQTT)
-            mqttClient->loop();
-            if (millis() - lastLoopStartTime > 10000)
-            {
-                Serial.print("BROKEN MQTT");
-                restart();
-            }
-            if (!mqttClient->isConnected())
-            {
-                Serial.print("⚠");
-                delay(200);
-                return;
-            }
-
-            if (!topicsRegistered)
-            {
-                registerTopics();
-                String topic = getBaseTopic() + "/started";
-                mqttClient->publish(topic, "STARTED");
-            }
-#endif
-
-#ifdef USE_BLE_HEART_RATE_SENSOR
-            if (nullptr != heartRateSensor)
-            {
-                heartRateSensor->loop();
-            }
-#endif // USE_BLE_HEART_RATE_SENSOR
-
-#ifdef USE_BUTTON
-            buttonHandling.loop();
-#endif
-
-#ifdef USE_KY025
-            if (nullptr != ky025)
-            {
-                ky025->loop();
-            }
-#endif
-
-#ifdef USE_AUDIO_STREAMER
-            if (nullptr != audioStreamer)
-            {
-                audioStreamer->loop();
-            }
-#endif
-
-#ifdef USE_WS2818
-            if (nullptr != ws2812)
-            {
-                ws2812->loop();
-            }
-#endif
-
-#ifdef USE_HW507
-            if (nullptr != hw507HumiditySensor)
-            {
-                hw507HumiditySensor->loop();
-            }
-#endif
-
-#ifdef USE_GPS
-            if (nullptr != gps)
-            {
-                gps->loop();
-            }
-#endif
-
-#ifdef USE_SWITCH
-            for (auto& buttonSwitch : switches)
-            {
-                buttonSwitch.loop();
-            }
-#endif
-
-#ifdef USE_LED_AND_KEY
-            if (nullptr != tm1638)
-            {
-                tm1638->loop();
-            }
-#endif // USE_LED_AND_KEY
-
-#ifdef USE_REST_SERVER
-            webServer.handleClient();
-#endif
-
-            // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            // The preconditions are fulfilled (MQTT connected).
-
-#ifdef USE_HW040
-            hw040Handling.loop();
-#endif
-
-#ifdef USE_STEPPER_MOTOR
-            if (nullptr != stepperMotor)
-            {
-                stepperMotor->loop();
-            }
 #endif
 
 #ifdef USE_DS18B20
-            if (nullptr != ds18B20SensorManager)
-            {
-                ds18B20SensorManager->loop();
-            }
+        if (nullptr != ds18B20SensorManager)
+        {
+            ds18B20SensorManager->loop();
+        }
 #endif // USE_DS18B20
 
 #ifdef USE_HB0014
-            digitalValueInfrared = digitalRead(digitalPinInfraredLed);
+        digitalValueInfrared = digitalRead(digitalPinInfraredLed);
 
-            if (digitalValueInfrared == HIGH && digitalValueOldInfrared == LOW)
+        if (digitalValueInfrared == HIGH && digitalValueOldInfrared == LOW)
+        {
+            long diff = millis() - lastMillisInfrared;
+#ifdef USE_OLED_SSD1306
+            if (nullptr != oled1306)
             {
-                long diff = millis() - lastMillisInfrared;
+                oled1306->setTextLine(3, String(diff) + " ms");
+            }
+#endif
+            if (diff > 30)
+            {
+                // Umrechnen in Watt
+
+                // 10000 Impulse entsprechen 1 KW/h.
+
+                // Hochrechnen auf 10000 Impulse = 1000 Watt pro Stunde
+                double watt = 360000.0 / diff;
+                Serial.println(String(watt) + " watt");
 #ifdef USE_OLED_SSD1306
                 if (nullptr != oled1306)
                 {
-                    oled1306->setTextLine(3, String(diff) + " ms");
+                    oled1306->setTextLine(1, String(watt, 0));
                 }
 #endif
-                if (diff > 30)
-                {
-                    // Umrechnen in Watt
-
-                    // 10000 Impulse entsprechen 1 KW/h.
-
-                    // Hochrechnen auf 10000 Impulse = 1000 Watt pro Stunde
-                    double watt = 360000.0 / diff;
-                    Serial.println(String(watt) + " watt");
-#ifdef USE_OLED_SSD1306
-                    if (nullptr != oled1306)
-                    {
-                        oled1306->setTextLine(1, String(watt, 0));
-                    }
-#endif
-                    String topic = getBaseTopic() + "/power/0";
-                    mqttClient->publish(topic, String(watt, 0));
-                    lastMillisInfrared = millis();
-                }
+                String topic = getBaseTopic() + "/power/0";
+                mqttClient->publish(topic, String(watt, 0));
+                lastMillisInfrared = millis();
             }
-            digitalValueOldInfrared = digitalValueInfrared;
+        }
+        digitalValueOldInfrared = digitalValueInfrared;
 #endif
 
 #ifdef USE_KEYPAD
-            buttonMatrixHandling.loop();
+        buttonMatrixHandling.loop();
 #endif
 
 #ifdef USE_HC_SR501
-            motionDetectorsHrsc501Handling.loop();
+        motionDetectorsHrsc501Handling.loop();
 #endif
 
 #ifdef USE_RD_03D
-            if (nullptr != rd03d)
-            {
-                rd03d->loop();
-            }
+        if (nullptr != rd03d)
+        {
+            rd03d->loop();
+        }
 #endif // USE_RD_03D
 
 #if defined(USE_MQTT)
-            try
+        try
+        {
+            if (millis() - lastAliveTime > settings->getAliveIntervalMillis())
             {
-                if (millis() - lastAliveTime > settings->getAliveIntervalMillis())
-                {
-                    publishAliveMessage();
-                }
+                publishAliveMessage();
             }
-            catch (const std::exception& e)
-            {
-                Serial.println(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
-            }
-#endif // USE_HC_SR501
-
-            loopDurationMs = millis() - lastLoopStartTime;
-
-            if (millis() - lastServerAliveMillis > (settings->getAliveIntervalMillis() * 2))
-            {
-                onIotZooClientUnavailable();
-                lastServerAliveMillis = millis();
-            }
-
-            if (loopDurationMs < 100)
-            {
-                delay(100 - loopDurationMs);
-            }
-            digitalWrite(LED_BUILTIN, LOW); // turn the LED off to indicate that the device is offline.
         }
         catch (const std::exception& e)
         {
-            publishError(e.what());
-            delay(1000);
+            Serial.println(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
         }
-    }
+#endif // USE_HC_SR501
 
-    // --- end of main.cpp
+        loopDurationMs = millis() - lastLoopStartTime;
+
+        if (millis() - lastServerAliveMillis > (settings->getAliveIntervalMillis() * 2))
+        {
+            onIotZooClientUnavailable();
+            lastServerAliveMillis = millis();
+        }
+
+        if (loopDurationMs < 100)
+        {
+            delay(100 - loopDurationMs);
+        }
+        digitalWrite(LED_BUILTIN, LOW); // turn the LED off to indicate that the device is offline.
+    }
+    catch (const std::exception& e)
+    {
+        publishError(e.what());
+        delay(1000);
+    }
+}
+
+// --- end of main.cpp

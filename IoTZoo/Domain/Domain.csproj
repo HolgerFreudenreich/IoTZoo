@@ -16,15 +16,15 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.66" />
-    <PackageReference Include="HueApi" Version="3.1.0" />
+    <PackageReference Include="HueApi" Version="3.1.2" />
     <PackageReference Include="HueApi.ColorConverters" Version="3.1.0" />
     <PackageReference Include="JsonPath.Net" Version="2.2.0" />
     <PackageReference Include="MailKit" Version="4.14.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.1" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
     <PackageReference Include="MQTTnet" Version="5.0.1.1416" />
     <PackageReference Include="MQTTnet.AspNetCore" Version="5.0.1.1416" />
     <PackageReference Include="MudBlazor" Version="8.15.0" />

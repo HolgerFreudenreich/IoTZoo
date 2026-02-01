@@ -15,6 +15,26 @@
 
 namespace IotZoo
 {
+    /*
+    const char* makeClientId(const char* mac)
+    {
+        static char cid[13]; // MAC without ':', e.g., "A1B2C3D4E5F6"
+        char*       dst = cid;
+
+        while (*mac && (dst - cid) < (int)sizeof(cid) - 1)
+        {
+            if (*mac != ':')
+            {
+                *dst++ = *mac;
+            }
+            mac++;
+        }
+        *dst = '\0';
+
+        return cid; // implicit: char* → const char*
+    }
+    */
+
     MqttClient::MqttClient(const char* mqttClientName, const char* wifiSsid, const char* wifiPassword, const char* mqttServerIp,
                            const char* mqttUsername, const char* mqttPassword, const short mqttServerPort, int bufferSize)
     {
@@ -29,7 +49,7 @@ namespace IotZoo
                                        mqttServerPort);
 
         mqttClient->setMaxPacketSize(bufferSize); // default is only 128 bytes! When exeeding the message will not be published!
-        mqttClient->enableDebuggingMessages(false);
+        mqttClient->enableDebuggingMessages(true);
         // The reconnection should be established after 100 ms.
         mqttClient->setMqttReconnectionAttemptDelay(100);
 
@@ -37,6 +57,7 @@ namespace IotZoo
 
         mqttClient->enableOTA("IotZoo", // password
                               8266);    // port
+
         // mqttClient->enableHTTPWebUpdater("IotZoo");
     }
 
