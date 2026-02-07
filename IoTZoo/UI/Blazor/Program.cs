@@ -8,7 +8,7 @@
 // Connect «Things» with microcontrollers without programming knowledge.
 // MIT License
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 - 2026 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using DataAccess.Interfaces;
@@ -31,6 +31,7 @@ using Microsoft.OpenApi;
 using MQTTnet.Exceptions;
 using MudBlazor;
 using MudBlazor.Services;
+using Quartz;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -90,7 +91,14 @@ builder.Services.AddTransient<ISearchHelper, SearchHelper>();
 builder.Services.AddSingleton<IHueBridgeService, HueBridgeService>();
 
 // Quartz.net
-builder.Services.AddSingleton<Quartz.Spi.IJobFactory, JobFactory>();
+//builder.Services.AddSingleton<Quartz.Spi.IJobFactory, JobFactory>();
+builder.Services.AddQuartz(q =>
+{
+    q.UseDefaultThreadPool(tp =>
+    {
+        tp.MaxConcurrency = 20;
+    });
+});
 builder.Services.AddSingleton<PublishTimeJob>();
 builder.Services.AddSingleton<CalculateNextSunriseAndSunsetJob>();
 
