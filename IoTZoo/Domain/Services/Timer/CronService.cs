@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under the MIT license
+// (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Interfaces;
@@ -53,11 +53,13 @@ public class CronService : ICronService
             jobDetail.JobDataMap.Add("Topic", value: $"{DataTransferService.NamespaceName}/{cronJob.ProjectName}/{cronJob.Topic}");
 
             var trigger = TriggerBuilder.Create()
-                               .WithIdentity("trigger-" + nameof(PublishTimeJob), cronJob.CronId.ToString())
-                               .StartAt(DateTime.Now.AddSeconds(5)) // Give mqtt client time to connect to the broker before firing.
-                               .WithSchedule(CronScheduleBuilder.CronSchedule(cronJob.ToString())
-                               .WithMisfireHandlingInstructionIgnoreMisfires())
-                               .Build();
+                               .WithIdentity("trigger-" + nameof(PublishTimeJob) + $"-{cronJob.CronId}", cronJob.CronId.ToString())
+                               .StartAt(DateBuilder.FutureDate(5, IntervalUnit.Second)) // Give mqtt client time to connect to the broker before firing.
+                               .WithCronSchedule(cronJob.ToString(),
+                                x => x
+                                    .InTimeZone(TimeZoneInfo.Utc)
+                                    .WithMisfireHandlingInstructionFireAndProceed())
+                                    .Build();
 
             await scheduler.ScheduleJob(jobDetail, trigger);
         }

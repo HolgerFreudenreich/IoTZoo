@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under the MIT license
+// (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Interfaces;
@@ -21,6 +21,7 @@ using System.Text.Json;
 
 namespace Domain.Services.Timer;
 
+[DisallowConcurrentExecution]
 public class PublishTimeJob : MqttPublisher, IJob
 {
     public PublishTimeJob(ILogger<PublishTimeJob> logger, IDataTransferService dataTransferService) : base(logger, dataTransferService)

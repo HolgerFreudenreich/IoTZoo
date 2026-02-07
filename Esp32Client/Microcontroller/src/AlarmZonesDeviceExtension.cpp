@@ -72,37 +72,82 @@ namespace IotZoo
         String subjectLocal = subject;
         subjectLocal.toLowerCase();
 
-        uint level      = getAlarmLevel(subjectLocal);
-        uint brightness = 4;
-        if (level == 0)
+        u32_t        color              = 0;
+        u32_t        millisUntilTurnOff = 60000;
+        uint         brightness         = 4;
+        PixelMatrix* pixelMatrix        = (PixelMatrix*)deviceBase;
+        if (subjectLocal.indexOf("orange") > -1)
+        {
+            color = 0xFFA500; // orange
+        }
+        else if (subjectLocal.indexOf("blue") > -1)
+        {
+            color = 0x0000FF; // blue
+        }
+        else if (subjectLocal.indexOf("purple") > -1)
+        {
+            color = 0x800080; // purple
+        }
+        else if (subjectLocal.indexOf("lightblue") > -1)
+        {
+            color = 0xADD8E6; // light blue
+        }
+         else if (subjectLocal.indexOf("lemon") > -1)
+        {
+            color = 0xFFFFE0; // lemon yellow
+        }
+         else if (subjectLocal.indexOf("mint") > -1)
+        {   
+            color = 0x98FB98; // mint
+        }
+        else if (subjectLocal.indexOf("green") > -1)
+        {
+            color = 0x00FF00; // green
+        }
+        else if (subjectLocal.indexOf("red") > -1)
+        {
+            color = 0xFF0000; // red
+        }
+        else if (subjectLocal.indexOf("white") > -1)
+        {
+            color = 0xFFFFFF; // white
+        }
+        else
+        {
+            uint level = getAlarmLevel(subjectLocal);
+            if (level == 1)
+            {
+                color = pixelMatrix->getPixels()->Color(255, 175, 0); // motion -> yellow/orange
+            }
+            else if (level == 2)
+            {
+                color = pixelMatrix->getPixels()->Color(0, 255, 0); // animal -> green
+            }
+            else if (level == 3)
+            {
+                color = pixelMatrix->getPixels()->Color(0, 0, 255); // vehicle -> blue
+            }
+            else if (level == 4)
+            {
+                color = pixelMatrix->getPixels()->Color(255, 0, 0); // person -> red
+            }
+            else if (level == 5)
+            {
+                color = pixelMatrix->getPixels()->Color(128, 0, 128); // alarm rang -> purple
+            }
+            brightness = level * 4;
+        }
+
+        if (color == 0)
         {
             return;
         }
-        PixelMatrix* pixelMatrix = (PixelMatrix*)deviceBase;
 
-        u32_t color              = 0;
-        u32_t millisUntilTurnOff = 60000;
-
-        if (level == 1)
+        if (subjectLocal.indexOf("all") > -1)
         {
-            color = pixelMatrix->getPixels()->Color(255, 175, 0); // motion -> yellow/orange
-           // return;                                               // ignore motion
-        }
-        else if (level == 2)
-        {
-            color = pixelMatrix->getPixels()->Color(0, 255, 0); // animal -> green
-        }
-        else if (level == 3)
-        {
-            color = pixelMatrix->getPixels()->Color(0, 0, 255); // vehicle -> blue
-        }
-        else if (level == 4)
-        {
-            color = pixelMatrix->getPixels()->Color(255, 0, 0); // person -> red
-        }
-        else if (level == 5)
-        {
-            color = pixelMatrix->getPixels()->Color(128, 0, 128); // alarm rang -> purple
+            pixelMatrix->setPixelColor(color, 0, pixelMatrix->GetNumberOfLedsPerColumn() * pixelMatrix->GetNumberOfLedsPerRow(), brightness,
+                                       millisUntilTurnOff);
+            return;
         }
 
         if (pixelMatrix->GetNumberOfLedsPerColumn() == 8 && pixelMatrix->GetNumberOfLedsPerRow() == 8)

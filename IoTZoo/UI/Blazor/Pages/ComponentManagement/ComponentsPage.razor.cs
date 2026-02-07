@@ -9,7 +9,7 @@
 // Page for managing components. Components are stored in containers.
 // The aim is to obtain an overview of the available components (that can be connected to microcontrollers).
 //
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 - 2026 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Pocos;

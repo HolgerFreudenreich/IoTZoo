@@ -49,9 +49,9 @@ namespace IotZoo
         size_t bytesRead = 0;
         i2s_read(I2S_NUM_0, i2sBuffer, sizeof(i2sBuffer), &bytesRead, portMAX_DELAY);
 +
-        // Serial.println("Bytes read from I2S: " + String(bytesRead));
+        Serial.println("Bytes read from I2S: " + String(bytesRead));
 
-        int sampleCount = bytesRead / sizeof(int32_t);
+        int sampleCount = bytesRead / 4; // sizeof(int32_t);
 
         for (int i = 0; i < sampleCount; i++)
         {
