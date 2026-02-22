@@ -75,7 +75,7 @@ public class ComponentsPageBase : PageBase
 
    protected async Task Delete(Component component)
    {
-      bool? result = await DialogService.ShowMessageBox("Delete",
+      bool? result = await DialogService.ShowMessageBoxAsync("Delete",
                                                         $"Do you want to delete the component with Sku {component.Sku}?",
                                                         yesText: "Yes", cancelText: "No");
       if (!result.HasValue)

@@ -30,40 +30,55 @@ namespace IotZoo
         this->mqttClient = mqttClient;
         if (nullptr != mqttClient)
         {
+            Serial.println("MQTT client is available. Registering callbacks for TM1637_4_Handling...");
+
+            for (auto& display : displays1637)
+            {
+                Serial.println("Display " + String(display.getDeviceIndex()) + " has " + String(display.getDataSources().size()) + " data sources." + " Base topic: " + baseTopic);
+                for (auto& dataSource : display.getDataSources())
+                {
+                    Serial.println("!!!Subscribing to topic: " + dataSource.Topic + ", method: " + dataSource.Method);
+                    if (dataSource.Method == "number")
+                    {
+                        mqttClient->subscribe(dataSource.Topic, callbackMqttOnReceivedDataTm1637Number);
+                    }
+                    else if (dataSource.Method == "text")
+                    {
+                        mqttClient->subscribe(dataSource.Topic, callMqttbackOnReceivedDataTm1637Text);
+                    }
+                    else if (dataSource.Method == "level")
+                    {
+                        mqttClient->subscribe(dataSource.Topic, callbackMqttOnReceivedDataTm1637Level);
+                    }
+                    else
+                    {
+                        Serial.println("Unknown method: " + dataSource.Method);
+                    }
+                }
+            }
+
             for (auto& display : displays1637)
             {
                 String topicTm1637 = baseTopic + "/tm1637_4/" + String(display.getDeviceIndex()) + "/number";
-                if (mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637_Number))
-                {
-                    Serial.println("Subscribed: " + topicTm1637);
-                }
+                mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637Number);
             }
 
             for (auto& display : displays1637)
             {
                 String topicTm1637 = baseTopic + "/tm1637_4/" + String(display.getDeviceIndex()) + "/time";
-                if (mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637_Number))
-                {
-                    Serial.println("Subscribed: " + topicTm1637);
-                }
+                mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637Number);
             }
 
             for (auto& display : displays1637)
             {
                 String topicTm1637 = baseTopic + "/tm1637_4/" + String(display.getDeviceIndex()) + "/text";
-                if (mqttClient->subscribe(topicTm1637, callMqttbackOnReceivedDataTm1637Text))
-                {
-                    Serial.println("Subscribed: " + topicTm1637);
-                }
+                mqttClient->subscribe(topicTm1637, callMqttbackOnReceivedDataTm1637Text);
             }
 
             for (auto& display : displays1637)
             {
                 String topicTm1637 = baseTopic + "/tm1637_4/" + String(display.getDeviceIndex()) + "/level";
-                if (mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637Level))
-                {
-                    Serial.println("Subscribed: " + topicTm1637);
-                }
+                mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637Level);
             }
         }
         Serial.println(".");

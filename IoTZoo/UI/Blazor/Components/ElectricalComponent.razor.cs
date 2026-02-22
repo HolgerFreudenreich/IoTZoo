@@ -50,10 +50,10 @@ public partial class ElectricalComponent : ComponentBase
 
     private async Task RemoveComponentFromStocking()
     {
-        bool? result = await DialogService.ShowMessageBox("Warning!",
-                                                          $"Do you want to remove sku '{Stocking.Component.Sku}' from the box '{Stocking.StorageBin.BoxNr}'?",
-                                                          yesText: "Yes",
-                                                          cancelText: "No");
+        bool? result = await DialogService.ShowMessageBoxAsync("Warning!",
+                                                               $"Do you want to remove sku '{Stocking.Component.Sku}' from the box '{Stocking.StorageBin.BoxNr}'?",
+                                                               yesText: "Yes",
+                                                               cancelText: "No");
         if (!result.HasValue)
         {
             return;

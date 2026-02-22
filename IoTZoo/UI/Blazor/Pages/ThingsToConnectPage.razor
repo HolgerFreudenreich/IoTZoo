@@ -345,19 +345,19 @@
 <MudText Typo="Typo.h6">Led & Key</MudText>
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
-                     Topic="ledAndKey/<device index>/led"
+                     Topic="/ledAndKey/<device index>/led"
                      Description="Payload: 0 (off); 1 (on)">
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
-                     Topic="ledAndKey/<device index>/text"
+                     Topic="/ledAndKey/<device index>/text"
                      Description="Text">
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
-                     Topic="ledAndKey/<device index>/reset"
+                     Topic="/ledAndKey/<device index>/reset"
                      ExamplePayload="reset">
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
-                     Topic="ledAndKey/<device index>/button_row/state"
+                     Topic="/ledAndKey/<device index>/button_row/state"
                      ExamplePayload="1 (button 0 pressed), 2 (button 1 pressed), 4, 8, 16, 32, 64, 128 and combinations">
 </KnownTopicComponent>
 <MudDivider />
@@ -367,8 +367,12 @@
 <br />
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
-                     Topic="rpm/<device index>"
-                     ExamplePayload="1974">
+                     Topic="/read_contact/<device index>/counter"
+                     ExamplePayload="7154">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="/read_contact/<device index>/rpm"
+                     ExamplePayload="74">
 </KnownTopicComponent>
 <br />
 <br />

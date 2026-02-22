@@ -978,6 +978,19 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 
 #endif
 
+void addDataLinks(DeviceBase& device, JsonArray arrDataSources)
+{
+    for (JsonVariant jsonVariantDataSource : arrDataSources)
+    {
+        String topic        = jsonVariantDataSource["Topic"];
+        String method       = jsonVariantDataSource["Method"];
+        String dataLinkType = jsonVariantDataSource["DataLinkType"];
+
+        DataSource* dataSource = new DataSource(topic, method, dataLinkType == "Mqtt" ? DataLinkType::Mqtt : DataLinkType::Internal);
+        device.addDataSource(*dataSource);
+    }
+}
+
 /**
  * @brief Loads the configuration for the connected devices and instantiates them.
  */
@@ -1012,8 +1025,9 @@ void makeInstanceConfiguredDevices()
 
             if (isEnabled)
             {
-                JsonArray arrPins       = value["Pins"].as<JsonArray>();
-                JsonArray arrProperties = value["PropertyValues"].as<JsonArray>();
+                JsonArray arrPins        = value["Pins"].as<JsonArray>();
+                JsonArray arrProperties  = value["PropertyValues"].as<JsonArray>();
+                JsonArray arrDataSources = value["DataSources"].as<JsonArray>();
 
 #ifdef USE_BUTTON
                 if (deviceType == "Button")
@@ -1479,7 +1493,9 @@ void makeInstanceConfiguredDevices()
                     tm1637_4Handling = new TM1637_4_Handling();
                     if (nullptr != tm1637_4Handling)
                     {
-                        tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+                        DeviceBase& device = tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+                        addDataLinks(device, arrDataSources);
+
                         Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
                                        ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
                     }
@@ -1858,7 +1874,10 @@ void setup()
 
 #ifdef ERASE_FLASH
     while (true)
-        ;
+    {
+        sleep(1000);
+    }
+
 #endif
 
 #if defined(USE_REST_SERVER)

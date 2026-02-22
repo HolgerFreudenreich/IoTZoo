@@ -84,7 +84,7 @@ public class BoxesPageBase : PageBase
 
     protected async Task Delete(StorageBin storageBin)
     {
-        bool? result = await DialogService.ShowMessageBox("Delete",
+        bool? result = await DialogService.ShowMessageBoxAsync("Delete",
             $"Do you want to delete the box with Label {storageBin.BoxNr}?",
             yesText: "Yes", cancelText: "No");
         if (!result.HasValue)

@@ -10,6 +10,7 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
+using DataAccess.Services;
 using Domain.Interfaces.RuleEngine;
 using Domain.Pocos;
 using Domain.Services;
@@ -38,6 +39,7 @@ namespace IotZoo.Pages
             base.OnInitialized();
         }
 
+
         protected async Task Execute()
         {
             //string expression = "::TemperatureToColor(45.5)";
@@ -53,8 +55,9 @@ namespace IotZoo.Pages
 
             try
             {
-                var topic1 = new TopicEntry { Topic = "heatmap/index", Payload = "14" };
-                var topic2 = new TopicEntry { Topic = "heatmap/index2", Payload = "16" };
+
+                //var topic1 = new TopicEntry { Topic = "heatmap/index", Payload = "14" };
+                //var topic2 = new TopicEntry { Topic = "heatmap/index2", Payload = "16" };
 
                 //if (!DataTransferService.ReceivedTopicsQueue.Contains(topic))
                 //{
@@ -63,7 +66,7 @@ namespace IotZoo.Pages
                 //   this.DataTransferService.ReceivedTopicsQueue.Enqueue(topic2);
                 //}
 
-                DateTime startDateTime = DateTime.UtcNow;
+
 
                 //string expression = $"{FunctionNames.ReadFromMemory}('heatmap/index') + {FunctionNames.ReadFromMemory}('heatmap/index2') - ({FunctionNames.ReadFromMemory}('heatmap/index2'))";
                 //string parsedExpression = await ExpressionParser.Parse(expression);
@@ -81,6 +84,7 @@ namespace IotZoo.Pages
                 //parsedExpression = await ExpressionParser.Parse(expression);
 
                 //Expression = "::GetJoke()";
+                DateTime startDateTime = DateTime.UtcNow;
                 var parsedExpression = await ExpressionParser.ResolveExpression(Expression);
                 var result = CalculationService.Calculate(parsedExpression);
                 var diff = DateTime.UtcNow - startDateTime;

@@ -10,58 +10,47 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
+namespace IotZoo.Dialogs;
+
 using Domain.Pocos;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using System.Reflection;
 
-namespace IotZoo.Dialogs;
-
-public class HueLightEditorBase : EditorBase
+public class DataSourceEditorBase : EditorBase
 {
    [Parameter]
 
-   public HueComponent HueLight { get; set; } = null!;
+   public DataSource DataSource { get; set; } = null!;
 
    protected override async Task OnInitializedAsync()
    {
-      DialogTitle = "Edit Hue Light";
+      DialogTitle = "Edit Data Source";
       IsNewRecord = false;
 
-      HashCode = GetHashCodeBase64(HueLight);
+      HashCode = GetHashCodeBase64(DataSource);
       await base.OnInitializedAsync();
    }
 
    protected override async Task Cancel()
    {
-      // Gibt es nicht gespeicherte Änderungen?
-      var hashCodeTmp = GetHashCodeBase64(HueLight);
-      if (hashCodeTmp != HashCode)
-      {
-         bool? result = await DialogService.ShowMessageBoxAsync("Warning!",
-                                                                $"There are unsaved changes! Do you want to cancel without saving?",
-                                                                yesText: "Yes", cancelText: "No");
-         if (!result.HasValue)
-         {
-            return;
-         }
-      }
-      MudDialog.Cancel();
+      await base.Cancel(DataSource);
    }
 
-   protected override Task Save()
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+   protected override async Task Save()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
    {
       try
       {
          Snackbar.Clear();
-         // todo: call Service to save the data.
+         TrimTextFields(DataSource);
       }
       catch (Exception ex)
       {
          Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
          Snackbar.Add("Unable to save!", Severity.Error);
       }
-      MudDialog.Close(DialogResult.Ok(HueLight));
-      return Task.CompletedTask;
+      MudDialog.Close(DialogResult.Ok(DataSource));
    }
 }

@@ -16,6 +16,7 @@ using Domain.Interfaces.Crud;
 using Domain.Pocos;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using MudBlazor.Charts;
 using SunriseAndSunset;
 using System.Reflection;
 
@@ -23,190 +24,192 @@ namespace IotZoo.Pages;
 
 public class DefaultLocationPageBase : PageBase
 {
-   [Inject]
-   public required ISettingsCrudService SettingsService
-   {
-      get;
-      set;
-   }
+    [Inject]
+    public required ISettingsCrudService SettingsService
+    {
+        get;
+        set;
+    }
 
-   protected double Latitude
-   {
-      get => latitude;
-      set
-      {
-         latitude = value;
-         Calculate();
-      }
-   }
+    protected double Latitude
+    {
+        get => latitude;
+        set
+        {
+            latitude = value;
+            Calculate();
+        }
+    }
 
-   protected double Longitude
-   {
-      get => longitude;
-      set
-      {
-         longitude = value;
-         Calculate();
-      }
-   }
+    protected double Longitude
+    {
+        get => longitude;
+        set
+        {
+            longitude = value;
+            Calculate();
+        }
+    }
 
-   protected List<double> dayLengthInHoursList = new();
+    protected List<double> dayLengthInHoursList = new();
 
-   protected ChartOptions ChartOptions = new();
+    public string[] XAxisLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-   public string[] XAxisLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    protected LineChartOptions ChartOptions = new()
+    {
+        YAxisTicks = 12,
+    };
 
+    protected string Sunrise
+    {
+        get;
+        set;
+    } = null!;
 
-   protected string Sunrise
-   {
-      get;
-      set;
-   } = null!;
+    protected string Sunset
+    {
+        get;
+        set;
+    } = null!;
 
-   protected string Sunset
-   {
-      get;
-      set;
-   } = null!;
+    protected double DayLengthHours { get; set; }
 
-   protected double DayLengthHours { get; set; }
+    public List<ChartSeries<double>> Series = new();
+    private double latitude;
+    private double longitude;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        DataTransferService.CurrentScreen = ScreenMode.SetLocation;
+       // ChartOptions.LineStrokeWidth = 2;
+      //  ChartOptions.YAxisTicks = 24;
+      //  ChartOptions.XAxisLines = true;
+        //ChartOptions.InterpolationOption = InterpolationOption.NaturalSpline;
+        try
+        {
+            Latitude = await SettingsService.GetSettingDouble(SettingCategory.Location, SettingKey.Latitude);
+            Longitude = await SettingsService.GetSettingDouble(SettingCategory.Location, SettingKey.Longitude);
 
-   public List<ChartSeries> Series = new List<ChartSeries>();
-   private double latitude;
-   private double longitude;
+            CalculateSunriseAndSunsetForTheYear(Latitude, Longitude);
 
-   protected override async Task OnInitializedAsync()
-   {
-      await base.OnInitializedAsync();
-      DataTransferService.CurrentScreen = ScreenMode.SetLocation;
-      ChartOptions.LineStrokeWidth = 2;
-      ChartOptions.YAxisTicks = 24;
-      ChartOptions.XAxisLines = true;
-      //ChartOptions.InterpolationOption = InterpolationOption.NaturalSpline;
-      try
-      {
-         Latitude = await SettingsService.GetSettingDouble(SettingCategory.Location, SettingKey.Latitude);
-         Longitude = await SettingsService.GetSettingDouble(SettingCategory.Location, SettingKey.Longitude);
+            Series.Add(new ChartSeries<double>()
+            {
+                Name = "Hours with daylight",
+                Data = dayLengthInHoursList.ToArray(),
+              
+            });
 
-         CalculateSunriseAndSunsetForTheYear(Latitude, Longitude);
+            CalculateSunriseAndSunset(Latitude, Longitude);
+            base.OnInitialized();
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
+        }
+    }
 
-         Series.Add(new ChartSeries()
-         {
-            Name = "Hours with daylight",
-            Data = dayLengthInHoursList.ToArray()
-         });
+    protected async Task Save()
+    {
+        if (await SettingsService.Update(SettingCategory.Location,
+                                   SettingKey.Latitude,
+                                   Latitude) == 1 &&
+            await SettingsService.Update(SettingCategory.Location,
+                                   SettingKey.Longitude,
+                                   Longitude) == 1)
+        {
+            Snackbar.Add("Location Saved!", Severity.Info);
+        }
+        else
+        {
+            Snackbar.Add("NOT Saved!", Severity.Error);
+        }
+        Calculate();
+    }
 
-         CalculateSunriseAndSunset(Latitude, Longitude);
-         base.OnInitialized();
-      }
-      catch (Exception exception)
-      {
-         Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
-      }
-   }
+    private void Calculate()
+    {
+        CalculateSunriseAndSunsetForTheYear(Latitude,
+                                            Longitude);
+        CalculateSunriseAndSunset(Latitude,
+                                  Longitude);
+        InvokeAsync(StateHasChanged);
+    }
 
-   protected async Task Save()
-   {
-      if (await SettingsService.Update(SettingCategory.Location,
-                                 SettingKey.Latitude,
-                                 Latitude) == 1 &&
-          await SettingsService.Update(SettingCategory.Location,
-                                 SettingKey.Longitude,
-                                 Longitude) == 1)
-      {
-         Snackbar.Add("Location Saved!", Severity.Info);
-      }
-      else
-      {
-         Snackbar.Add("NOT Saved!", Severity.Error);
-      }
-      Calculate();
-   }
+    protected void CalculateSunriseAndSunsetForTheYear(double latitude, double longitude)
+    {
+        try
+        {
+            dayLengthInHoursList.Clear();
+            DateTime dateTime = new DateTime(DateTime.Now.Year,
+                                                             1,
+                                                             15);
+            for (int i = 0; i < 13; i++)
+            {
+                SunriseCalc homeLocationSunrise = new SunriseCalc(latitude,
+                                                                  longitude)
+                {
+                    Day = dateTime.Add(TimeSpan.FromDays(i * (365.0 / 13)))
+                };
+                double totalHours = homeLocationSunrise.GetDayLength().TotalHours;
+                if (totalHours < 0)
+                {
+                    totalHours = 0;
+                }
 
-   private void Calculate()
-   {
-      CalculateSunriseAndSunsetForTheYear(Latitude,
-                                          Longitude);
-      CalculateSunriseAndSunset(Latitude,
-                                Longitude);
-      InvokeAsync(StateHasChanged);
-   }
+                if (totalHours > 24)
+                {
+                    totalHours = 24;
+                }
+                dayLengthInHoursList.Add(totalHours);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+        }
+    }
 
-   protected void CalculateSunriseAndSunsetForTheYear(double latitude, double longitude)
-   {
-      try
-      {
-         dayLengthInHoursList.Clear();
-         DateTime dateTime = new DateTime(DateTime.Now.Year,
-                                                          1,
-                                                          15);
-         for (int i = 0; i < 13; i++)
-         {
+    protected void CalculateSunriseAndSunset(double latitude, double longitude)
+    {
+        try
+        {
+            CalculateSunriseAndSunset(latitude,
+                                      longitude,
+                                      DateTime.Now);
+            Series.First().Data = dayLengthInHoursList.ToArray();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+        }
+    }
+
+    protected void CalculateSunriseAndSunset(double latitude,
+                                             double longitude,
+                                             DateTime day)
+    {
+        try
+        {
             SunriseCalc homeLocationSunrise = new SunriseCalc(latitude,
                                                               longitude)
             {
-               Day = dateTime.Add(TimeSpan.FromDays(i * (365.0 / 13)))
+                Day = day
             };
-            double totalHours = homeLocationSunrise.GetDayLength().TotalHours;
-            if (totalHours < 0)
-            {
-               totalHours = 0;
-            }
 
-            if (totalHours > 24)
-            {
-               totalHours = 24;
-            }
-            dayLengthInHoursList.Add(totalHours);
-         }
-      }
-      catch (Exception ex)
-      {
-         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-      }
-   }
+            // Get today's sunrise and sunset in UTC.
+            homeLocationSunrise.GetRiseAndSet(out DateTime todaysSunriseUtc,
+                                              out DateTime todaysSunsetUtc);
 
-   protected void CalculateSunriseAndSunset(double latitude, double longitude)
-   {
-      try
-      {
-         CalculateSunriseAndSunset(latitude,
-                                   longitude,
-                                   DateTime.Now);
-         Series.First().Data = dayLengthInHoursList.ToArray();
-      }
-      catch (Exception ex)
-      {
-         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-      }
-   }
+            Sunrise = todaysSunriseUtc.ToLocalTime().ToLongTimeString();
+            Sunset = todaysSunsetUtc.ToLocalTime().ToLongTimeString();
+            DayLengthHours = homeLocationSunrise.GetDayLength().TotalHours;
 
-   protected void CalculateSunriseAndSunset(double latitude,
-                                            double longitude,
-                                            DateTime day)
-   {
-      try
-      {
-         SunriseCalc homeLocationSunrise = new SunriseCalc(latitude,
-                                                           longitude)
-         {
-            Day = day
-         };
-
-         // Get today's sunrise and sunset in UTC.
-         homeLocationSunrise.GetRiseAndSet(out DateTime todaysSunriseUtc,
-                                           out DateTime todaysSunsetUtc);
-
-         Sunrise = todaysSunriseUtc.ToLocalTime().ToLongTimeString();
-         Sunset = todaysSunsetUtc.ToLocalTime().ToLongTimeString();
-         DayLengthHours = homeLocationSunrise.GetDayLength().TotalHours;
-
-         InvokeAsync(StateHasChanged);
-      }
-      catch (Exception ex)
-      {
-         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-      }
-   }
+            InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+        }
+    }
 }

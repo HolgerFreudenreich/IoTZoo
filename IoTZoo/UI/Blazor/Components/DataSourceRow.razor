@@ -1,0 +1,80 @@
+﻿@using Domain.Pocos
+@using MudBlazor
+
+<MudPaper Class="pa-3 mb-2" Elevation="1">
+
+   <MudGrid align-items="AlignItems.Center" gutter-size="3">
+
+
+      <!-- Remove -->
+      <MudItem xs="12" sm="1" Class="d-flex justify-start">
+         <MudIconButton Icon="@Icons.Material.Outlined.Remove"
+                        Color="Color.Error"
+                        Size="Size.Medium"
+                        OnClick="@(() => OnRemove.InvokeAsync(DataSource.Topic))" />
+      </MudItem>
+
+      <!-- Edit -->
+      <MudItem xs="12" sm="1" Class="d-flex justify-start">
+         <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                        Color="Color.Info"
+                        Size="Size.Medium"
+                        OnClick="@(() => OnEdit.InvokeAsync(DataSource.Topic))" />
+      </MudItem>
+
+      <!-- Topic -->
+      <MudItem xs="12" sm="6">
+         <MudTextField @bind-Value="DataSource.Topic"
+                       Disabled="true"
+                       Label="Topic"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       FullWidth="true" />
+      </MudItem>
+
+      <!-- Method -->
+      <MudItem xs="12" sm="2">
+         <MudTextField @bind-Value="DataSource.Method"
+                       Disabled="true"
+                       Label="Method"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       FullWidth="true" />
+      </MudItem>
+
+      <!-- Link Type -->
+      <MudItem xs="12" sm="2">
+         <MudSelect T="DataLinkType"
+                    Disabled="true"
+                    Label="Link Type"
+                    Variant="Variant.Outlined"
+                    Margin="Margin.Dense"
+                    FullWidth="true"
+                    @bind-Value="DataSource.DataLinkType">
+
+            <MudSelectItem Value="@DataLinkType.Mqtt">
+               MQTT
+            </MudSelectItem>
+
+            <MudSelectItem Value="@DataLinkType.Internal">
+               Internal
+            </MudSelectItem>
+
+         </MudSelect>
+      </MudItem>
+
+   </MudGrid>
+
+</MudPaper>
+
+@code {
+
+   [Parameter, EditorRequired]
+   public DataSource DataSource { get; set; } = null!;
+
+   [Parameter]
+   public EventCallback<string> OnRemove { get; set; }
+
+   [Parameter]
+   public EventCallback<string> OnEdit { get; set; }
+}
