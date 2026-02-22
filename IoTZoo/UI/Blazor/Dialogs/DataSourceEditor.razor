@@ -1,0 +1,63 @@
+﻿@inherits DataSourceEditorBase
+
+@using Domain.Pocos
+@using IotZoo.Components
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+         @DialogTitle
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.FirstChild>
+                  @{
+                     <MudTextField @bind-Value="@DataSource.Topic"
+                                   MaxLength="250"
+                                   Required="true"
+                                   Immediate="true"
+                                   Label="Topic"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                     </MudTextField>
+                     <br />
+                     <MudTextField @bind-Value="@DataSource.Method"
+                                   MaxLength="10"
+                                   Required="true"
+                                   Immediate="true"
+                                   Label="Method"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                     </MudTextField>
+                     <MudSelect T="DataLinkType"
+                                Style="flex:1; min-width:150px"
+                                Label="Link Type"
+                                @bind-Value="@DataSource.DataLinkType">
+
+                        <MudSelectItem Value="@DataLinkType.Mqtt">Mqtt</MudSelectItem>
+                        <MudSelectItem Value="@DataLinkType.Internal">Internal</MudSelectItem>
+
+                     </MudSelect>
+
+                  }
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Variant="Variant.Filled"
+                 Color="Color.Success"
+                 OnClick="Save">Ok</MudButton>
+   </DialogActions>
+</MudDialog>

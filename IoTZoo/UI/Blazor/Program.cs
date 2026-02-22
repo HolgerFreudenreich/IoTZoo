@@ -56,8 +56,7 @@ builder.Services.AddMudServices(config =>
                                            config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
                                        });
 
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 IConfigurationSection configurationSectionAppSettings = builder.Configuration.GetSection(nameof(AppSettings));
 builder.Services.Configure<AppSettings>(configurationSectionAppSettings);
@@ -116,9 +115,7 @@ builder.Services.AddSingleton<IPrepareTargetPayload, PrepareTargetPayload>();
 builder.Services.AddSingleton<IRulesCrudService, RulesDatabaseService>(); // set ConfigurationDatabaseType in appsetings.json to Postgres or Sqlite!
 
 builder.Services.AddSingleton<IMailReceiverFactory, MailReceiverFactory>();
-
 builder.Services.AddSingleton<ICountDownFactory, CountDownFactory>();
-
 
 builder.Host.UseSerilog((ctx, lc) =>
                      {

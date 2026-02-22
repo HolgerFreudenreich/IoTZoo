@@ -28,6 +28,7 @@ using System.Text.Json;
 
 namespace DataAccess.Services;
 
+
 public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
 {
     public event Action<EventStreamData>? OnLightChanged;

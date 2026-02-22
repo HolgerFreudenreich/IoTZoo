@@ -1,5 +1,6 @@
 ﻿@inherits PinEditorBase
 
+@using Domain.Pocos
 @using IotZoo.Components
 
 <MudDialog>
@@ -29,6 +30,7 @@
                                    Margin="Margin.Normal">
                      </MudTextField>
                      <br />
+
                      if (null != ConnectedDevice.Pins)
                      {
                         foreach (var pin in ConnectedDevice.Pins)
@@ -64,7 +66,27 @@
                            </MudTextField>
                         }
                      }
-    
+                     <br />
+                     <MudText>MQTT DataSources (direct on the microcontroller without RulesEngine in between)</MudText>
+                     <div style="width:64px; height:64px">
+                        <MudIconButton Icon="@Icons.Material.Outlined.Add"
+                                       Color="Color.Success"
+                                       OnClick="@OpenDataSourceEditorAsync">
+                        </MudIconButton>
+                     </div>
+
+                     @if (ConnectedDevice.DataSources != null)
+                     {
+                        @foreach (var dataSource in ConnectedDevice.DataSources)
+                        {
+                           <DataSourceRow DataSource="dataSource"
+                                          OnRemove="RemoveDataSource"
+                                          OnEdit="EditDataSource" />
+                        }
+                     }
+
+
+
                   }
                </MudFocusTrap>
                <br />
@@ -82,3 +104,4 @@
                  OnClick="Save">Ok</MudButton>
    </DialogActions>
 </MudDialog>
+

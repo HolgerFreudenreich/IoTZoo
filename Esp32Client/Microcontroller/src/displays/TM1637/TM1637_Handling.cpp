@@ -106,9 +106,9 @@ namespace IotZoo
         }
     }
 
-    void TM1637_Handling::callbackMqttOnReceivedDataTm1637_Number(const String& topic, const String& message)
+    void TM1637_Handling::callbackMqttOnReceivedDataTm1637Number(const String& topic, const String& message)
     {
-        Serial.println("callbackMqttOnReceivedDataTm1637_Number topic: " + topic + " message: " + message);
+        Serial.println("callbackMqttOnReceivedDataTm1637Number topic: " + topic + " message: " + message);
 
         int indexEnd = topic.lastIndexOf("/");
         Serial.println("indexEnd: " + String(indexEnd));
@@ -191,9 +191,9 @@ namespace IotZoo
         }
     }
 
-    void TM1637_Handling::addDevice(const String& baseTopic, int deviceIndex, int clkPin, int dioPin, bool flipDisplay, const String& serverDownText)
+    DeviceBase& TM1637_Handling::addDevice(const String& baseTopic, int deviceIndex, int clkPin, int dioPin, bool flipDisplay, const String& serverDownText)
     {
-        displays1637.emplace_back(deviceIndex, settings, mqttClient, baseTopic, tm1637DisplayType, clkPin, dioPin, flipDisplay, serverDownText);
+        return displays1637.emplace_back(deviceIndex, settings, mqttClient, baseTopic, tm1637DisplayType, clkPin, dioPin, flipDisplay, serverDownText);
     }
 
     // Initialize static members

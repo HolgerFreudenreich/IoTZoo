@@ -19,87 +19,87 @@ namespace IotZoo.Pages;
 
 public class ScriptsPageBase : PageBase
 {
-   [Inject]
-   public IScriptCrudService ScriptsService
-   {
-      get;
-      set;
-   } = null!;
+    [Inject]
+    public IScriptCrudService ScriptsService
+    {
+        get;
+        set;
+    } = null!;
 
-   protected List<Script>? Scripts
-   {
-      get;
-      set;
-   } = new();
+    protected List<Script>? Scripts
+    {
+        get;
+        set;
+    } = new();
 
-   protected override void OnInitialized()
-   {
-      DataTransferService.CurrentScreen = ScreenMode.Scripts;
-      base.OnInitialized();
-   }
+    protected override void OnInitialized()
+    {
+        DataTransferService.CurrentScreen = ScreenMode.Scripts;
+        base.OnInitialized();
+    }
 
-   protected override async Task OnAfterRenderAsync(bool firstRender)
-   {
-      await base.OnAfterRenderAsync(firstRender);
-      if (firstRender)
-      {
-         await LoadData();
-      }
-   }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            await LoadData();
+        }
+    }
 
-   protected override async Task LoadData()
-   {
-      Scripts = await this.ScriptsService.LoadScripts();
-      await InvokeAsync(StateHasChanged);
-   }
+    protected override async Task LoadData()
+    {
+        Scripts = await this.ScriptsService.LoadScripts();
+        await InvokeAsync(StateHasChanged);
+    }
 
-   private async Task OpenScriptEditor(Script script)
-   {
-      try
-      {
-         var options = GetDialogOptions();
+    private async Task OpenScriptEditor(Script script)
+    {
+        try
+        {
+            var options = GetDialogOptions();
 
-         var parameters = new DialogParameters { ["Script"] = script };
-         IsEditorOpen = true;
-         var dialog = await DialogService.ShowAsync<Dialogs.ScriptEditor>("Edit Script",
-                                                                                      parameters,
-                                                                                      options);
-         var result = await dialog.Result;
-      }
-      finally
-      {
-         IsEditorOpen = false;
-         await LoadData();
-      }
-   }
+            var parameters = new DialogParameters { ["Script"] = script };
+            IsEditorOpen = true;
+            var dialog = await DialogService.ShowAsync<Dialogs.ScriptEditor>("Edit Script",
+                                                                                         parameters,
+                                                                                         options);
+            var result = await dialog.Result;
+        }
+        finally
+        {
+            IsEditorOpen = false;
+            await LoadData();
+        }
+    }
 
-   public async Task OpenScriptEditorAsync()
-   {
-      await OpenScriptEditor(new Script());
-   }
+    public async Task OpenScriptEditorAsync()
+    {
+        await OpenScriptEditor(new Script());
+    }
 
-   protected async Task EditScript(Script script)
-   {
-      await OpenScriptEditor(script);
-   }
+    protected async Task EditScript(Script script)
+    {
+        await OpenScriptEditor(script);
+    }
 
-   protected async Task DeleteScript(Script script)
-   {
-      bool? result = await DialogService.ShowMessageBox("Delete",
-                                                        message: $"Do you want to delete the Script '{script.ScriptName}'?",
-                                                        yesText: "Yes", cancelText: "No");
-      if (!result.HasValue)
-      {
-         return;
-      }
-      await ScriptsService.Delete(script);
-      await LoadData();
-   }
+    protected async Task DeleteScript(Script script)
+    {
+        bool? result = await DialogService.ShowMessageBoxAsync("Delete",
+                                                          message: $"Do you want to delete the Script '{script.ScriptName}'?",
+                                                          yesText: "Yes", cancelText: "No");
+        if (!result.HasValue)
+        {
+            return;
+        }
+        await ScriptsService.Delete(script);
+        await LoadData();
+    }
 
-   protected async Task CloneScript(Script script)
-   {
-      var clonedScript = Infrastructure.Tools.DeepCopyReflection(script);
-      clonedScript.ScriptId = 0; // force new
-      await OpenScriptEditor(clonedScript);
-   }
+    protected async Task CloneScript(Script script)
+    {
+        var clonedScript = Infrastructure.Tools.DeepCopyReflection(script);
+        clonedScript.ScriptId = 0; // force new
+        await OpenScriptEditor(clonedScript);
+    }
 }

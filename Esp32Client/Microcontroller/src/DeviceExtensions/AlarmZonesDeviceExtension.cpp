@@ -13,7 +13,7 @@
 #ifdef USE_WS2818
 
 #include "./pocos/Topic.hpp"
-#include "AlarmZonesDeviceExtension.hpp"
+#include "./DeviceExtensions/AlarmZonesDeviceExtension.hpp"
 #include "DeviceBase.hpp"
 #include "PixelMatrix.hpp"
 

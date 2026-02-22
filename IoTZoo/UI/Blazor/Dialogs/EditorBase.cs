@@ -93,10 +93,10 @@ public class EditorBase : DialogBase
       var hashCodeTmp = GetHashCodeBase64(basePoco);
       if (hashCodeTmp != HashCode)
       {
-         bool? result = await DialogService.ShowMessageBox("Warning!",
-                                                           $"There are unsaved changes! Do you want to cancel without saving?",
-                                                           yesText: "Yes",
-                                                           cancelText: "No");
+         bool? result = await DialogService.ShowMessageBoxAsync("Warning!",
+                                                                $"There are unsaved changes! Do you want to cancel without saving?",
+                                                                yesText: "Yes",
+                                                                cancelText: "No");
          if (!result.HasValue)
          {
             return;

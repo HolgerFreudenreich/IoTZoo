@@ -121,7 +121,7 @@ public class KnownTopicsPageBase : PageBase
 
     protected async Task DeleteKnownTopic(KnownTopic knownTopic)
     {
-        bool? result = await DialogService.ShowMessageBox("Delete",
+        bool? result = await DialogService.ShowMessageBoxAsync("Delete",
                                                           $"Do you want to delete the known topic with Id {knownTopic.KnownTopicId}?",
                                                           yesText: "Yes", cancelText: "No");
         if (!result.HasValue)

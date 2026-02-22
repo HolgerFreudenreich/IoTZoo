@@ -19,11 +19,13 @@
 #ifdef USE_MQTT2
 #include "MqttClient2.hpp"
 #endif
-#include <ArduinoJson.h>
 #include "./pocos/Topic.hpp"
+
+#include <ArduinoJson.h>
 #ifdef ARDUINO_ESP32_DEV
 #include "Settings.hpp"
 #endif
+#include "pocos/DataSource.hpp"
 
 using namespace std;
 
@@ -38,7 +40,7 @@ namespace IotZoo
         {
             Serial.println("Constructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
         }
-    
+
         virtual ~DeviceBase()
         {
             Serial.println("Destructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
@@ -56,14 +58,17 @@ namespace IotZoo
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const = 0;
+        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const
+        {
+            Serial.println("override addMqttTopicsToRegister!");
+        }
 
         /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a
         /// prerequisite for a subscription.
         /// @param mqttClient
         /// @param baseTopic
         virtual void onMqttConnectionEstablished()
-        {            
+        {
             mqttCallbacksAreRegistered = true;
         }
 
@@ -87,14 +92,14 @@ namespace IotZoo
 
         int getDeviceIdex() const
         {
-           return deviceIndex;
+            return deviceIndex;
         }
 
         MqttClient* getMqttClient() const
         {
             return mqttClient;
         }
-        
+
         void publishError(const String& errMsg)
         {
             String topic = getBaseTopic() + "/error";
@@ -121,13 +126,25 @@ namespace IotZoo
             return true;
         }
 
+        void addDataSource(const DataSource& dataSource)
+        {
+            Serial.println("Adding data source for topic: " + dataSource.Topic + ", method: " + dataSource.Method);
+            dataSources.push_back(dataSource);
+        }
+
+        std::vector<DataSource> getDataSources() const
+        {
+            return dataSources;
+        }
+
       protected:
-        MqttClient* mqttClient  = nullptr;
-        Settings*   settings    = nullptr;
-        int         deviceIndex = -1;
-        String      deviceName;
-        String      baseTopic;
-        bool        mqttCallbacksAreRegistered = false;
+        MqttClient*             mqttClient  = nullptr;
+        Settings*               settings    = nullptr;
+        int                     deviceIndex = -1;
+        String                  deviceName;
+        String                  baseTopic;
+        bool                    mqttCallbacksAreRegistered = false;
+        std::vector<DataSource> dataSources{};
     };
 
 } // namespace IotZoo

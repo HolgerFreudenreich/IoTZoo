@@ -5,10 +5,9 @@
 <MudDynamicTabs @bind-ActivePanelIndex="@UserIndex"
                 AddTab="@AddTabCallback"
                 CloseTab="@CloseTabCallback"
-                AddIconToolTip="Click to add a new tab" 
+                AddIconToolTip="Click to add a new tab"
                 CloseIconToolTip="Close tab. All data will be lost"
-                PanelClass="px-4 py-6"
-                Elevation="4" 
+                Elevation="4"
                 Rounded ApplyEffectsToContainer>
    @if (null != Tabs)
    {
@@ -23,6 +22,5 @@
       <MudButton Class="MudButtonText"
                  Color="Color.Success"
                  OnClick="Save">Save</MudButton>
-
    }
 </MudDynamicTabs>

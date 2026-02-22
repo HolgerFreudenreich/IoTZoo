@@ -66,7 +66,7 @@ namespace IotZoo
         {
             oldReedContactCounter = reedContactCounter;
 
-            mqttClient->publish(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/ppm", String(rpm, 0));
+            mqttClient->publish(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/rpm", String(rpm, 0));
             mqttClient->publish(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/counter", String(reedContactCounter));
             lastLoopMillis = millis();
         }
@@ -74,7 +74,7 @@ namespace IotZoo
         {
             if (millis() - lastLoopMillis > 3000)
             {
-                mqttClient->publish(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/ppm", "0");
+                mqttClient->publish(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/rpm", "0");
                 lastLoopMillis = millis();
             }
         }

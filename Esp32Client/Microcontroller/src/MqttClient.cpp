@@ -87,13 +87,13 @@ namespace IotZoo
     /// @return
     bool MqttClient::subscribe(const String& topic, MessageReceivedCallback messageReceivedCallback, uint8_t qos)
     {
-        Serial.print("Subscribing topic: " + topic + ", qos: " + String(qos));
+        Serial.println("Subscribing to topic: " + topic + ", qos: " + String(qos));
         return printSuccess(mqttClient->subscribe(topic, messageReceivedCallback, qos));
     }
 
     bool MqttClient::subscribe(const String& topic, MessageReceivedCallbackWithTopic messageReceivedCallback, uint8_t qos)
     {
-        Serial.print("Subscribing (topic with topic): " + topic + ", qos: " + String(qos));
+        Serial.println("Subscribing to topic: " + topic + ", qos: " + String(qos));
         return printSuccess(mqttClient->subscribe(topic, messageReceivedCallback, qos));
     }
 
