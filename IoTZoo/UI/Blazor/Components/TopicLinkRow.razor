@@ -1,0 +1,56 @@
+﻿@using Domain.Pocos
+@using MudBlazor
+
+<MudPaper Class="pa-3 mb-2" Elevation="1">
+   <MudGrid align-items="AlignItems.Center">
+
+      <MudStack Row="true">
+         <!-- Remove -->
+
+         <MudIconButton Style="height:50px;" Icon="@Icons.Material.Outlined.Remove"
+                        Color="Color.Error"
+                        Size="Size.Medium"
+                        OnClick="@(() => OnRemove.InvokeAsync(TopicLinks.TriggeringTopic))" />
+     
+
+         <!-- Edit -->
+         <MudIconButton Style="height:50px;" Icon="@Icons.Material.Outlined.Edit"
+                        Color="Color.Info"
+                        Size="Size.Medium"
+                        OnClick="@(() => OnEdit.InvokeAsync(TopicLinks.TriggeringTopic))" />
+  
+
+         <!-- TriggeringTopic -->
+         <MudStack Style="width:100%;">
+            <MudTextField Style="width:100%;" @bind-Value="TopicLinks.TriggeringTopic"
+                          Disabled="true"
+                          Label="Triggering Topic"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          FullWidth="true" />
+
+
+            <!-- TargetTopic -->
+            <MudTextField Style="width:700px;" @bind-Value="TopicLinks.TargetTopic"
+                          Disabled="true"
+                          Label="Target Topic"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          FullWidth="true" />
+         </MudStack>
+      </MudStack>
+   </MudGrid>
+
+</MudPaper>
+
+@code {
+
+   [Parameter, EditorRequired]
+   public TopicLink TopicLinks { get; set; } = null!;
+
+   [Parameter]
+   public EventCallback<string> OnRemove { get; set; }
+
+   [Parameter]
+   public EventCallback<string> OnEdit { get; set; }
+}

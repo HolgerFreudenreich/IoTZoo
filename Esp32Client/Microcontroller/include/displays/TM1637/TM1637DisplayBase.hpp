@@ -9,12 +9,12 @@
 // Firmware for ESP8266 and ESP32 Microcontrollers
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
+#include "DebugHelper.hpp"
 #if defined(USE_TM1637_4) || defined(USE_TM1637_6)
 #ifndef __TM1637_DISPLAY_BASE_HPP__
 #define __TM1637_DISPLAY_BASE_HPP__
 
 #include "DeviceBase.hpp"
-
 #include <ArduinoJson.h>
 
 using namespace IotZoo;
@@ -39,6 +39,32 @@ namespace IotZoo
         }
 
         virtual ~TM1637DisplayBase() = default;
+
+        virtual std::vector<Topic> getTopics() const override
+        {
+            debug("TM1637DisplayBase::getTopics. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
+            std::vector<Topic> topics;
+
+            String displayType = getDisplayType() == Tm1637DisplayType::Digits4 ? "4" : (getDisplayType() == Tm1637DisplayType::Digits6 ? "6" : "undefined");
+
+            topics.emplace_back(baseTopic + "/tm1637_" + displayType + "/" + String(deviceIndex) + "/time",
+                                "Send time to TM1637 " + displayType + " digits LCD display with index " + String(deviceIndex) + ".",
+                                MessageDirection::IotZooClientOutbound);
+
+            topics.emplace_back(baseTopic + "/tm1637_" + displayType + "/" + String(deviceIndex) + "/number",
+                                "Send a number to TM1637 " + displayType + " digits LCD display with index " + String(deviceIndex) + ".",
+                                MessageDirection::IotZooClientOutbound);
+
+            topics.emplace_back(baseTopic + "/tm1637_" + displayType + "/" + String(deviceIndex) + "/text",
+                                "Send a text to TM1637 " + displayType + " digits LCD display with index " + String(deviceIndex) + ".",
+                                MessageDirection::IotZooClientOutbound);
+
+            topics.emplace_back(baseTopic + "/tm1637_" + displayType + "/" + String(deviceIndex) + "/level",
+                                "Use TM1637 " + displayType + " digits LCD display with index " + String(deviceIndex) + " to indicate a level between 0 and 100.",
+                                MessageDirection::IotZooClientOutbound);
+
+            return topics;
+        }
 
         virtual int getDefaultDisplayLength() const = 0;
 

@@ -25,7 +25,7 @@
 
 namespace IotZoo
 {
-    class HeartRateSensor : DeviceBase
+    class HeartRateSensor : public DeviceBase
     {
       protected:
         // The remote service we wish to connect to.

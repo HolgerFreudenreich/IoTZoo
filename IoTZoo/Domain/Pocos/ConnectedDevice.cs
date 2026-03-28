@@ -12,12 +12,6 @@
 
 namespace Domain.Pocos;
 
-public enum DataLinkType
-{
-    Unknown = -1,
-    Mqtt = 0,
-    Internal = 1
-}
 
 public class PropertyValue
 {
@@ -67,10 +61,6 @@ public class ConnectedDevice : BasePoco
         set;
     }
 
-    public List<DataSource>? DataSources { get; set; }
+    public List<TopicLink>? TopicLinks { get; set; }
 
-    ///// <summary>
-    ///// Gets or sets the list of devices that are currently linked to this instance.
-    ///// </summary>
-    //public List<ConnectedDevice>? LinkedDevices { get; set; } = null;
 }

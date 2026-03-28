@@ -18,6 +18,17 @@ namespace IotZoo
     {
     }
 
+    #ifdef USE_INTERNAL_MQTT
+    void TM1637_4_Handling::subscribeToInternalMqttTopics()
+    {
+        Serial.println("TM1637_4_Handling subscribing to internal MQTT topics...");
+        for (auto& display : displays1637)
+        {
+           display.subscribeToInternalMqttTopics();
+        }
+    }
+    #endif
+
     void TM1637_4_Handling::onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic)
     {
         Serial.println("TM1637_4_Handling::onMqttConnectionEstablished");
@@ -31,31 +42,6 @@ namespace IotZoo
         if (nullptr != mqttClient)
         {
             Serial.println("MQTT client is available. Registering callbacks for TM1637_4_Handling...");
-
-            for (auto& display : displays1637)
-            {
-                Serial.println("Display " + String(display.getDeviceIndex()) + " has " + String(display.getDataSources().size()) + " data sources." + " Base topic: " + baseTopic);
-                for (auto& dataSource : display.getDataSources())
-                {
-                    Serial.println("!!!Subscribing to topic: " + dataSource.Topic + ", method: " + dataSource.Method);
-                    if (dataSource.Method == "number")
-                    {
-                        mqttClient->subscribe(dataSource.Topic, callbackMqttOnReceivedDataTm1637Number);
-                    }
-                    else if (dataSource.Method == "text")
-                    {
-                        mqttClient->subscribe(dataSource.Topic, callMqttbackOnReceivedDataTm1637Text);
-                    }
-                    else if (dataSource.Method == "level")
-                    {
-                        mqttClient->subscribe(dataSource.Topic, callbackMqttOnReceivedDataTm1637Level);
-                    }
-                    else
-                    {
-                        Serial.println("Unknown method: " + dataSource.Method);
-                    }
-                }
-            }
 
             for (auto& display : displays1637)
             {
