@@ -5,7 +5,7 @@
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
 //  /___/\____/_/       /____|____/\____/ 
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 - 2026 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 // Internal MQTT Broker. It is totally independent from the MQTTClient. You can use it if you do not want to setup
 // an external MQTT Broker like Mosquitto or use a public MQTT Broker.
@@ -17,6 +17,5 @@ namespace Domain.Interfaces.MQTT
    {
       public Task StartServer();
       public Task StopServer();
-
    }
 }

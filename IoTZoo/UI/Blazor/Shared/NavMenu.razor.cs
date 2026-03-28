@@ -8,7 +8,7 @@
 // Connect «Things» with microcontrollers without programming knowledge.
 // MIT License
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 - 2026 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using Microsoft.AspNetCore.Components;

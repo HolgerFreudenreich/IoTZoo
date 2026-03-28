@@ -36,7 +36,7 @@ namespace IotZoo
             {
                 // Can be integer and doube value.
                 String topicTm1637 = baseTopic + "/tm1637_6/" + String(display.getDeviceIndex()) + "/number";
-                mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637_Number);
+                mqttClient->subscribe(topicTm1637, callbackMqttOnReceivedDataTm1637Number);
             }
 
             for (auto& display : displays1637)

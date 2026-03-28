@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under the MIT license
+// (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 
@@ -50,10 +50,10 @@ public partial class ElectricalComponent : ComponentBase
 
     private async Task RemoveComponentFromStocking()
     {
-        bool? result = await DialogService.ShowMessageBox("Warning!",
-                                                          $"Do you want to remove sku '{Stocking.Component.Sku}' from the box '{Stocking.StorageBin.BoxNr}'?",
-                                                          yesText: "Yes",
-                                                          cancelText: "No");
+        bool? result = await DialogService.ShowMessageBoxAsync("Warning!",
+                                                               $"Do you want to remove sku '{Stocking.Component.Sku}' from the box '{Stocking.StorageBin.BoxNr}'?",
+                                                               yesText: "Yes",
+                                                               cancelText: "No");
         if (!result.HasValue)
         {
             return;

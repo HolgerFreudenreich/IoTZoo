@@ -7,31 +7,32 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under the MIT license
+// (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Domain.Pocos;
 
+
 public class PropertyValue
 {
-   public PropertyValue()
-   {
-   }
+    public PropertyValue()
+    {
+    }
 
-   public PropertyValue(string name, string value)
-   {
-      Name = name; Value = value;
-   }
+    public PropertyValue(string name, string value)
+    {
+        Name = name; Value = value;
+    }
 
-   public string? Name
-   {
-      get;
-      set;
-   }
+    public string? Name
+    {
+        get;
+        set;
+    }
 
-   public string? Value { get; set; }
+    public string? Value { get; set; }
 
-   public bool IsReadOnly { get; set; } = false;
+    public bool IsReadOnly { get; set; } = false;
 }
 
 /// <summary>
@@ -39,24 +40,27 @@ public class PropertyValue
 /// </summary>
 public class ConnectedDevice : BasePoco
 {
-   public bool IsEnabled { get; set; }
+    public bool IsEnabled { get; set; }
 
-   public string DeviceType { get; set; } = null!;
+    public string DeviceType { get; set; } = null!;
 
-   /// <summary>
-   /// Increment within each device type. Can not be edited in the Editor. The number remains constant after the assignment because it is part of the topic name.
-   /// </summary>
-   public int? DeviceIndex { get; set; } = null;
+    /// <summary>
+    /// Increment within each device type. Can not be edited in the Editor. The number remains constant after the assignment because it is part of the topic name.
+    /// </summary>
+    public int? DeviceIndex { get; set; } = null;
 
-   public List<DevicePin>? Pins
-   {
-      get;
-      set;
-   }
+    public List<DevicePin>? Pins
+    {
+        get;
+        set;
+    }
 
-   public List<PropertyValue>? PropertyValues
-   {
-      get;
-      set;
-   }
+    public List<PropertyValue>? PropertyValues
+    {
+        get;
+        set;
+    }
+
+    public List<TopicLink>? TopicLinks { get; set; }
+
 }

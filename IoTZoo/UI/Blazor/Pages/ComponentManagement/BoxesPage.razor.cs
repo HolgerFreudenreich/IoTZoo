@@ -6,7 +6,7 @@
 //  /___/\____/_/       /____|____/\____/ 
 //
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 - 2026 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 // Page for managing boxes/totes. Each box can contain one or more components.
 // It would also be conceivable to put boxes in boxes.
@@ -84,7 +84,7 @@ public class BoxesPageBase : PageBase
 
     protected async Task Delete(StorageBin storageBin)
     {
-        bool? result = await DialogService.ShowMessageBox("Delete",
+        bool? result = await DialogService.ShowMessageBoxAsync("Delete",
             $"Do you want to delete the box with Label {storageBin.BoxNr}?",
             yesText: "Yes", cancelText: "No");
         if (!result.HasValue)

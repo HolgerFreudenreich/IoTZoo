@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under the MIT license
+// (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 
@@ -41,20 +41,23 @@ public static class ConnectedDevices
             IsEnabled = true,
             DeviceType = "TM1637_4",
             Pins = new List<DevicePin>
-                              {
-                                 new DevicePin
-                                 {
-                                    MicrocontrollerGpoPin = "27",
-                                    PinName               = "CLK"
-                                 },
-                                 new DevicePin
-                                 {
-                                    MicrocontrollerGpoPin = "26",
-                                    PinName               = "DIO"
-                                 }
+        {
+          new DevicePin
+          {
+             MicrocontrollerGpoPin = "27",
+             PinName               = "CLK"
+           },
+           new DevicePin
+           {
+             MicrocontrollerGpoPin = "26",
+             PinName               = "DIO"
+           }
          },
-            PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "flipDisplay", Value = "false" },
-                                                    new PropertyValue { Name = "serverDownText", Value = "----" } }
+            PropertyValues = new List<PropertyValue>
+         {
+               new PropertyValue { Name = "flipDisplay", Value = "false" },
+               new PropertyValue { Name = "serverDownText", Value = "----" }
+        }
         };
     }
 
@@ -445,12 +448,12 @@ public static class ConnectedDevices
         };
     }
 
-    public static ConnectedDevice FromUvSensor()
+    public static ConnectedDevice FromAnalogPin()
     {
         return new ConnectedDevice
         {
             IsEnabled = true,
-            DeviceType = "UV",
+            DeviceType = "ADC",
             Pins = new List<DevicePin>
                               {
                                  new DevicePin
@@ -458,7 +461,11 @@ public static class ConnectedDevices
                                     MicrocontrollerGpoPin = "34",
                                     PinName               = "ADC_PIN"
                                  }
-                              }
+                              },
+            PropertyValues = new List<PropertyValue>()
+                          {
+                             new PropertyValue {Name = "IntervalMs", Value = "1000"},
+                          }
         };
     }
 
@@ -475,14 +482,86 @@ public static class ConnectedDevices
                                     MicrocontrollerGpoPin = "19",
                                     PinName               = "DATA_PIN"
                                  }
-                              }
-             ,
+                              },
             PropertyValues = new List<PropertyValue>()
                           {
                              new PropertyValue {Name = "IntervalMs", Value = "1000"},
                           }
         };
     }
+
+
+    //public static ConnectedDevice FromReedContactWithTm1637Displays()
+    //{
+    //    return new ConnectedDevice
+    //    {
+    //        IsEnabled = true,
+    //        DeviceType = "Reed-Contact",
+
+    //        Pins = new List<DevicePin>
+    //                          {
+    //                             new DevicePin
+    //                             {
+    //                                MicrocontrollerGpoPin = "19",
+    //                                PinName               = "DATA_PIN"
+    //                             }
+    //                          },
+    //        PropertyValues = new List<PropertyValue>()
+    //                      {
+    //                         new PropertyValue {Name = "IntervalMs", Value = "1000"},
+    //                         new PropertyValue { Name = "Extensions", Value = "1" } // Two TM1637 displays.
+    //                      },
+    //        LinkedDevices = new List<ConnectedDevice>
+    //        {
+    //           new ConnectedDevice
+    //           {
+    //               IsEnabled = true,
+    //               DeviceType = "TM1637_4",
+    //               Purpose = "Counter",
+    //               Pins = new List<DevicePin>
+    //               {
+    //                  new DevicePin
+    //                  {
+    //                     MicrocontrollerGpoPin = "27",
+    //                     PinName               = "CLK"
+    //                  },
+    //                  new DevicePin
+    //                  {
+    //                     MicrocontrollerGpoPin = "26",
+    //                     PinName               = "DIO"
+    //                  }
+    //               },
+    //               PropertyValues = new List<PropertyValue>
+    //               {
+    //                 new PropertyValue { Name = "flipDisplay", Value = "false" }
+    //               }
+    //           },
+    //           new ConnectedDevice
+    //           {
+    //               IsEnabled = true,
+    //               DeviceType = "TM1637_4",
+    //               Purpose = "Rpm",
+    //               Pins = new List<DevicePin>
+    //               {
+    //                  new DevicePin
+    //                  {
+    //                     MicrocontrollerGpoPin = "33",
+    //                     PinName               = "CLK"
+    //                  },
+    //                  new DevicePin
+    //                  {
+    //                     MicrocontrollerGpoPin = "32",
+    //                     PinName               = "DIO"
+    //                  }
+    //               },
+    //               PropertyValues = new List<PropertyValue>
+    //               {
+    //                 new PropertyValue { Name = "flipDisplay", Value = "false" }
+    //               }
+    //          }
+    //       }
+    //    };
+    //}
 
     public static ConnectedDevice FromHW507()
     {

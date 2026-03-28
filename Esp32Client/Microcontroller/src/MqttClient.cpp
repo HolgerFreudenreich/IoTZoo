@@ -75,8 +75,12 @@ namespace IotZoo
     bool MqttClient::publish(const String& topic, const String& payload, bool retain)
     {
         Serial.println("─┐");
-        Serial.print(">>> Publishing topic:\r\n" + topic + "\r\n\r\npayload ↣ " + payload + "\r\nretain: " + String(retain) +
+        Serial.println(">>> Publishing topic:\r\n" + topic + "\r\n\r\npayload ↣ " + payload + "\r\nretain: " + String(retain) +
                      "\r\nMqttBrokerIp: " + this->mqttClient->getMqttServerIp());
+        if (!mqttClient->isConnected())
+        {
+           return printSuccess(false);
+        }
         return printSuccess(mqttClient->publish(topic, payload, retain));
     }
 
@@ -87,13 +91,13 @@ namespace IotZoo
     /// @return
     bool MqttClient::subscribe(const String& topic, MessageReceivedCallback messageReceivedCallback, uint8_t qos)
     {
-        Serial.print("Subscribing topic: " + topic + ", qos: " + String(qos));
+        Serial.println("Subscribing to topic: " + topic + ", qos: " + String(qos));
         return printSuccess(mqttClient->subscribe(topic, messageReceivedCallback, qos));
     }
 
     bool MqttClient::subscribe(const String& topic, MessageReceivedCallbackWithTopic messageReceivedCallback, uint8_t qos)
     {
-        Serial.print("Subscribing (topic with topic): " + topic + ", qos: " + String(qos));
+        Serial.println("Subscribing to topic: " + topic + ", qos: " + String(qos));
         return printSuccess(mqttClient->subscribe(topic, messageReceivedCallback, qos));
     }
 
@@ -116,12 +120,13 @@ namespace IotZoo
     void MqttClient::removeRetainedMessageFromBroker(const String& topic)
     {
         Serial.println("*** Removing topic " + topic);
-        mqttClient->publish(topic, "", true);
+        publish(topic, "", true);
     }
 
     /// Main loop
     void MqttClient::loop()
     {
+        Serial.println("MqttClient::loop");
         mqttClient->loop();
     }
 

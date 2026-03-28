@@ -9,7 +9,7 @@
 // Page for managing components. Components are stored in containers.
 // The aim is to obtain an overview of the available components (that can be connected to microcontrollers).
 //
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 - 2026 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Pocos;
@@ -75,7 +75,7 @@ public class ComponentsPageBase : PageBase
 
    protected async Task Delete(Component component)
    {
-      bool? result = await DialogService.ShowMessageBox("Delete",
+      bool? result = await DialogService.ShowMessageBoxAsync("Delete",
                                                         $"Do you want to delete the component with Sku {component.Sku}?",
                                                         yesText: "Yes", cancelText: "No");
       if (!result.HasValue)

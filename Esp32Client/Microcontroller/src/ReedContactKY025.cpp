@@ -10,10 +10,10 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 #include "Defines.hpp"
+
 #ifdef USE_KY025
-
+#include "DebugHelper.hpp"
 #include "ReedContactKY025.hpp"
-
 #include <Arduino.h>
 
 namespace IotZoo
@@ -50,12 +50,15 @@ namespace IotZoo
     {
         String topic = getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/ppm";
         topics->emplace_back(topic, String(44.6), MessageDirection::IotZooClientInbound);
+
         topic = getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/counter";
         topics->emplace_back(topic, String(44151), MessageDirection::IotZooClientInbound);
     }
 
     void KY025::loop()
     {
+        debug("KY025::loop");
+        DeviceBase::loop();
         if (millis() - lastLoopMillis < 200)
         {
             Serial.println("KY025 skip loop");
@@ -65,16 +68,37 @@ namespace IotZoo
         if (oldReedContactCounter != reedContactCounter)
         {
             oldReedContactCounter = reedContactCounter;
-
-            mqttClient->publish(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/ppm", String(rpm, 0));
+            mqttClient->publish(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/rpm", String(rpm, 0));
             mqttClient->publish(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/counter", String(reedContactCounter));
+#ifdef USE_INTERNAL_MQTT
+            if (nullptr != internalMqttClient)
+            {
+                debug("Count of TopicLinks: " + String(TopicLinks.size()));
+                // Has an internal component interest on counter changes?
+                for (auto& topicLink : TopicLinks)
+                {
+                    debug("topicLink.TriggeringTopic: " + topicLink.TriggeringTopic);
+                    if (topicLink.TriggeringTopic.equalsIgnoreCase(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/rpm"))
+                    {
+                        topicLink.Payload = String(rpm, 0);
+                        internalMqttClient->publish(topicLink);
+                    }
+                    else if (topicLink.TriggeringTopic.equalsIgnoreCase(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/counter"))
+                    {
+                        topicLink.Payload = String(reedContactCounter);
+                        internalMqttClient->publish(topicLink);
+                    }
+                }
+            }
+#endif // USE_INTERNAL_MQTT
+
             lastLoopMillis = millis();
         }
         else
         {
             if (millis() - lastLoopMillis > 3000)
             {
-                mqttClient->publish(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/ppm", "0");
+                mqttClient->publish(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/rpm", "0");
                 lastLoopMillis = millis();
             }
         }

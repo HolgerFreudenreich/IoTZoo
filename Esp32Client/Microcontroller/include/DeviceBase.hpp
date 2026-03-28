@@ -19,10 +19,16 @@
 #ifdef USE_MQTT2
 #include "MqttClient2.hpp"
 #endif
-#include <ArduinoJson.h>
 #include "./pocos/Topic.hpp"
+
+#include <ArduinoJson.h>
 #ifdef ARDUINO_ESP32_DEV
 #include "Settings.hpp"
+#endif
+
+#ifdef USE_INTERNAL_MQTT
+#include "InternalMqtt/InternalMqtt.h"
+#include "pocos/TopicLink.hpp"
 #endif
 
 using namespace std;
@@ -38,11 +44,24 @@ namespace IotZoo
         {
             Serial.println("Constructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
         }
-    
+
         virtual ~DeviceBase()
         {
             Serial.println("Destructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
         }
+
+#ifdef USE_INTERNAL_MQTT        
+        // Zuerst war die Idee, dass jedes Device einen eigenen MQTT Client hat. Das ist aber zu viel Overhead. Jetzt teilen sich alle Devices einen MQTT Client. Das ist auch
+        //void makeInstanceInternalMqttClient(TinyMqttBroker* const broker)
+        //{
+        //   // internalMqttClient = new TinyMqttClient(broker, "id");
+        //}
+
+        void setInternalMqttClient(InternalMqttClient* const client)
+        {
+            internalMqttClient = client;
+        }
+#endif // USE_INTERNAL_MQTT
 
         int getDeviceIndex() const
         {
@@ -51,19 +70,37 @@ namespace IotZoo
 
         virtual void loop()
         {
-            Serial.println("do override loop!");
+#ifdef USE_INTERNAL_MQTT
+            if (nullptr != internalMqttClient)
+            {
+                internalMqttClient->loop();
+            }
+#endif // USE_INTERNAL_MQTT
         }
 
         /// @brief Let the user know what the device can do.
         /// @param topics
-        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const = 0;
+        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const
+        {
+            for (auto& topic : getTopics())
+            {
+                topics->push_back(topic);
+            }
+        }
+
+        /// @brief Get the topics this device supports.
+        /// @return
+        virtual std::vector<Topic> getTopics() const
+        {
+            return {}; // Return an empty vector by default. Override this method in derived classes to provide actual topics.
+        }
 
         /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a
         /// prerequisite for a subscription.
         /// @param mqttClient
         /// @param baseTopic
         virtual void onMqttConnectionEstablished()
-        {            
+        {
             mqttCallbacksAreRegistered = true;
         }
 
@@ -87,14 +124,14 @@ namespace IotZoo
 
         int getDeviceIdex() const
         {
-           return deviceIndex;
+            return deviceIndex;
         }
 
         MqttClient* getMqttClient() const
         {
             return mqttClient;
         }
-        
+
         void publishError(const String& errMsg)
         {
             String topic = getBaseTopic() + "/error";
@@ -121,6 +158,28 @@ namespace IotZoo
             return true;
         }
 
+#ifdef USE_INTERNAL_MQTT
+        virtual void subscribeToInternalMqttTopics()
+        {
+            Serial.println("override subscribeToMqttTopics!");
+        }
+
+        InternalMqttClient* getInternalMqttClient() const
+        {
+            return internalMqttClient;
+        }
+
+        void setTopicLinks(const std::vector<TopicLink>& links)
+        {
+            TopicLinks = links;
+        }
+
+        vector<TopicLink> getTopicLinks() const
+        {
+            return TopicLinks;
+        }
+#endif // USE_INTERNAL_MQTT
+
       protected:
         MqttClient* mqttClient  = nullptr;
         Settings*   settings    = nullptr;
@@ -128,6 +187,11 @@ namespace IotZoo
         String      deviceName;
         String      baseTopic;
         bool        mqttCallbacksAreRegistered = false;
+
+#ifdef USE_INTERNAL_MQTT
+        InternalMqttClient*   internalMqttClient = nullptr;
+        vector<TopicLink> TopicLinks;
+#endif
     };
 
 } // namespace IotZoo

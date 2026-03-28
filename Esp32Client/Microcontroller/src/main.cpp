@@ -12,9 +12,11 @@
 // Includes
 // --------------------------------------------------------------------------------------------------------------------
 #include "ConnectionSettings.hpp"
+#include "DebugHelper.hpp"
 #include "Defines.hpp"
 #include "pocos/Microcontroller.hpp"
 #include "pocos/Topic.hpp"
+#include "pocos/TopicLink.hpp"
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -192,7 +194,7 @@ bool topicsRegistered = false;
 /// @brief Restarts the microcontroller.
 void restart()
 {
-    Serial.println("*** RESTART NOW!!! ***");
+    debug("*** RESTART NOW!!! ***");
     ESP.restart();
 }
 
@@ -202,7 +204,7 @@ String getMacAddress()
 {
     // It would be even possible to set the MAC address!
     macAddress = WiFi.macAddress();
-    Serial.println("MAC: " + macAddress);
+    debug("MAC: " << macAddress);
     return macAddress;
 }
 
@@ -233,6 +235,12 @@ IotZoo::HW507* hw507HumiditySensor = nullptr;
 MqttClient* mqttClient = nullptr;
 #endif
 
+#ifdef USE_INTERNAL_MQTT
+#include "./InternalMqtt/InternalMqtt.h"
+static InternalMqttBroker* internalBroker           = nullptr;
+static InternalMqttClient* globalInternalMqttClient = nullptr;
+#endif // USE_INTERNAL_MQTT
+
 #ifdef USE_TM1637_4
 #include "./displays/TM1637/TM1637_4_Handling.hpp"
 IotZoo::TM1637_4_Handling* tm1637_4Handling;
@@ -248,10 +256,10 @@ IotZoo::TM1637_6_Handling tm1637_6Handling;
 Max7219* max7219;
 #endif // USE_MAX7219
 
-#ifdef USE_UV
-#include "GUVAS12SD.hpp"
-UvSensorGUVAS12SD* uvSensorGUVAS12SD = nullptr;
-#endif // USE_UV
+#ifdef USE_ANALOG_INPUT_PIN
+#include "AnalogInputPin.hpp"
+std::vector<AnalogInputPin> analogInputPins;
+#endif // USE_ANALOG_INPUT_PIN
 
 #if defined(USE_MQTT)
 const String NamespaceNameFallback = "iotzoo";
@@ -492,10 +500,10 @@ void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
 #else
     jsonObjectSupportedDevices["TM1637_6"] = false;
 #endif
-#ifdef USE_UV
-    jsonObjectSupportedDevices["UV"] = true;
+#ifdef USE_ANALOG_INPUT_PIN
+    jsonObjectSupportedDevices["AnalogInputPins"] = true;
 #else
-    jsonObjectSupportedDevices["UV"] = false;
+    jsonObjectSupportedDevices["AnalogInputPins"] = false;
 #endif
 #ifdef USE_LED_AND_KEY
     jsonObjectSupportedDevices["TM1638LedAndKey"] = true;
@@ -796,12 +804,12 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     buttonHandling.onMqttConnectionEstablished();
 #endif
 
-#ifdef USE_UV
-    if (nullptr != uvSensorGUVAS12SD)
+#ifdef USE_ANALOG_INPUT_PIN
+    for (auto& analogInputPin : analogInputPins)
     {
-        uvSensorGUVAS12SD->onMqttConnectionEstablished();
+        analogInputPin.onMqttConnectionEstablished();
     }
-#endif // USE_UV
+#endif // USE_ANALOG_INPUT_PIN
 
 #ifdef USE_AUDIO_STREAMER
     if (nullptr != audioStreamer)
@@ -828,6 +836,9 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     if (nullptr != tm1637_4Handling)
     {
         tm1637_4Handling->onMqttConnectionEstablished(mqttClient, getBaseTopic());
+#ifdef USE_INTERNAL_MQTT
+        tm1637_4Handling->subscribeToInternalMqttTopics(); // independent of external MQTT broker.
+#endif
     }
 #endif
 
@@ -1012,9 +1023,21 @@ void makeInstanceConfiguredDevices()
 
             if (isEnabled)
             {
-                JsonArray arrPins       = value["Pins"].as<JsonArray>();
-                JsonArray arrProperties = value["PropertyValues"].as<JsonArray>();
+                JsonArray          arrPins       = value["Pins"].as<JsonArray>();
+                JsonArray          arrProperties = value["PropertyValues"].as<JsonArray>();
+                JsonArray          arrTopicLinks = value["TopicLinks"].as<JsonArray>();
+                vector<TopicLink>* topicLinks    = new vector<TopicLink>();
+                for (JsonVariant topicLinkVariant : arrTopicLinks)
+                {
+                    String triggeringTopic = topicLinkVariant["TriggeringTopic"].as<String>();
+                    triggeringTopic.trim();
+                    triggeringTopic.toLowerCase();
+                    String targetTopic = topicLinkVariant["TargetTopic"].as<String>();
+                    targetTopic.trim();
+                    targetTopic.toLowerCase();
 
+                    topicLinks->emplace_back(triggeringTopic, targetTopic);
+                }
 #ifdef USE_BUTTON
                 if (deviceType == "Button")
                 {
@@ -1043,7 +1066,12 @@ void makeInstanceConfiguredDevices()
                     }
 
                     ky025 = new KY025(deviceIndex, settings, mqttClient, getBaseTopic(), intervalMs, dataPin);
+#ifdef USE_INTERNAL_MQTT
 
+                    ky025->setTopicLinks(*topicLinks);
+                    // ky025->makeInstanceInternalMqttClient(internalBroker);
+                    ky025->setInternalMqttClient(globalInternalMqttClient);
+#endif
                     Serial.println("Reed contact KY-025 initialized.");
                 }
 #endif // USE_BUTTON
@@ -1187,14 +1215,36 @@ void makeInstanceConfiguredDevices()
                 }
 #endif // USE_KEYPAD
 
-#ifdef USE_UV
-                if (deviceType == "UV")
+#ifdef USE_ANALOG_INPUT_PIN
+                if (deviceType == "ADC")
                 {
-                    int analogPin     = arrPins[0]["MicrocontrollerGpoPin"];
-                    uvSensorGUVAS12SD = new UvSensorGUVAS12SD(deviceIndex, settings, mqttClient, getBaseTopic(), analogPin);
-                    Serial.println("UV Sensor initialized on pin " + String(analogPin) + ".");
+                    int   analogPin  = arrPins[0]["MicrocontrollerGpoPin"];
+                    u16_t intervalMs = 1000;
+                    for (JsonVariant property : arrProperties)
+                    {
+                        String propertyName  = property["Name"];
+                        String propertyValue = property["Value"];
+                        if (propertyName == "Interval")
+                        {
+                            intervalMs = propertyValue.toInt();
+                        }
+                    }
+
+                    if (analogPin != 32 && analogPin != 33 && analogPin != 34 && analogPin != 35 && analogPin != 36 && analogPin != 39)
+                    {
+                        Serial.println("Warning: analogPin " + String(analogPin) +
+                                       " is not an ADC pin (34, 35, 36, 39 are valid ADC pins on ESP32)!");
+                        mqttClient->publish(getBaseTopic() + "/error/" + String(deviceIndex),
+                                            "Warning: pinAdc is not an ADC pin (32, 33 34, 35, 36, 39 are valid ADC pins on ESP32)!");
+                        continue;
+                    }
+                    else
+                    {
+                        analogInputPins.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), analogPin, intervalMs);
+                        Serial.println("Analog Input Pin initialized on pin " + String(analogPin) + ".");
+                    }
                 }
-#endif // USE_UV
+#endif // USE_ANALOG_INPUT_PIN
 
 #ifdef USE_STEPPER_MOTOR
                 if (deviceType == "28BY48Stepper")
@@ -1457,7 +1507,11 @@ void makeInstanceConfiguredDevices()
                     tm1637_4Handling = new TM1637_4_Handling();
                     if (nullptr != tm1637_4Handling)
                     {
-                        tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+#ifdef USE_INTERNAL_MQTT
+                        tm1637_4Handling->makeInstanceInternalMqttClient(internalBroker);
+#endif
+                        DeviceBase& device = tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+
                         Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
                                        ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
                     }
@@ -1631,6 +1685,10 @@ void makeInstanceConfiguredDevices()
                     }
 
                     heartRateSensor = new HeartRateSensor(deviceIndex, settings, mqttClient, getBaseTopic(), advertisingTimeoutSeconds);
+#ifdef USE_INTERNAL_MQTT
+                    heartRateSensor->setTopicLinks(*topicLinks);
+                    heartRateSensor->makeInstanceInternalMqttClient(internalBroker);
+#endif
                     connectToHeartRateSensor(advertisingTimeoutSeconds);
                 }
 #endif // USE_BLE_HEART_RATE_SENSOR
@@ -1643,7 +1701,7 @@ void makeInstanceConfiguredDevices()
 #if defined(USE_MQTT)
 void handleGetAlive()
 {
-    Serial.println("Get alive");
+    debug("Get alive");
     String json = createAliveJson();
     webServer.send(200, "application/json", json.c_str());
 }
@@ -1654,7 +1712,7 @@ void handleGetAlive()
 /// @brief http get delivers the configuration of the connected sensors/devices. http://raspberrypi/deviceConfig
 void handleGetDeviceConfig()
 {
-    Serial.println("GET device config");
+    debug("GET device config");
     String json = settings->loadDeviceConfigurations();
     webServer.send(200, "application/json", json.c_str());
 }
@@ -1703,7 +1761,7 @@ void handleGetGpio4State()
 /// @brief Blazor app sends device config.
 void handlePostDeviceConfig()
 {
-    Serial.println("Received device config (POST).");
+    debug("Received device config (POST).");
     if (webServer.hasArg("plain") == false)
     {
         // handle error here
@@ -1719,7 +1777,7 @@ void handlePostDeviceConfig()
 /// @brief Blazor app sends microcontroller config.
 void handlePostMicrocontrollerConfig()
 {
-    Serial.println("Received microcontroller config (POST).");
+    debug("Received microcontroller config (POST).");
 
     if (webServer.hasArg("plain") == false)
     {
@@ -1739,19 +1797,19 @@ void handlePostMicrocontrollerConfig()
     String projectName   = jsonDocument["ProjectName"];
     String namespaceName = jsonDocument["NamespaceName"];
 
-    Serial.println("MqttBrokerIp: " + mqttBrokerIp);
-    Serial.println("Project: " + projectName);
+    debug("MqttBrokerIp: " << mqttBrokerIp);
+    debug("Project: " << projectName);
     if (!settings->setMqttBrokerIp(mqttBrokerIp))
     {
-        Serial.println("MqttBrokerIp not saved!");
+        debug("MqttBrokerIp not saved!");
     }
     if (!settings->setNamespaceName(namespaceName))
     {
-        Serial.println("NamespaceName not saved!");
+        debug("NamespaceName not saved!");
     }
     if (!settings->setProjectName(projectName))
     {
-        Serial.println("ProjectName not saved!");
+        debug("ProjectName not saved!");
     }
     // Respond to the client
     webServer.send(200, "application/json", "{}");
@@ -1763,16 +1821,9 @@ void handlePostMicrocontrollerConfig()
 
 void connectToWiFi()
 {
-    Serial.print("Connecting to ");
-    Serial.println(ssid);
+    debug("Connecting to " << ssid);
 
     WiFi.begin(ssid, password);
-
-    while (WiFi.status() != WL_CONNECTED)
-    {
-        Serial.print("+");
-        delay(250);
-    }
 
     WiFi.setAutoReconnect(true);
 
@@ -1794,6 +1845,26 @@ void notifyCallbackHeartRate(NimBLERemoteCharacteristic* pBLERemoteCharacteristi
     {
         Serial.println("Pulse: " + String(data[1]));
     }
+
+#ifdef USE_INTERNAL_MQTT
+    {
+        TinyMqttClient* internalMqttClient = heartRateSensor->getInternalMqttClient();
+        if (nullptr != internalMqttClient)
+        {
+            debug("Count of TopicLinks: " + String(heartRateSensor->getTopicLinks().size()));
+            // Has an internal component interest on counter changes?
+            for (auto& topicLink : heartRateSensor->getTopicLinks())
+            {
+                debug("topicLink.TriggeringTopic: " + topicLink.TriggeringTopic);
+                if (topicLink.TriggeringTopic.equalsIgnoreCase(getBaseTopic() + "/pulse/" + String(heartRateSensor->getDeviceIndex())))
+                {
+                    topicLink.Payload = String(data[1]).c_str();
+                    internalMqttClient->publish(topicLink);
+                }
+            }
+        }
+    }
+#endif // USE_INTERNAL_MQTT
 
 #if defined(USE_MQTT)
     String topic = getBaseTopic() + "/pulse/0";
@@ -1819,7 +1890,8 @@ void connectToHeartRateSensor(int advertisingTimeout)
 void setup()
 {
     Serial.begin(115200);
-    Serial.println("*** SETUP ***");
+    debug("*** SETUP ***");
+
     pinMode(LED_BUILTIN, OUTPUT);
 
     randomSeed(micros());
@@ -1836,7 +1908,10 @@ void setup()
 
 #ifdef ERASE_FLASH
     while (true)
-        ;
+    {
+        sleep(1000);
+    }
+
 #endif
 
 #if defined(USE_REST_SERVER)
@@ -1857,6 +1932,11 @@ void setup()
     webServer.on("/gpio/4", HTTP_GET, handleGetGpio4State);
     webServer.begin();
 #endif
+
+#ifdef USE_INTERNAL_MQTT
+    internalBroker           = new InternalMqttBroker(1884);
+    globalInternalMqttClient = new InternalMqttClient(internalBroker, "id");
+#endif // USE_INTERNAL_MQTT
 
 #ifdef USE_TM1637_4
     if (nullptr != tm1637_4Handling)
@@ -1919,6 +1999,10 @@ void registerTopics()
 {
 #ifdef USE_MQTT
     Serial.println("Register Known Topics at the IOTZOO client.");
+    if (!mqttClient->isConnected())
+    {
+        return;
+    }
 
     String lastWillTopic = getBaseTopic() + "/terminated";
     mqttClient->enableLastWillMessage(lastWillTopic.c_str(), "SHUTDOWN", 0);
@@ -2169,8 +2253,21 @@ void loop()
 {
     try
     {
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            debug("🛜 🚫");
+        }
+        else
+        {
+            debug("🛜 ✅");
+        }
+
+#ifdef USE_INTERNAL_MQTT
+        internalBroker->loop();
+#endif // USE_INTERNAL_MQTT
+
         lastLoopStartTime = millis();
-        Serial.print("_");
+
         loopCounter++;
 
         if (doRestart)
@@ -2180,16 +2277,17 @@ void loop()
 
 #if defined(USE_MQTT)
         mqttClient->loop();
+#ifndef USE_INTERNAL_MQTT
         if (millis() - lastLoopStartTime > 10000)
         {
             Serial.print("BROKEN MQTT");
             restart();
         }
+#endif
         if (!mqttClient->isConnected())
-        {
-            Serial.print("⚠");
-            delay(200);
-            return;
+        {        
+            debug("⚠" << mqttClient->getConnectionEstablishedCount() << _EndLineCode::endl);
+            //delay(200);
         }
 
         if (!topicsRegistered)
@@ -2211,19 +2309,26 @@ void loop()
         buttonHandling.loop();
 #endif
 
-#ifdef USE_UV
-        if (nullptr != uvSensorGUVAS12SD)
+#ifdef USE_ANALOG_INPUT_PIN
+        for (auto& analogInputPin : analogInputPins)
         {
-            uvSensorGUVAS12SD->loop();
+            analogInputPin.loop();
         }
-#endif // USE_UV
+#endif // USE_ANALOG_INPUT_PIN
 
 #ifdef USE_KY025
         if (nullptr != ky025)
         {
             ky025->loop();
         }
-#endif
+#endif // USE_KY025
+
+        // {
+        //     TopicLink topicLink("", "iotzoo/picea/esp32/e4:65:b8:b0:45:b4/tm1637_4/0/number");
+        //     topicLink.Payload     = String(loopCounter).c_str();
+        //     InternalMqttError err = globalInternalMqttClient->publish(topicLink);
+        //     globalInternalMqttClient->loop();
+        // }
 
 #ifdef USE_AUDIO_STREAMER
         if (nullptr != audioStreamer)
@@ -2364,9 +2469,9 @@ void loop()
             lastServerAliveMillis = millis();
         }
 
-        if (loopDurationMs < 100)
+        if (loopDurationMs < 2500)
         {
-            delay(100 - loopDurationMs);
+            delay(2500 - loopDurationMs);
         }
         digitalWrite(LED_BUILTIN, LOW); // turn the LED off to indicate that the device is offline.
     }

@@ -1,0 +1,53 @@
+﻿@inherits DataSourceEditorBase
+
+@using Domain.Pocos
+@using IotZoo.Components
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+         @DialogTitle
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.FirstChild>
+                  @{
+                     <MudTextField @bind-Value="@DataSource.TriggeringTopic"
+                                   MaxLength="1000"
+                                   Required="true"
+                                   Immediate="true"
+                                   Label="Triggering Topic (Source Topic)"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                     </MudTextField>
+                     <br />
+                     <MudTextField @bind-Value="@DataSource.TargetTopic"
+                                   MaxLength="1000"
+                                   Required="true"
+                                   Immediate="true"
+                                   Label="Target Topic"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                     </MudTextField>
+                  }
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Variant="Variant.Filled"
+                 Color="Color.Success"
+                 OnClick="Save">Ok</MudButton>
+   </DialogActions>
+</MudDialog>
