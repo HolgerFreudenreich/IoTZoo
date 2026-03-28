@@ -33,6 +33,7 @@ namespace IotZoo
          Description = description;
          Direction = static_cast<int>(messageDirection);
          Persist = persist;
+         Serial.println("Topic created. TopicName: " + TopicName + ", Description: " + Description + ", Direction: " + String(Direction) + ", Persist: " + String(Persist));  
       }
 
       String TopicName;

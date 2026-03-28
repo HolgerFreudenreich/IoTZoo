@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under the MIT license
+// (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace IotZoo.Pages;
@@ -83,7 +83,7 @@ public class RulesPageBase : PageBase
 
     protected async Task DeleteRule(Rule rule)
     {
-        bool? result = await DialogService.ShowMessageBox("Delete",
+        bool? result = await DialogService.ShowMessageBoxAsync("Delete",
                                                           $"Do you want to delete the rule with Id {rule.RuleId}?",
                                                           yesText: "Yes", cancelText: "No");
         if (!result.HasValue)
@@ -212,8 +212,6 @@ public class RulesPageBase : PageBase
             await LoadData();
         }
     }
-
-
 
     private async Task OpenRuleEditor(Rule rule)
     {

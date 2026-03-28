@@ -5,7 +5,7 @@
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
 //  /___/\____/_/       /____|____/\____/ 
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 - 2026 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 // The MQTT Client which processes the incoming topics and fires new topics resulting on executing rules.
 // --------------------------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ using MudBlazor;
 using Quartz.Spi;
 using System.Reflection;
 using System.Text.Json;
+using Whisper.net.Wave;
 
 namespace Domain.Services.MQTT;
 
@@ -246,6 +247,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
 
             await KnownTopicsDatabaseService.Save(knownTopic);
         }
+
 
         // Handle Default Topics
         await HandleDefaultTopicsAsync(topicEntry);

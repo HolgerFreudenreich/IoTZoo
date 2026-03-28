@@ -11,7 +11,8 @@
 // WS2818 Adafruit_NeoPixel arranged as Pixel-Matrix.
 // --------------------------------------------------------------------------------------------------------------------
 #include "PixelMatrix.hpp"
-#include "AlarmZonesDeviceExtension.hpp"
+
+#include "./DeviceExtensions/AlarmZonesDeviceExtension.hpp"
 
 #ifdef USE_WS2818_PIXEL_MATRIX
 

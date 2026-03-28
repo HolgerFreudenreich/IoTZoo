@@ -19,7 +19,7 @@
 
 namespace IotZoo
 {
-    class KY025 : DeviceBase
+    class KY025 : public DeviceBase
     {
       public:
         KY025(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, u16_t intervalMs, u8_t pinData);

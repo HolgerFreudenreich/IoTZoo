@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under the MIT license
+// (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Interfaces.Crud;
@@ -121,7 +121,7 @@ public class KnownTopicsPageBase : PageBase
 
     protected async Task DeleteKnownTopic(KnownTopic knownTopic)
     {
-        bool? result = await DialogService.ShowMessageBox("Delete",
+        bool? result = await DialogService.ShowMessageBoxAsync("Delete",
                                                           $"Do you want to delete the known topic with Id {knownTopic.KnownTopicId}?",
                                                           yesText: "Yes", cancelText: "No");
         if (!result.HasValue)

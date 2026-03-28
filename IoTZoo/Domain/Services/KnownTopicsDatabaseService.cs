@@ -5,7 +5,7 @@
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
 //  /___/\____/_/       /____|____/\____/ 
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 - 2026 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 // Known topics are stored in a table. You can save the history of known topics if you set the property
 // KnownTopic.Persist to true.

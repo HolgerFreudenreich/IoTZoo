@@ -15,6 +15,7 @@
 #ifdef USE_TM1637_4
 #include "TM1637DisplayBase.hpp"
 #include "TM1637TinyDisplay.h"
+#include "internalMqtt/InternalMqtt.h"
 
 namespace IotZoo
 {
@@ -25,7 +26,8 @@ namespace IotZoo
                              uint8_t pinDio)
             : TM1637DisplayBase(deviceIndex, settings, mqttClient, baseTopic)
         {
-            Serial.println("Constructor TM1637Display4Digits, deviceIndex: " + String(deviceIndex) + ", pinClk: " + String(pinClk) + ", pinDio: " + String(pinDio));
+            Serial.println("Constructor TM1637Display4Digits, deviceIndex: " + String(deviceIndex) + ", pinClk: " + String(pinClk) +
+                           ", pinDio: " + String(pinDio));
             tm1637_4_Display = new TM1637TinyDisplay(pinClk, pinDio); // concrete implementation of the underlying hardware
         }
 
@@ -44,24 +46,7 @@ namespace IotZoo
             return Tm1637DisplayType::Digits4;
         }
 
-        virtual void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override
-        {
-            topics->emplace_back(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/time",
-                                 "Send time to TM1637 4 digits LCD display with index " + String(deviceIndex) + ".",
-                                 MessageDirection::IotZooClientOutbound);
 
-            topics->emplace_back(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/number",
-                                 "Send a number to TM1637 4 digits LCD display with index " + String(deviceIndex) + ".",
-                                 MessageDirection::IotZooClientOutbound);
-
-            topics->emplace_back(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/text",
-                                 "Send a text to TM1637 4 digits LCD display with index " + String(deviceIndex) + ".",
-                                 MessageDirection::IotZooClientOutbound);
-
-            topics->emplace_back(baseTopic + "/tm1637_4/" + String(deviceIndex) + "/level",
-                                 "Use TM1637 4 digits LCD display with index " + String(deviceIndex) + " to indicate a level between 0 and 100.",
-                                 MessageDirection::IotZooClientOutbound);
-        }
 
         void begin()
         {

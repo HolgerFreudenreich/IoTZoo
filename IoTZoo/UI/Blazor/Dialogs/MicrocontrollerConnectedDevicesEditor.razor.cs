@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under the MIT license
+// (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Interfaces;
@@ -69,12 +69,13 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
         }
     }
 
-    protected async Task AddUvSensor()
+    protected async Task AddAnalogInputPin()
     {
         try
         {
-            Snackbar.Add("Adding UV sensor configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromUvSensor());
+            Snackbar.Add("Adding Analog Pin configuration to the microcontroller...", Severity.Info);
+            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromAnalogPin());
+            Snackbar.Add("Ensure that the pin is correctly wired from 3.3V to the pin (Do not use 5V!!!). Use an extra 10 K-Ohm resistor as voltage devider to ground if you want to connect a photo resistor!", Severity.Info);
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)

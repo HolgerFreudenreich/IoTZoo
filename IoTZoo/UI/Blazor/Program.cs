@@ -8,7 +8,7 @@
 // Connect «Things» with microcontrollers without programming knowledge.
 // MIT License
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 - 2026 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using DataAccess.Interfaces;
@@ -31,6 +31,7 @@ using Microsoft.OpenApi;
 using MQTTnet.Exceptions;
 using MudBlazor;
 using MudBlazor.Services;
+using Quartz;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -55,8 +56,7 @@ builder.Services.AddMudServices(config =>
                                            config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
                                        });
 
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 IConfigurationSection configurationSectionAppSettings = builder.Configuration.GetSection(nameof(AppSettings));
 builder.Services.Configure<AppSettings>(configurationSectionAppSettings);
@@ -90,7 +90,14 @@ builder.Services.AddTransient<ISearchHelper, SearchHelper>();
 builder.Services.AddSingleton<IHueBridgeService, HueBridgeService>();
 
 // Quartz.net
-builder.Services.AddSingleton<Quartz.Spi.IJobFactory, JobFactory>();
+//builder.Services.AddSingleton<Quartz.Spi.IJobFactory, JobFactory>();
+builder.Services.AddQuartz(q =>
+{
+    q.UseDefaultThreadPool(tp =>
+    {
+        tp.MaxConcurrency = 20;
+    });
+});
 builder.Services.AddSingleton<PublishTimeJob>();
 builder.Services.AddSingleton<CalculateNextSunriseAndSunsetJob>();
 
@@ -108,9 +115,7 @@ builder.Services.AddSingleton<IPrepareTargetPayload, PrepareTargetPayload>();
 builder.Services.AddSingleton<IRulesCrudService, RulesDatabaseService>(); // set ConfigurationDatabaseType in appsetings.json to Postgres or Sqlite!
 
 builder.Services.AddSingleton<IMailReceiverFactory, MailReceiverFactory>();
-
 builder.Services.AddSingleton<ICountDownFactory, CountDownFactory>();
-
 
 builder.Host.UseSerilog((ctx, lc) =>
                      {

@@ -5,7 +5,7 @@
 //   _/ // /_/ / /       / /_/ /_/ / /_/ /
 //  /___/\____/_/       /____|____/\____/
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under MIT license
+// (c) 2025 - 2026 Holger Freudenreich under MIT license
 // --------------------------------------------------------------------------------------------------------------------
 // Communicate with the Philips HUE bridge to for example turn on a HUE-light.
 // --------------------------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ using System.Text.Json;
 
 namespace DataAccess.Services;
 
+
 public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
 {
     public event Action<EventStreamData>? OnLightChanged;
@@ -44,14 +45,21 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
         get; set;
     }
 
+    protected IProjectCrudService ProjectCrudService
+    {
+        get; set;
+    }
+
     protected LocalHueApi HueApi { get; set; } = null!;
 
     public HueBridgeService(ILogger<HueBridgeService> logger,
                             IOptions<AppSettings> options,
                             IDataTransferService dataTransferService,
+                            IProjectCrudService projectCrudService,
                             IKnownTopicsCrudService knownTopicsCrudService) : base(logger, dataTransferService)
     {
         KnownTopicsDatabaseService = knownTopicsCrudService;
+        ProjectCrudService = projectCrudService;
 
         LightColorPoc = new LightColor()
         {
@@ -75,7 +83,6 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
             HueApi.StartEventStream();
         }
     }
-
 
     /// <summary>
     /// Event from Philips-Hue-Bridge. Used to refresh the UI if an Hue Event is triggert from outsite of IotZoo like Amazon Alexa.
@@ -101,19 +108,55 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
                     {
                         continue;
                     }
-                    if (!string.IsNullOrEmpty(json))
-                    {
-                        //Console.WriteLine($"Data: {data.Metadata?.Name} / {data.IdV1}");
-                        var applicationMessage = new MqttApplicationMessageBuilder()
-                                            .WithTopic($"{this.DataTransferService.NamespaceName}/{TopicConstants.HUE_BRIDGE}/0{data.IdV1}")
-                                            .WithPayload(json)
-                                            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce)
-                                            .Build();
 
-                        await MqttClient.PublishAsync(applicationMessage);
-                        if (OnLightChanged != null)
+                    bool isMotionSensor = false;
+                    bool motionDetected = false;
+                    if (!string.IsNullOrEmpty(data.IdV1))
+                    {
+                        if (data.IdV1.Contains("/sensors/"))
                         {
-                            OnLightChanged.Invoke(data);
+                            isMotionSensor = true;
+
+                            if (json.Contains("\"motion\":true"))
+                            {
+                                motionDetected = true;
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(json))
+                        {
+                            var projects = await this.ProjectCrudService.LoadProjects();
+
+                            foreach (var project in projects)
+                            {
+                                if (isMotionSensor)
+                                {
+                                    var applicationMessage = new MqttApplicationMessageBuilder()
+                                                        .WithTopic($"{this.DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.HUE_BRIDGE}/0{data.IdV1}")
+                                                        .WithPayload(motionDetected ? "1" : "0")
+                                                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce)
+                                                    .Build();
+
+                                    await MqttClient.PublishAsync(applicationMessage);
+                                }
+                                else
+                                {
+                                    //Console.WriteLine($"Data: {data.Metadata?.Name} / {data.IdV1}");
+                                    var applicationMessage = new MqttApplicationMessageBuilder()
+                                                        .WithTopic($"{this.DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.HUE_BRIDGE}/0{data.IdV1}")
+                                                        .WithPayload(json)
+                                                        .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce)
+                                                        .Build();
+
+                                    await MqttClient.PublishAsync(applicationMessage);
+                                    if (OnLightChanged != null)
+                                    {
+                                        OnLightChanged.Invoke(data);
+                                    }
+                                }
+
+                            }
+
                         }
                     }
                 }

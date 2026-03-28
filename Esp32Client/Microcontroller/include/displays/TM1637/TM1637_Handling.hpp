@@ -34,13 +34,13 @@ namespace IotZoo
         /// @param rawData: data in json format or unformatted.
         static void onReceivedDataTm1637_Number(const String &rawData, int deviceIndex);
 
-        static void callbackMqttOnReceivedDataTm1637_Number(const String &topic, const String &message);
+        static void callbackMqttOnReceivedDataTm1637Number(const String &topic, const String &message);
 
         static void callMqttbackOnReceivedDataTm1637Text(const String &topic, const String &message);
 
         static void callbackMqttOnReceivedDataTm1637Level(const String &topic, const String &message);
 
-        void addDevice(const String &baseTopic, int deviceIndex,
+        DeviceBase& addDevice(const String &baseTopic, int deviceIndex,
                        int clkPin, int dioPin, bool flipDisplay, const String &serverDownText);
 
         static TM1637 *getDisplayByDeviceIndex(int index);

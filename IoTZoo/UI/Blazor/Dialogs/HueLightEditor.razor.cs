@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under the MIT license
+// (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Pocos;
@@ -38,9 +38,9 @@ public class HueLightEditorBase : EditorBase
       var hashCodeTmp = GetHashCodeBase64(HueLight);
       if (hashCodeTmp != HashCode)
       {
-         bool? result = await DialogService.ShowMessageBox("Warning!",
-                                                           $"There are unsaved changes! Do you want to cancel without saving?",
-                                                           yesText: "Yes", cancelText: "No");
+         bool? result = await DialogService.ShowMessageBoxAsync("Warning!",
+                                                                $"There are unsaved changes! Do you want to cancel without saving?",
+                                                                yesText: "Yes", cancelText: "No");
          if (!result.HasValue)
          {
             return;

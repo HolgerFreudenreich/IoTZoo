@@ -17,19 +17,23 @@
 
 using namespace std;
 
-#include <Arduino.h>
 #include "TM1637_Handling.hpp"
+
+#include <Arduino.h>
 
 namespace IotZoo
 {
     /// @brief Holds a vector of TM1637 displays, all of the same type 6 digits display.
     class TM1637_4_Handling : public TM1637_Handling
     {
-    public:
+      public:
         TM1637_4_Handling();
 
-        void onMqttConnectionEstablished(MqttClient *mqttClient, const String &baseTopic);
+        void onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic);
+#ifdef USE_INTERNAL_MQTT
+        virtual void subscribeToInternalMqttTopics() override;
+#endif
     };
-}
+} // namespace IotZoo
 #endif // __TM_1637_4_HANDLING_HPP
 #endif // USE_TM1637_4

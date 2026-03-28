@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 Holger Freudenreich under the MIT license
+// (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Interfaces.Crud;
@@ -18,73 +18,73 @@ namespace IotZoo.Pages;
 
 public class TopicsHistoryPageBase : PageBase
 {
-   [Inject]
-   public ITopicHistoryCrudService TopicHistoryService
-   {
-      get;
-      set;
-   } = null!;
+    [Inject]
+    public ITopicHistoryCrudService TopicHistoryService
+    {
+        get;
+        set;
+    } = null!;
 
-   protected List<TopicHistory> TopicHistoryList
-   {
-      get;
-      set;
-   } = new();
+    protected List<TopicHistory> TopicHistoryList
+    {
+        get;
+        set;
+    } = new();
 
-   protected override async Task OnAfterRenderAsync(bool firstRender)
-   {
-      base.OnAfterRender(firstRender);
-      if (firstRender)
-      {
-         ProjectsCatalog = await ProjectService.LoadProjects();
-         await LoadData();
-      }
-   }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (firstRender)
+        {
+            ProjectsCatalog = await ProjectService.LoadProjects();
+            await LoadData();
+        }
+    }
 
-   [Inject]
-   public IProjectCrudService ProjectService { get; set; } = null!;
+    [Inject]
+    public IProjectCrudService ProjectService { get; set; } = null!;
 
-   protected List<Project> ProjectsCatalog { get; private set; } = new();
+    protected List<Project> ProjectsCatalog { get; private set; } = new();
 
 
-   protected Project? SelectedProject
-   {
-      get => DataTransferService.SelectedProject;
-      set
-      {
-         DataTransferService.SelectedProject = value;
-         _ = LoadData();
-      }
-   }
+    protected Project? SelectedProject
+    {
+        get => DataTransferService.SelectedProject;
+        set
+        {
+            DataTransferService.SelectedProject = value;
+            _ = LoadData();
+        }
+    }
 
-   protected override void OnInitialized()
-   {
-      DataTransferService.CurrentScreen = ScreenMode.TopicsHistory;
-      base.OnInitialized();
-   }
+    protected override void OnInitialized()
+    {
+        DataTransferService.CurrentScreen = ScreenMode.TopicsHistory;
+        base.OnInitialized();
+    }
 
-   protected override async Task LoadData()
-   {
-      TopicHistoryList = await TopicHistoryService.LoadTopicHistory(SelectedProject);
-      await InvokeAsync(StateHasChanged);
-   }
-   
-   protected async void Delete()
-   {
-      bool? result = await DialogService.ShowMessageBox("Delete",
-                                                        $"Do you want to delete the complete topic history?",
-                                                        yesText: "Yes", cancelText: "No");
-      if (!result.HasValue)
-      {
-         return;
-      }
-      await TopicHistoryService.DeleteAll();
-      await LoadData();
-   }
+    protected override async Task LoadData()
+    {
+        TopicHistoryList = await TopicHistoryService.LoadTopicHistory(SelectedProject);
+        await InvokeAsync(StateHasChanged);
+    }
 
-   protected void DeleteTopicHistoryEntry(TopicHistory topicHistory)
-   {
-      TopicHistoryList.Remove(topicHistory);
-      TopicHistoryService.DeleteTopicHistoryEntry(topicHistory);
-   }
+    protected async void Delete()
+    {
+        bool? result = await DialogService.ShowMessageBoxAsync("Delete",
+                                                               $"Do you want to delete the complete topic history?",
+                                                               yesText: "Yes", cancelText: "No");
+        if (!result.HasValue)
+        {
+            return;
+        }
+        await TopicHistoryService.DeleteAll();
+        await LoadData();
+    }
+
+    protected void DeleteTopicHistoryEntry(TopicHistory topicHistory)
+    {
+        TopicHistoryList.Remove(topicHistory);
+        TopicHistoryService.DeleteTopicHistoryEntry(topicHistory);
+    }
 }
