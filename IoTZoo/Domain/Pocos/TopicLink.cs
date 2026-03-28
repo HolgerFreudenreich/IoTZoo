@@ -12,13 +12,10 @@
 
 namespace Domain.Pocos;
 
-public class DataSource : BasePoco
+public class TopicLink : BasePoco
 {
-    // Topic to subscribe.
-    public String Topic { get; set; } = null!;
+    public string TriggeringTopic { get; set; } = null!;
 
-    // Method to call when a message is received on the topic. The method must be implemented in the microcontroller class.
-    public String Method { get; set; } = null!;
+    public string TargetTopic { get; set; } = null!;
 
-    public DataLinkType DataLinkType { get; set; } = DataLinkType.Mqtt;
 }

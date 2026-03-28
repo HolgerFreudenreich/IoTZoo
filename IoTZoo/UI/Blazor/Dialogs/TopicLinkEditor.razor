@@ -17,33 +17,23 @@
                <MudFocusTrap Disabled="false"
                              DefaultFocus=DefaultFocus.FirstChild>
                   @{
-                     <MudTextField @bind-Value="@DataSource.Topic"
-                                   MaxLength="250"
+                     <MudTextField @bind-Value="@DataSource.TriggeringTopic"
+                                   MaxLength="1000"
                                    Required="true"
                                    Immediate="true"
-                                   Label="Topic"
+                                   Label="Triggering Topic (Source Topic)"
                                    Variant="Variant.Text"
                                    Margin="Margin.Normal">
                      </MudTextField>
                      <br />
-                     <MudTextField @bind-Value="@DataSource.Method"
-                                   MaxLength="10"
+                     <MudTextField @bind-Value="@DataSource.TargetTopic"
+                                   MaxLength="1000"
                                    Required="true"
                                    Immediate="true"
-                                   Label="Method"
+                                   Label="Target Topic"
                                    Variant="Variant.Text"
                                    Margin="Margin.Normal">
                      </MudTextField>
-                     <MudSelect T="DataLinkType"
-                                Style="flex:1; min-width:150px"
-                                Label="Link Type"
-                                @bind-Value="@DataSource.DataLinkType">
-
-                        <MudSelectItem Value="@DataLinkType.Mqtt">Mqtt</MudSelectItem>
-                        <MudSelectItem Value="@DataLinkType.Internal">Internal</MudSelectItem>
-
-                     </MudSelect>
-
                   }
                </MudFocusTrap>
                <br />

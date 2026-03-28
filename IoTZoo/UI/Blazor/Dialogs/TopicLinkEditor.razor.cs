@@ -21,11 +21,11 @@ public class DataSourceEditorBase : EditorBase
 {
    [Parameter]
 
-   public DataSource DataSource { get; set; } = null!;
+   public TopicLink DataSource { get; set; } = null!;
 
    protected override async Task OnInitializedAsync()
    {
-      DialogTitle = "Edit Data Source";
+      DialogTitle = "Edit Data Link";
       IsNewRecord = false;
 
       HashCode = GetHashCodeBase64(DataSource);

@@ -67,9 +67,9 @@ public class PinEditorBase : EditorBase
         {
             var options = GetDialogOptions();
 
-            var parameters = new DialogParameters { ["DataSource"] = new DataSource() };
+            var parameters = new DialogParameters { ["DataSource"] = new TopicLink() };
             IsEditorOpen = true;
-            var dialog = await this.DialogService.ShowAsync<DataSourceEditor>("Add DataSource",
+            var dialog = await this.DialogService.ShowAsync<TopicLinkEditor>("Add DataSource",
                                                                         parameters,
                                                                         options);
             var result = await dialog.Result;
@@ -77,12 +77,12 @@ public class PinEditorBase : EditorBase
             {
                 if (null != result.Data)
                 {
-                    var dataSource = (DataSource)result.Data;
-                    if (null == ConnectedDevice.DataSources)
+                    var dataSource = (TopicLink)result.Data;
+                    if (null == ConnectedDevice.TopicLinks)
                     {
-                        ConnectedDevice.DataSources = new List<DataSource>();
+                        ConnectedDevice.TopicLinks = new List<TopicLink>();
                     }
-                    ConnectedDevice.DataSources.Add(dataSource);
+                    ConnectedDevice.TopicLinks.Add(dataSource);
                 }
             }
         }
@@ -102,16 +102,16 @@ public class PinEditorBase : EditorBase
         {
             return;
         }
-        if (ConnectedDevice?.DataSources == null)
+        if (ConnectedDevice?.TopicLinks == null)
         {
             return;
         }
         // Find the first matching data source.
-        DataSource? toRemove = null;
-        foreach (var ds in ConnectedDevice.DataSources)
+        TopicLink? toRemove = null;
+        foreach (var ds in ConnectedDevice.TopicLinks)
         {
             // Use property name 'Topic' as used in markup.
-            if (string.Equals(ds?.Topic, topic, StringComparison.Ordinal))
+            if (string.Equals(ds?.TriggeringTopic, topic, StringComparison.Ordinal))
             {
                 toRemove = ds;
                 break;
@@ -124,7 +124,7 @@ public class PinEditorBase : EditorBase
             // Use dynamic removal to avoid assumptions about the concrete collection type.
             try
             {
-                ConnectedDevice.DataSources.Remove(toRemove);
+                ConnectedDevice.TopicLinks.Remove(toRemove);
             }
             catch
             {
@@ -142,16 +142,16 @@ public class PinEditorBase : EditorBase
             {
                 return;
             }
-            if (ConnectedDevice?.DataSources == null)
+            if (ConnectedDevice?.TopicLinks == null)
             {
                 return;
             }
             // Find the first matching data source.
-            DataSource? toEdit = null;
-            foreach (var ds in ConnectedDevice.DataSources)
+            TopicLink? toEdit = null;
+            foreach (var ds in ConnectedDevice.TopicLinks)
             {
-                // Use property name 'Topic' as used in markup.
-                if (string.Equals(ds?.Topic, topic, StringComparison.Ordinal))
+                // Use property name 'TriggeringTopic' as used in markup.
+                if (string.Equals(ds?.TriggeringTopic, topic, StringComparison.Ordinal))
                 {
                     toEdit = ds;
                     break;
@@ -162,7 +162,7 @@ public class PinEditorBase : EditorBase
 
             var parameters = new DialogParameters { ["DataSource"] = toEdit };
             IsEditorOpen = true;
-            var dialog = await this.DialogService.ShowAsync<DataSourceEditor>("Edit DataSource",
+            var dialog = await this.DialogService.ShowAsync<TopicLinkEditor>("Edit DataSource",
                                                                         parameters,
                                                                         options);
             var result = await dialog.Result;

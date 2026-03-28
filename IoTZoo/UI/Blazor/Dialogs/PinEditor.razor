@@ -67,7 +67,7 @@
                         }
                      }
                      <br />
-                     <MudText>MQTT DataSources (direct on the microcontroller without RulesEngine in between)</MudText>
+                     <MudText>MQTT DataLinks (direct on the microcontroller without external MQTT Broker and RulesEngine in between)</MudText>
                      <div style="width:64px; height:64px">
                         <MudIconButton Icon="@Icons.Material.Outlined.Add"
                                        Color="Color.Success"
@@ -75,11 +75,11 @@
                         </MudIconButton>
                      </div>
 
-                     @if (ConnectedDevice.DataSources != null)
+                     @if (ConnectedDevice.TopicLinks != null)
                      {
-                        @foreach (var dataSource in ConnectedDevice.DataSources)
+                        @foreach (var dataSource in ConnectedDevice.TopicLinks)
                         {
-                           <DataSourceRow DataSource="dataSource"
+                           <TopicLinkRow TopicLinks="dataSource"
                                           OnRemove="RemoveDataSource"
                                           OnEdit="EditDataSource" />
                         }

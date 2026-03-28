@@ -19,6 +19,7 @@
 #include "MqttClient2.hpp"
 #endif
 #include "./pocos/Topic.hpp"
+#include "InternalMqtt/InternalMqtt.h"
 #include "Settings.hpp"
 
 using namespace std;
@@ -31,7 +32,7 @@ namespace IotZoo
       public:
         DeviceHandlingBase()
         {
-           Serial.println("Constructor DeviceHandlingBase()");
+            Serial.println("Constructor DeviceHandlingBase()");
         }
 
         virtual ~DeviceHandlingBase()
@@ -39,12 +40,19 @@ namespace IotZoo
             Serial.println("~DeviceHandlingBase()");
         }
 
+#ifdef USE_INTERNAL_MQTT
+        void makeInstanceInternalMqttClient(InternalMqttBroker* const broker)
+        {
+            internalMqttClient = new InternalMqttClient(broker, "id");
+        }
+#endif
+
         /// @brief The IotZooMqtt client is not available, so tell this this user. Providing false information is worse
         /// than not providing any information.
         ///        This method is a suitable point to erase a display or stop something.
         virtual void onIotZooClientUnavailable()
         {
-            Serial.println("override onIotZooClientUnavailable!");
+            Serial.println("DeviceHandlingBase override onIotZooClientUnavailable!");
         }
 
         /// @brief Let the user know what the device can do.
@@ -60,10 +68,18 @@ namespace IotZoo
             Serial.println("override onMqttConnectionEstablished!");
         }
 
+        virtual void subscribeToInternalMqttTopics()
+        {
+            Serial.println("override subscribeToMqttTopics!");
+        }
+
       protected:
         MqttClient* mqttClient             = nullptr;
         Settings*   settings               = nullptr;
         bool        callbacksAreRegistered = false;
+#ifdef USE_INTERNAL_MQTT
+        InternalMqttClient* internalMqttClient = nullptr;
+#endif
     };
 } // namespace IotZoo
 #endif // __DEVICE_HANDLING_BASE_HPP__

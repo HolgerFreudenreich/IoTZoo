@@ -18,7 +18,7 @@ namespace IotZoo
     TM1637_Handling::TM1637_Handling(Tm1637DisplayType tm1637DisplayType) : DeviceHandlingBase()
     {
         this->tm1637DisplayType = tm1637DisplayType;
-        //displays1637.reserve(6); // Damit bei emplace_back nicht umkopiert wird und der Microcontroller dadurch abstürzt
+        // displays1637.reserve(6); // Damit bei emplace_back nicht umkopiert wird und der Microcontroller dadurch abstürzt
     }
 
     void TM1637_Handling::setup()
@@ -100,15 +100,15 @@ namespace IotZoo
                 Serial.println("Unable to convert to a number!");
             }
 
-            Serial.println("device index: " + String(deviceIndex) + "; number: " + String(number) + "; LeadingZeros: " + String(showLeadingZeros) +
-                           "; displayLength: " + String(displayLength) + "; position: " + String(position) + "; dots: " + String(dots));
+            debug("device index: " + String(deviceIndex) + "; number: " + String(number) + "; LeadingZeros: " + String(showLeadingZeros) +
+                  "; displayLength: " + String(displayLength) + "; position: " + String(position) + "; dots: " + String(dots));
             display->showNumberDec(number, dots, showLeadingZeros, displayLength, position);
         }
     }
 
     void TM1637_Handling::callbackMqttOnReceivedDataTm1637Number(const String& topic, const String& message)
     {
-        Serial.println("callbackMqttOnReceivedDataTm1637Number topic: " + topic + " message: " + message);
+        debug("callbackMqttOnReceivedDataTm1637Number topic: " + topic + " message: " + message);
 
         int indexEnd = topic.lastIndexOf("/");
         Serial.println("indexEnd: " + String(indexEnd));
@@ -123,10 +123,10 @@ namespace IotZoo
 
     void TM1637_Handling::callMqttbackOnReceivedDataTm1637Text(const String& topic, const String& message)
     {
-        Serial.println("callMqttbackOnReceivedDataTm1637Text topic: " + topic + " message: " + message);
+        debug("callMqttbackOnReceivedDataTm1637Text topic: " + topic + " message: " + message);
 
         int indexEnd = topic.lastIndexOf("/");
-        Serial.println("indexEnd: " + String(indexEnd));
+        debug("indexEnd: " + String(indexEnd));
         if (indexEnd >= 0)
         {
             int deviceIndex = topic.c_str()[indexEnd - 1] - '0'; // at least 10 (0 - 9).
@@ -153,7 +153,7 @@ namespace IotZoo
                 return &display;
             }
         }
-        Serial.println("TM1637 display with index " + String(index) + " not found!");
+        debug("TM1637 display with index " + String(index) + " not found!");
         return nullptr;
     }
 
@@ -162,15 +162,15 @@ namespace IotZoo
     /// @param message
     void TM1637_Handling::callbackMqttOnReceivedDataTm1637Level(const String& topic, const String& message)
     {
-        Serial.println("callbackMqttOnReceivedDataTm1637Level topic: " + topic + " message: " + message);
+        debug("callbackMqttOnReceivedDataTm1637Level topic: " + topic + " message: " + message);
 
         int indexEnd = topic.lastIndexOf("/");
         Serial.println("indexEnd: " + String(indexEnd));
         if (indexEnd >= 0)
         {
             int deviceIndex = topic.c_str()[indexEnd - 1] - '0'; // at least 10 (0 - 9).
-            Serial.println(deviceIndex);
-            Serial.println(topic.c_str()[indexEnd - 1]);
+            debug(deviceIndex);
+            debug(topic.c_str()[indexEnd - 1]);
 
             TM1637* display = getDisplayByDeviceIndex(deviceIndex);
             if (nullptr != display)
@@ -191,9 +191,37 @@ namespace IotZoo
         }
     }
 
-    DeviceBase& TM1637_Handling::addDevice(const String& baseTopic, int deviceIndex, int clkPin, int dioPin, bool flipDisplay, const String& serverDownText)
+#ifdef USE_INTERNAL_MQTT    
+    static void onInternalReceivedNumber(const InternalMqttClient* /* srce */, const InternalTopic& topic, const char* payload, size_t /* length */)
     {
-        return displays1637.emplace_back(deviceIndex, settings, mqttClient, baseTopic, tm1637DisplayType, clkPin, dioPin, flipDisplay, serverDownText);
+        TM1637_Handling::callbackMqttOnReceivedDataTm1637Number(topic.c_str(), String(payload));
+    }
+#endif    
+
+    DeviceBase& TM1637_Handling::addDevice(const String& baseTopic, int deviceIndex, int clkPin, int dioPin, bool flipDisplay,
+                                           const String& serverDownText)
+    {
+        TM1637& display = displays1637.emplace_back(deviceIndex, settings, mqttClient, baseTopic, tm1637DisplayType, clkPin, dioPin, flipDisplay, serverDownText);
+
+#ifdef USE_INTERNAL_MQTT
+        // Subscribe to internal topics.
+        if (nullptr != internalMqttClient)
+        {
+            for (auto topic : display.getTopics())
+            {
+                String strTopic = topic.TopicName;
+                strTopic.trim();
+                strTopic.toLowerCase();
+                debug(strTopic);
+                InternalTopic tinyTopic = strTopic.c_str();
+                internalMqttClient->subscribe(tinyTopic);
+                internalMqttClient->setCallback(onInternalReceivedNumber);
+            }
+        }
+
+#endif // USE_INTERNAL_MQTT
+
+        return display;
     }
 
     // Initialize static members
