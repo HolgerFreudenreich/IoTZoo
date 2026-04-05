@@ -2469,9 +2469,9 @@ void loop()
             lastServerAliveMillis = millis();
         }
 
-        if (loopDurationMs < 2500)
+        if (loopDurationMs < 10)
         {
-            delay(2500 - loopDurationMs);
+            delay(10 - loopDurationMs);
         }
         digitalWrite(LED_BUILTIN, LOW); // turn the LED off to indicate that the device is offline.
     }

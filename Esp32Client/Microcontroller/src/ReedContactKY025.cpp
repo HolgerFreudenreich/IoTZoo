@@ -48,7 +48,7 @@ namespace IotZoo
 
     void KY025::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        String topic = getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/ppm";
+        String topic = getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/rpm";
         topics->emplace_back(topic, String(44.6), MessageDirection::IotZooClientInbound);
 
         topic = getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/counter";
@@ -57,7 +57,7 @@ namespace IotZoo
 
     void KY025::loop()
     {
-        debug("KY025::loop");
+        debug("KY025::loop oldCounter: " + String(oldReedContactCounter) + ", counter: " + String(reedContactCounter) + ", rpm: " + String(rpm, 0));
         DeviceBase::loop();
         if (millis() - lastLoopMillis < 200)
         {
