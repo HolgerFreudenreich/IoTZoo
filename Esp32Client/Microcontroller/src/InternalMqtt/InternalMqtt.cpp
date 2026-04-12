@@ -266,9 +266,6 @@ void InternalMqttClient::loop()
             uint16_t pingreq = MqttMessage::Type::PingReq;
             tcpClient->write((const char*)(&pingreq), 2);
             clientAlive(0);
-
-            // TODO when many MqttClient passes through a local broker
-            // there is no need to send one PingReq per instance.
         }
     }
 
