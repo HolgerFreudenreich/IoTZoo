@@ -166,7 +166,7 @@ enum class DayMode
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.2.4";
+String firmwareVersion = "0.2.5";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -986,8 +986,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
                               }
                           });
 }
-
-#endif
+#endif // USE_MQTT
 
 /**
  * @brief Loads the configuration for the connected devices and instantiates them.
@@ -1036,7 +1035,11 @@ void makeInstanceConfiguredDevices()
                     targetTopic.trim();
                     targetTopic.toLowerCase();
 
-                    topicLinks->emplace_back(triggeringTopic, targetTopic);
+                    String targetPayload = topicLinkVariant["TargetPayload"].as<String>();
+                    // Example: { "Operator": ">", "Value": "130"}
+                    String expression = topicLinkVariant["Expression"].as<String>();
+
+                    topicLinks->emplace_back(triggeringTopic, expression, targetTopic, targetPayload);
                 }
 #ifdef USE_BUTTON
                 if (deviceType == "Button")
@@ -1069,7 +1072,6 @@ void makeInstanceConfiguredDevices()
 #ifdef USE_INTERNAL_MQTT
 
                     ky025->setTopicLinks(*topicLinks);
-                    // ky025->makeInstanceInternalMqttClient(internalBroker);
                     ky025->setInternalMqttClient(globalInternalMqttClient);
 #endif
                     Serial.println("Reed contact KY-025 initialized.");
@@ -1687,7 +1689,7 @@ void makeInstanceConfiguredDevices()
                     heartRateSensor = new HeartRateSensor(deviceIndex, settings, mqttClient, getBaseTopic(), advertisingTimeoutSeconds);
 #ifdef USE_INTERNAL_MQTT
                     heartRateSensor->setTopicLinks(*topicLinks);
-                    heartRateSensor->makeInstanceInternalMqttClient(internalBroker);
+                    heartRateSensor->setInternalMqttClient(globalInternalMqttClient);
 #endif
                     connectToHeartRateSensor(advertisingTimeoutSeconds);
                 }
@@ -1705,8 +1707,8 @@ void handleGetAlive()
     String json = createAliveJson();
     webServer.send(200, "application/json", json.c_str());
 }
-#endif
-#endif
+#endif // USE_MQTT
+#endif // USE_REST_SERVER
 
 #ifdef USE_REST_SERVER
 /// @brief http get delivers the configuration of the connected sensors/devices. http://raspberrypi/deviceConfig
@@ -1848,7 +1850,7 @@ void notifyCallbackHeartRate(NimBLERemoteCharacteristic* pBLERemoteCharacteristi
 
 #ifdef USE_INTERNAL_MQTT
     {
-        TinyMqttClient* internalMqttClient = heartRateSensor->getInternalMqttClient();
+        InternalMqttClient* internalMqttClient = heartRateSensor->getInternalMqttClient();
         if (nullptr != internalMqttClient)
         {
             debug("Count of TopicLinks: " + String(heartRateSensor->getTopicLinks().size()));
@@ -2285,9 +2287,9 @@ void loop()
         }
 #endif
         if (!mqttClient->isConnected())
-        {        
+        {
             debug("⚠" << mqttClient->getConnectionEstablishedCount() << _EndLineCode::endl);
-            //delay(200);
+            // delay(200);
         }
 
         if (!topicsRegistered)

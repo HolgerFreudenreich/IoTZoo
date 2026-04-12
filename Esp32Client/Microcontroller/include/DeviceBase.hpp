@@ -50,17 +50,98 @@ namespace IotZoo
             Serial.println("Destructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
         }
 
-#ifdef USE_INTERNAL_MQTT        
-        // Zuerst war die Idee, dass jedes Device einen eigenen MQTT Client hat. Das ist aber zu viel Overhead. Jetzt teilen sich alle Devices einen MQTT Client. Das ist auch
-        //void makeInstanceInternalMqttClient(TinyMqttBroker* const broker)
-        //{
-        //   // internalMqttClient = new TinyMqttClient(broker, "id");
-        //}
-
+#ifdef USE_INTERNAL_MQTT
         void setInternalMqttClient(InternalMqttClient* const client)
         {
             internalMqttClient = client;
         }
+
+        // true: topicLink.Expression is empty or evaluates to true.
+        bool EvaluateExpression(const TopicLink& topicLink)
+        {
+            bool doIt = false;
+            if (topicLink.Expression.length() == 0)
+            {
+                doIt = true; // no expression means "always publish"
+            }
+            else
+            {
+                debug("EvaluateExpression. topicLink.Expression: " + topicLink.Expression);
+
+                StaticJsonDocument<512> jsonDocument;
+
+                if (!deserializeStaticJsonAndPublishError(jsonDocument, topicLink.Expression))
+                {
+                    return false;
+                }
+
+                String strOperator    = jsonDocument["Operator"].as<String>();
+                double referenceValue = jsonDocument["Value"].as<double>();
+                if (strOperator == ">")
+                {
+                    if (topicLink.Payload.toDouble() > referenceValue)
+                    {
+                        doIt = true;
+                    }
+                }
+                else if (strOperator == "<")
+                {
+                    if (topicLink.Payload.toDouble() < referenceValue)
+                    {
+                        doIt = true;
+                    }
+                }
+                else if (strOperator == "==")
+                {
+                    if (referenceValue == topicLink.Payload.toDouble())
+                    {
+                        doIt = true;
+                    }
+                }
+
+                debug("Payload: " + topicLink.Payload + " " + "Expression operator: " + strOperator + " value: " + referenceValue +
+                      ", -> doIt: " + String(doIt));
+            }
+            return doIt;
+        }
+
+        virtual void setPayloadPropertyOfTopicLink(TopicLink& topicLink)
+        {
+        }
+
+        virtual void publishInternalMqtt()
+        {
+            debug("DeviceBase::publishInternalMqtt. Count of TopicLinks: " + String(TopicLinks.size()));
+
+            if (nullptr != internalMqttClient)
+            {
+                // Has an internal component interest on counter changes?
+                for (auto& topicLink : TopicLinks)
+                {
+                    // Should the event take place?
+                    bool doPublish = false;
+
+                    if (topicLink.Expression.length() == 0)
+                    {
+                        doPublish = true; // no expression means "always publish"
+                    }
+
+                    if (topicLink.TargetPayload.isEmpty() ||
+                        topicLink.TargetPayload.equalsIgnoreCase("input")) // if no payload is configured, publish the device data as payload.
+                    {
+                        setPayloadPropertyOfTopicLink(topicLink);
+                    }
+
+                    doPublish = EvaluateExpression(topicLink);
+
+                    if (doPublish)
+                    {
+                        internalMqttClient->publish(topicLink);
+                    }
+                }
+            }
+        }
+
 #endif // USE_INTERNAL_MQTT
 
         int getDeviceIndex() const
@@ -73,6 +154,7 @@ namespace IotZoo
 #ifdef USE_INTERNAL_MQTT
             if (nullptr != internalMqttClient)
             {
+                publishInternalMqtt();
                 internalMqttClient->loop();
             }
 #endif // USE_INTERNAL_MQTT
@@ -189,8 +271,8 @@ namespace IotZoo
         bool        mqttCallbacksAreRegistered = false;
 
 #ifdef USE_INTERNAL_MQTT
-        InternalMqttClient*   internalMqttClient = nullptr;
-        vector<TopicLink> TopicLinks;
+        InternalMqttClient* internalMqttClient = nullptr;
+        vector<TopicLink>   TopicLinks;
 #endif
     };
 
