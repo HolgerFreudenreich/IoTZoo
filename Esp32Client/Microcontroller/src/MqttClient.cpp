@@ -75,12 +75,12 @@ namespace IotZoo
     bool MqttClient::publish(const String& topic, const String& payload, bool retain)
     {
         Serial.println("─┐");
-        Serial.println(">>> Publishing topic:\r\n" + topic + "\r\n\r\npayload ↣ " + payload + "\r\nretain: " + String(retain) +
+        Serial.println(">>> Publishing topic:\r\n" + topic + "\r\n\r\npayload ↣ " + payload + "\r\n" +
                      "\r\nMqttBrokerIp: " + this->mqttClient->getMqttServerIp());
         if (!mqttClient->isConnected())
         {
            return printSuccess(false);
-        }
+        }        
         return printSuccess(mqttClient->publish(topic, payload, retain));
     }
 

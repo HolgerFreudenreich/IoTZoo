@@ -41,9 +41,7 @@ public class PublishTimeJob : MqttPublisher, IJob
                 return;
             }
 
-            object topicData = context.MergedJobDataMap.Get("Topic");
-
-            if (null != topicData)
+            if (context.MergedJobDataMap.TryGetValue("Topic", out object? topicData) && topicData != null)
             {
                 string? strTopic = topicData.ToString();
                 if (null != strTopic)

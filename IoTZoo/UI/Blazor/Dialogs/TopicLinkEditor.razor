@@ -18,6 +18,7 @@
                              DefaultFocus=DefaultFocus.FirstChild>
                   @{
                      <MudTextField @bind-Value="@DataSource.TriggeringTopic"
+                                   AdornmentIcon="@Icons.Material.Filled.Key"
                                    MaxLength="1000"
                                    Required="true"
                                    Immediate="true"
@@ -25,12 +26,33 @@
                                    Variant="Variant.Text"
                                    Margin="Margin.Normal">
                      </MudTextField>
+                     <MudTextField @bind-Value="@DataSource.Expression"
+                                   MaxLength="1000"
+                                   Required="false"
+                                   Immediate="true"
+                                   Adornment="Adornment.Start"
+                                   AdornmentIcon="@Icons.Material.Filled.Key"
+                                   Label="Expression/Condition"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                     </MudTextField>
                      <br />
                      <MudTextField @bind-Value="@DataSource.TargetTopic"
+                                   AdornmentIcon="@Icons.Material.Filled.Key"
                                    MaxLength="1000"
                                    Required="true"
                                    Immediate="true"
                                    Label="Target Topic"
+                                   Variant="Variant.Text"
+                                   Margin="Margin.Normal">
+                     </MudTextField>
+                     <!-- TargetPayload (optional) -->
+                     <MudTextField @bind-Value="@DataSource.TargetPayload"
+                                   MaxLength="1000"
+                                   Required="false"
+                                   Immediate="true"
+                                   Adornment="Adornment.Start"
+                                   Label="Target Payload (Value to Publish/Send)"
                                    Variant="Variant.Text"
                                    Margin="Margin.Normal">
                      </MudTextField>
