@@ -56,19 +56,24 @@ namespace IotZoo
         topics->emplace_back(topic, String(44151), MessageDirection::IotZooClientInbound);
     }
 
-    void KY025::setPayloadPropertyOfTopicLink(TopicLink& topicLink)
+    bool KY025::setPayloadPropertyOfTopicLink(TopicLink& topicLink)
     {
-        debug("KY025::setPayloadPropertyOfTopicLink. topicLink.TriggeringTopic: " + topicLink.TriggeringTopic +
-              ", topicLink.Expression: " + topicLink.Expression + ", topicLink.TargetTopic: " + topicLink.TargetTopic);
-
-        if (topicLink.TriggeringTopic.equalsIgnoreCase(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/rpm"))
+        bool handled = false;
+        if (DeviceBase::setPayloadPropertyOfTopicLink(topicLink))
+        {
+            handled = true;
+        }
+        else if (topicLink.TriggeringTopic.equalsIgnoreCase(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/rpm"))
         {
             topicLink.Payload = String(rpm, 0);
+            handled           = true;
         }
         else if (topicLink.TriggeringTopic.equalsIgnoreCase(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/counter"))
         {
             topicLink.Payload = String(reedContactCounter);
+            handled           = true;
         }
+        return handled;
     }
 
     void KY025::loop()

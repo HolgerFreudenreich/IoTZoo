@@ -28,7 +28,7 @@ namespace IotZoo
 
         void addMqttTopicsToRegister(std::vector<Topic>* const topics) const override;
 
-        void setPayloadPropertyOfTopicLink(TopicLink& topicLink) override;
+        bool setPayloadPropertyOfTopicLink(TopicLink& topicLink) override;
 
       private:
         u16_t intervalMs;
