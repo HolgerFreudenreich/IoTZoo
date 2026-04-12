@@ -19,7 +19,6 @@
                         Size="Size.Medium"
                         OnClick="@(() => OnEdit.InvokeAsync(TopicLinks.TriggeringTopic))" />
   
-
          <!-- TriggeringTopic -->
          <MudStack Style="width:100%;">
             <MudTextField Style="width:100%;" @bind-Value="TopicLinks.TriggeringTopic"
@@ -29,6 +28,13 @@
                           Margin="Margin.Dense"
                           FullWidth="true" />
 
+            <!-- Expression/Condition -->
+            <MudTextField @bind-Value="@TopicLinks.Expression"
+                          Disabled="true"
+                          Label="Expression/Condition"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Normal">
+            </MudTextField>
 
             <!-- TargetTopic -->
             <MudTextField Style="width:700px;" @bind-Value="TopicLinks.TargetTopic"
@@ -37,6 +43,15 @@
                           Variant="Variant.Outlined"
                           Margin="Margin.Dense"
                           FullWidth="true" />
+
+            <!-- TargetPayload (optional) -->
+            <MudTextField @bind-Value="@TopicLinks.TargetPayload"
+                          Disabled="true"
+                          Adornment="Adornment.Start"
+                          Label="Target Payload (Value to Publish/Send)"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Normal">
+            </MudTextField>
          </MudStack>
       </MudStack>
    </MudGrid>
