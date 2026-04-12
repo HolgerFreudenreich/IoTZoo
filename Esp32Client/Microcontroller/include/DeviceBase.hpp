@@ -98,15 +98,26 @@ namespace IotZoo
                         doIt = true;
                     }
                 }
-
                 debug("Payload: " + topicLink.Payload + " " + "Expression operator: " + strOperator + " value: " + referenceValue +
                       ", -> doIt: " + String(doIt));
             }
             return doIt;
         }
 
-        virtual void setPayloadPropertyOfTopicLink(TopicLink& topicLink)
+        // Override this method to set the topicLink.Payload based on the current device data. This is needed if topicLink.TargetPayload is "input" or
+        // empty. topicLink.Payload will be send via internal MQTT.
+        // Return true if topicLink.Payload has been set, false otherwise.
+        virtual bool setPayloadPropertyOfTopicLink(TopicLink& topicLink)
         {
+            debug("DeviceBase::setPayloadPropertyOfTopicLink. topicLink.TriggeringTopic: " + topicLink.TriggeringTopic +
+                  ", topicLink.Expression: " + topicLink.Expression + ", topicLink.TargetTopic: " + topicLink.TargetTopic);
+            if (!topicLink.TargetPayload.isEmpty())
+            {
+                topicLink.Payload =
+                    topicLink.TargetPayload; // default to configured TargetPayload if TriggeringTopic does not match any known topic.)
+                return true;
+            }
+            return false;
         }
 
         virtual void publishInternalMqtt()
@@ -125,13 +136,13 @@ namespace IotZoo
                     {
                         doPublish = true; // no expression means "always publish"
                     }
-
-                    if (topicLink.TargetPayload.isEmpty() ||
-                        topicLink.TargetPayload.equalsIgnoreCase("input")) // if no payload is configured, publish the device data as payload.
+                    if (!setPayloadPropertyOfTopicLink(topicLink))
                     {
-                        setPayloadPropertyOfTopicLink(topicLink);
+                        debug("DeviceBase::publishInternalMqtt. setPayloadPropertyOfTopicLink did not set topicLink.Payload. "
+                              "topicLink.TriggeringTopic: " +
+                              topicLink.TriggeringTopic + ", topicLink.Expression: " + topicLink.Expression +
+                              ", topicLink.TargetTopic: " + topicLink.TargetTopic);
                     }
-
                     doPublish = EvaluateExpression(topicLink);
 
                     if (doPublish)
@@ -143,7 +154,6 @@ namespace IotZoo
         }
 
 #endif // USE_INTERNAL_MQTT
-
         int getDeviceIndex() const
         {
             return deviceIndex;
