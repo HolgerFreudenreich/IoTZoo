@@ -53,9 +53,16 @@ namespace Domain.Services
 
                 Logger.LogInformation("Connecting to IMAP server {host} as {user}", MailReceiverConfig.HostName, MailReceiverConfig.UserName);
                 await imapClient.ConnectAsync(MailReceiverConfig.HostName, 993, SecureSocketOptions.SslOnConnect);
-                await imapClient.AuthenticateAsync(MailReceiverConfig.UserName, MailReceiverConfig.Password);
+                await imapClient.AuthenticateAsync(MailReceiverConfig.UserName ?? string.Empty, MailReceiverConfig.Password ?? string.Empty);
 
-                imapFolderInbox = (ImapFolder)imapClient.Inbox;
+                var inbox = imapClient.Inbox as ImapFolder;
+                if (inbox == null)
+                {
+                    Logger.LogWarning("IMAP client Inbox is null or not an ImapFolder for {user}", MailReceiverConfig.UserName);
+                    return;
+                }
+
+                imapFolderInbox = inbox;
                 await imapFolderInbox.OpenAsync(FolderAccess.ReadOnly);
 
                 imapFolderInbox.CountChanged -= OnCountChanged;

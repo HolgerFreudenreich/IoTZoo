@@ -15,6 +15,7 @@
 
 #ifdef USE_DEBUG_MESSAGES
 #include <TinyConsole.h>
+#include <TinyStreaming.h>
 
 struct DebugHelper
 {

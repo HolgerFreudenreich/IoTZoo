@@ -251,10 +251,9 @@ void InternalMqttClient::clientAlive(uint32_t more_seconds)
 
 void InternalMqttClient::loop()
 {
-    debug("InternalMqttClient::loop");
     if (keep_alive && (millis() >= alive))
     {
-        if (localBroker)
+        if (nullptr != localBroker)
         {
             debug("timeout client");
             close();

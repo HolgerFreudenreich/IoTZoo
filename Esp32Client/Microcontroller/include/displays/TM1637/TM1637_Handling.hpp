@@ -21,34 +21,45 @@ namespace IotZoo
     /// @brief Holds a vector of TM1637 displays. Is used as base class for TM1637_4_Handling and TM1637_6_Handling.
     class TM1637_Handling : public DeviceHandlingBase
     {
-    public:
+      public:
         TM1637_Handling(Tm1637DisplayType tm1637DisplayType);
 
         void setup();
 
         virtual void onIotZooClientUnavailable() override;
 
-        void addMqttTopicsToRegister(std::vector<Topic> *const topics) const;
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const;
 
         /// @brief Data received to display on a TM1637 4 digit display.
         /// @param rawData: data in json format or unformatted.
-        static void onReceivedDataTm1637_Number(const String &rawData, int deviceIndex);
+        static void onReceivedDataTm1637_Number(const String& rawData, int deviceIndex);
 
-        static void callbackMqttOnReceivedDataTm1637Number(const String &topic, const String &message);
+        /// @brief Data received to display on a TM1637 display.
+        /// @param rawData: data in json format or unformatted.
+        static void onReceivedDataTm1637_Temperature(const String& rawData, int deviceIndex);
 
-        static void callMqttbackOnReceivedDataTm1637Text(const String &topic, const String &message);
+        static void callbackMqttOnReceivedDataTm1637Number(const String& topic, const String& message);
 
-        static void callbackMqttOnReceivedDataTm1637Level(const String &topic, const String &message);
+        static void callMqttbackOnReceivedDataTm1637Text(const String& topic, const String& message);
 
-        DeviceBase& addDevice(const String &baseTopic, int deviceIndex,
-                       int clkPin, int dioPin, bool flipDisplay, const String &serverDownText);
+        static void callbackMqttOnReceivedDataTm1637Level(const String& topic, const String& message);
 
-        static TM1637 *getDisplayByDeviceIndex(int index);
+        static void callbackMqttOnReceivedDataTm1637Temperature(const String& topic, const String& message);
 
-    protected:
-        static std::vector<IotZoo::TM1637> displays1637; // static, because of the static callback functions.
-        Tm1637DisplayType tm1637DisplayType;             // all displays in the vector are from the same type.       
+        DeviceBase& addDevice(const String& baseTopic, int deviceIndex, int clkPin, int dioPin, bool flipDisplay, const String& serverDownText);
+
+        static TM1637* getDisplayByDeviceIndex(int index);
+
+         void onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic);
+
+#ifdef USE_INTERNAL_MQTT
+        virtual void subscribeToInternalMqttTopics() override;
+#endif
+
+      protected:
+        static std::vector<IotZoo::TM1637> displays1637;      // static, because of the static callback functions.
+        Tm1637DisplayType                  tm1637DisplayType; // all displays in the vector are from the same type.
     };
-}
+} // namespace IotZoo
 #endif // __TM1637_HANDLING_HPP__
 #endif // #if defined(USE_TM1637_4) || defined(USE_TM1637_6)

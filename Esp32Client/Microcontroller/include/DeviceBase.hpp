@@ -43,6 +43,7 @@ namespace IotZoo
             : deviceIndex(deviceIndex), settings(settings), mqttClient(mqttClient), baseTopic(baseTopic)
         {
             Serial.println("Constructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
+            setEnableServerDownText(false);
         }
 
         virtual ~DeviceBase()
@@ -111,13 +112,31 @@ namespace IotZoo
         {
             debug("DeviceBase::setPayloadPropertyOfTopicLink. topicLink.TriggeringTopic: " + topicLink.TriggeringTopic +
                   ", topicLink.Expression: " + topicLink.Expression + ", topicLink.TargetTopic: " + topicLink.TargetTopic);
-            if (!topicLink.TargetPayload.isEmpty())
+            if (topicLink.TargetPayload.length() && !topicLink.TargetPayload.equalsIgnoreCase("input"))
             {
-                topicLink.Payload =
-                    topicLink.TargetPayload; // default to configured TargetPayload if TriggeringTopic does not match any known topic.)
+                topicLink.Payload = topicLink.TargetPayload; // default to configured TargetPayload if TriggeringTopic does not match any known topic.)
+                debug("Using TargetTopic: " + topicLink.TargetTopic + " as Payload: " + topicLink.Payload);
                 return true;
             }
+
+            if (topicLink.TargetTopic.length() == 0)
+            {
+                debug("⚠️ Warning: TargetTopic is empty! This means that the received TriggeringTopic message will not be published to any topic.");
+            }
+
             return false;
+        }
+
+        void setEnableServerDownText(bool enable)
+        {
+            debug("DeviceBase::SetEnableServerDownText. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic + ", enable: " + String(enable));
+            enableServerDownText = enable;
+        }
+
+        bool getEnableServerDownText() const
+        {
+            debug("DeviceBase::getEnableServerDownText. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic + ", enableServerDownText: " + String(enableServerDownText));
+            return enableServerDownText;
         }
 
         virtual void publishInternalMqtt()
@@ -126,7 +145,7 @@ namespace IotZoo
 
             if (nullptr != internalMqttClient)
             {
-                // Has an internal component interest on counter changes?
+                // Has an internal component interest on the triggering topic?
                 for (auto& topicLink : TopicLinks)
                 {
                     // Should the event take place?
@@ -138,7 +157,7 @@ namespace IotZoo
                     }
                     if (!setPayloadPropertyOfTopicLink(topicLink))
                     {
-                        debug("DeviceBase::publishInternalMqtt. setPayloadPropertyOfTopicLink did not set topicLink.Payload. "
+                        debug("OfTopiDeviceBase::publishInternalMqtt. setPayloadPropertycLink did not set topicLink.Payload! "
                               "topicLink.TriggeringTopic: " +
                               topicLink.TriggeringTopic + ", topicLink.Expression: " + topicLink.Expression +
                               ", topicLink.TargetTopic: " + topicLink.TargetTopic);
@@ -279,6 +298,7 @@ namespace IotZoo
         String      deviceName;
         String      baseTopic;
         bool        mqttCallbacksAreRegistered = false;
+        bool        enableServerDownText = true;
 
 #ifdef USE_INTERNAL_MQTT
         InternalMqttClient* internalMqttClient = nullptr;

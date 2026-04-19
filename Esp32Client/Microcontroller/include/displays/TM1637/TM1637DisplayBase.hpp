@@ -63,6 +63,11 @@ namespace IotZoo
                                 "Use TM1637 " + displayType + " digits LCD display with index " + String(deviceIndex) + " to indicate a level between 0 and 100.",
                                 MessageDirection::IotZooClientOutbound);
 
+                                // fixme Holger
+            topics.emplace_back(baseTopic + "/tm1637_" + displayType + "/" + String(deviceIndex) + "/temperature",
+                                "Use TM1637 " + displayType + " digits LCD display with index " + String(deviceIndex) + " to indicate a temperature.",
+                                MessageDirection::IotZooClientOutbound);                                
+
             return topics;
         }
 

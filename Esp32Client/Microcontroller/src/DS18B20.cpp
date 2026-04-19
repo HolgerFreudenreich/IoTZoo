@@ -121,11 +121,11 @@ namespace IotZoo
 
     void DS18B20::loop()
     {
-
         if (millis() - getLastPublishedTemperatureMillis() < getInterval())
         {
             return;
         }
+        DeviceBase::loop();
 
         setLastPublishedTemperatureMillis(millis());
 
@@ -150,6 +150,48 @@ namespace IotZoo
             indexTemperatureSensor++;
         }
     }
+
+    bool DS18B20::setPayloadPropertyOfTopicLink(TopicLink& topicLink)
+    {
+        debug("DS18B20::setPayloadPropertyOfTopicLink. TriggeringTopic: " + topicLink.TriggeringTopic);
+
+        bool handled = DeviceBase::setPayloadPropertyOfTopicLink(topicLink);
+        if (!handled && topicLink.TriggeringTopic.equalsIgnoreCase(getBaseTopic() + "/ds18b20_manager/0/sensor/" + String(getDeviceIndex()) + "/celsius"))
+        {
+            std::vector<float> temperatures = requestTemperatures();
+            topicLink.Payload               = String(temperatures[0], 1);
+            debug("DS18B20::setPayloadPropertyOfTopicLink. TriggeringTopic matches the temperature topic! Setting Payload to the current temperature value: " + topicLink.Payload          + " topicLink.TargetTopic: " + topicLink.TargetTopic);
+            handled                         = true;
+        }
+        else
+        {
+            debug("DS18B20::setPayloadPropertyOfTopicLink. TriggeringTopic does not match the temperature topic. handled: " + String(handled) + ", topicLink.TriggeringTopic: " + topicLink.TriggeringTopic + ", expected: " + getBaseTopic() + "/ds18b20_manager/" + String(getDeviceIndex()) + "/celsius" );
+        }
+        debug("DS18B20::setPayloadPropertyOfTopicLink. topicLink.TriggeringTopic: " + topicLink.TriggeringTopic + ", topicLink.TargetTopic: " + topicLink.TargetTopic + ", topicLink.Payload: " + topicLink.Payload + ", handled: " + String(handled));
+
+        return handled;
+    }
+
+    void DS18B20::publishInternalMqtt()
+    {
+        debug("DS18B20::publishInternalMqtt. Count of TopicLinks: " + String(TopicLinks.size()));
+        DeviceBase::publishInternalMqtt();
+
+return; // fixme Holger
+
+        std::vector<float> temperatures           = requestTemperatures();
+        int                indexTemperatureSensor = 0;
+
+        for (const auto& temperatureCelsius : temperatures)
+        {
+            String topic = getBaseTopic() + "/ds18b20_manager/0/sensor/" + String(indexTemperatureSensor) + "/celsius";
+
+            //internalMqttClient->publish(topic, String(temperatureCelsius, 1));
+
+            indexTemperatureSensor++;
+        }
+    }
+
 } // namespace IotZoo
 
 #endif // USE_DS18B20

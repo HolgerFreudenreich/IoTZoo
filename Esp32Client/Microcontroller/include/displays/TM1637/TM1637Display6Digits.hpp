@@ -21,8 +21,8 @@ namespace IotZoo
     class TM1637Display6Digits : public TM1637DisplayBase
     {
       public:
-        TM1637Display6Digits(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic,
-             uint8_t pinClk, uint8_t pinDio)
+        TM1637Display6Digits(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, uint8_t pinClk,
+                             uint8_t pinDio)
             : TM1637DisplayBase(deviceIndex, settings, mqttClient, baseTopic)
         {
             Serial.println("Constructor TM1637Display6Digits");
@@ -36,14 +36,19 @@ namespace IotZoo
 
         void onIotZooClientUnavailable() override
         {
-            tm1637_6_Display->showString(getServerDownText().c_str());
+            debug("TM1637Display6Digits::onIotZooClientUnavailable. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic + ", enableServerDownText: " + String(getEnableServerDownText()) + ", serverDownText: " + getServerDownText());
+
+            if (getEnableServerDownText())
+            {
+                tm1637_6_Display->showString(getServerDownText().c_str());
+            }
         }
 
         Tm1637DisplayType getDisplayType() const override
         {
             return Tm1637DisplayType::Digits6;
         }
-    
+
         void begin()
         {
             tm1637_6_Display->begin(true);
@@ -150,6 +155,7 @@ namespace IotZoo
         //! See showString_P function for reading PROGMEM read-only flash memory space instead of RAM
         void showString(const char s[], uint8_t length = 4, uint8_t pos = 0, uint8_t dots = 0)
         {
+            debug("TM1637Display6Digits::showString. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic + ", s: " + String(s) + ", length: " + String(length) + ", pos: " + String(pos) + ", dots: " + String(dots));
             tm1637_6_Display->showString(s, length, pos, dots);
         }
 
