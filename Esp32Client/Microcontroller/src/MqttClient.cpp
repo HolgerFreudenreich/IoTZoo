@@ -125,8 +125,7 @@ namespace IotZoo
 
     /// Main loop
     void MqttClient::loop()
-    {
-        Serial.println("MqttClient::loop");
+    {        
         mqttClient->loop();
     }
 

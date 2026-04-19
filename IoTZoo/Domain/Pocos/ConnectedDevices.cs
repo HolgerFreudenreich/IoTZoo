@@ -56,7 +56,8 @@ public static class ConnectedDevices
             PropertyValues = new List<PropertyValue>
          {
                new PropertyValue { Name = "flipDisplay", Value = "false" },
-               new PropertyValue { Name = "serverDownText", Value = "----" }
+               new PropertyValue { Name = "serverDownText", Value = "----" },
+               new PropertyValue { Name = "enableServerDownText", Value = "true" }
         }
         };
     }
@@ -81,7 +82,8 @@ public static class ConnectedDevices
                       }
                     },
             PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "flipDisplay", Value = "false" },
-                                                    new PropertyValue { Name = "serverDownText", Value = "-------" } }
+                                                       new PropertyValue { Name = "serverDownText", Value = "-------" },
+                                                       new PropertyValue { Name = "enableServerDownText", Value = "true" }}
         };
     }
 
@@ -109,8 +111,10 @@ public static class ConnectedDevices
                                     PinName               = "DIO" // GPIO connected to data line of module
                                  }
          },
-            PropertyValues = new List<PropertyValue> {
-                                                    new PropertyValue { Name = "serverDownText", Value = "---------" }
+            PropertyValues = new List<PropertyValue>
+         {
+                                                      new PropertyValue { Name = "serverDownText", Value = "---------" },
+                                                      new PropertyValue { Name = "enableServerDownText", Value = "true" }
          }
         };
     }

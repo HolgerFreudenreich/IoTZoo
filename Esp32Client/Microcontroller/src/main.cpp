@@ -248,7 +248,7 @@ IotZoo::TM1637_4_Handling* tm1637_4Handling;
 
 #ifdef USE_TM1637_6
 #include "./displays/TM1637/TM1637_6_Handling.hpp"
-IotZoo::TM1637_6_Handling tm1637_6Handling;
+IotZoo::TM1637_6_Handling* tm1637_6Handling;
 #endif // USE_TM1637_6
 
 #ifdef USE_MAX7219
@@ -838,12 +838,18 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
         tm1637_4Handling->onMqttConnectionEstablished(mqttClient, getBaseTopic());
 #ifdef USE_INTERNAL_MQTT
         tm1637_4Handling->subscribeToInternalMqttTopics(); // independent of external MQTT broker.
-#endif
+#endif                                                     // USE_INTERNAL_MQTT
     }
 #endif
 
 #ifdef USE_TM1637_6
-    tm1637_6Handling.onMqttConnectionEstablished(settings, mqttClient, getBaseTopic());
+    if (nullptr != tm1637_6Handling)
+    {
+        tm1637_6Handling->onMqttConnectionEstablished(settings, mqttClient, getBaseTopic());
+#ifdef USE_INTERNAL_MQTT
+        tm1637_6Handling->subscribeToInternalMqttTopics(); // independent of external MQTT broker.
+#endif                                                     // USE_INTERNAL_MQTT
+    }
 #endif
 
 #ifdef USE_LED_AND_KEY
@@ -1070,10 +1076,9 @@ void makeInstanceConfiguredDevices()
 
                     ky025 = new KY025(deviceIndex, settings, mqttClient, getBaseTopic(), intervalMs, dataPin);
 #ifdef USE_INTERNAL_MQTT
-
                     ky025->setTopicLinks(*topicLinks);
                     ky025->setInternalMqttClient(globalInternalMqttClient);
-#endif
+#endif // USE_INTERNAL_MQTT
                     Serial.println("Reed contact KY-025 initialized.");
                 }
 #endif // USE_BUTTON
@@ -1397,6 +1402,10 @@ void makeInstanceConfiguredDevices()
                     // Add 1 DS18B20 temperature sensors manager which can support 1..64 DS18B20 temperature sensors.
                     ds18B20SensorManager = new DS18B20(deviceIndex, settings, mqttClient, getBaseTopic(), datPin, resolution, transmissionInterval);
 
+#ifdef USE_INTERNAL_MQTT
+                    ds18B20SensorManager->setTopicLinks(*topicLinks);
+                    ds18B20SensorManager->setInternalMqttClient(globalInternalMqttClient);
+#endif // USE_INTERNAL_MQTT
                     Serial.println("DS18B20 sensors configuration loaded! Dat Pin is " + String(datPin) + ", Resolution: " + String(resolution) +
                                    ", Transmission interval ms: " + String(transmissionInterval));
                 }
@@ -1507,16 +1516,14 @@ void makeInstanceConfiguredDevices()
                         }
                     }
                     tm1637_4Handling = new TM1637_4_Handling();
-                    if (nullptr != tm1637_4Handling)
-                    {
-#ifdef USE_INTERNAL_MQTT
-                        tm1637_4Handling->makeInstanceInternalMqttClient(internalBroker);
-#endif
-                        DeviceBase& device = tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
 
-                        Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
-                                       ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
-                    }
+#ifdef USE_INTERNAL_MQTT
+                    tm1637_4Handling->setInternalMqttClient(globalInternalMqttClient);
+#endif // USE_INTERNAL_MQTT
+                    DeviceBase& device = tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+
+                    Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
+                                   ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
                 }
 #endif // USE_TM1637_4
 
@@ -1524,12 +1531,13 @@ void makeInstanceConfiguredDevices()
                 if (deviceType == "TM1637_6")
                 {
                     Serial.println("TM1637_6 display");
-
-                    int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
+                    tm1637_6Handling = new TM1637_6_Handling();
+                    int clkPin       = arrPins[0]["MicrocontrollerGpoPin"];
+                    int dioPin       = arrPins[1]["MicrocontrollerGpoPin"];
 
                     bool   flipDisplay = false;
                     String serverDownText;
+                    bool   enableServerDownText = false;
                     for (JsonVariant property : arrProperties)
                     {
                         String propertyName  = property["Name"];
@@ -1545,9 +1553,18 @@ void makeInstanceConfiguredDevices()
                             propertyValue.toLowerCase();
                             serverDownText = propertyValue;
                         }
+                        else if (propertyName == "enableServerDownText")
+                        {
+                            propertyValue.toLowerCase();
+                            serverDownText       = propertyValue;
+                            enableServerDownText = propertyValue == "true";
+                        }
                     }
-
-                    tm1637_6Handling.addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+#ifdef USE_INTERNAL_MQTT
+                    tm1637_6Handling->setInternalMqttClient(globalInternalMqttClient);
+#endif // USE_INTERNAL_MQTT
+                    DeviceBase& device = tm1637_6Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+                    device.setEnableServerDownText(enableServerDownText);
 
                     Serial.println("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin));
                 }
@@ -1948,7 +1965,10 @@ void setup()
 #endif
 
 #ifdef USE_TM1637_6
-    tm1637_6Handling.setup();
+    if (nullptr != tm1637_6Handling)
+    {
+        tm1637_6Handling->setup();
+    }
 #endif
 
 #if defined(USE_MQTT)
@@ -2099,40 +2119,43 @@ void registerTopics()
     {
         oled1306->addMqttTopicsToRegister(&topics);
     }
-#endif
+#endif // USE_OLED_SSD1306
 
 #ifdef USE_TM1637_4
     if (nullptr != tm1637_4Handling)
     {
         tm1637_4Handling->addMqttTopicsToRegister(&topics);
     }
-#endif
+#endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
-    tm1637_6Handling.addMqttTopicsToRegister(&topics);
-#endif
+    if (nullptr != tm1637_6Handling)
+    {
+        tm1637_6Handling->addMqttTopicsToRegister(&topics);
+    }
+#endif // USE_TM1637_6
 
 #ifdef USE_HT1621
     if (nullptr != ht1621)
     {
         ht1621->addMqttTopicsToRegister(&topics);
     }
-#endif
+#endif // USE_HT1621
 
 #ifdef USE_MAX7219
     if (nullptr != max7219)
     {
         max7219->addMqttTopicsToRegister(&topics);
     }
-#endif
+#endif // USE_MAX7219
 
 #ifdef USE_HW040
     hw040Handling.addMqttTopicsToRegister(&topics);
-#endif
+#endif // USE_HW040
 
 #ifdef USE_HC_SR501
     motionDetectorsHrsc501Handling.addMqttTopicsToRegister(&topics);
-#endif
+#endif // USE_HC_SR501
 
 #ifdef USE_RD_03D
     if (nullptr != rd03d)
@@ -2146,11 +2169,11 @@ void registerTopics()
     {
         tm1638->addMqttTopicsToRegister(&topics);
     }
-#endif
+#endif // USE_LED_AND_KEY
 
 #ifdef USE_KEYPAD
     buttonMatrixHandling.addMqttTopicsToRegister(&topics);
-#endif
+#endif // USE_KEYPAD
 
 #ifdef USE_DS18B20
     if (nullptr != ds18B20SensorManager)
@@ -2206,11 +2229,14 @@ void onIotZooClientUnavailable()
     {
         tm1637_4Handling->onIotZooClientUnavailable();
     }
-#endif
+#endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
-    tm1637_6Handling.onIotZooClientUnavailable();
-#endif
+    if (nullptr != tm1637_6Handling)
+    {
+        tm1637_6Handling->onIotZooClientUnavailable();
+    }
+#endif // USE_TM1637_6
 
 #ifdef USE_LED_AND_KEY
     if (nullptr != tm1638)
@@ -2261,7 +2287,10 @@ void loop()
         }
         else
         {
-            debug("🛜 ✅");
+            if (DebugHelper::debugLevel >= 3)
+            {
+                debug("🛜 ✅");
+            }
         }
 
 #ifdef USE_INTERNAL_MQTT

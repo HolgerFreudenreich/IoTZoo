@@ -41,9 +41,9 @@ namespace IotZoo
         }
 
 #ifdef USE_INTERNAL_MQTT
-        void makeInstanceInternalMqttClient(InternalMqttBroker* const broker)
+         void setInternalMqttClient(InternalMqttClient* const client)
         {
-            internalMqttClient = new InternalMqttClient(broker, "id");
+            internalMqttClient = client;
         }
 #endif
 
