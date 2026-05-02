@@ -18,17 +18,6 @@ namespace IotZoo
     {
     }
 
-    #ifdef USE_INTERNAL_MQTT
-    void TM1637_4_Handling::subscribeToInternalMqttTopics()
-    {
-        Serial.println("TM1637_4_Handling subscribing to internal MQTT topics...");
-        for (auto& display : displays1637)
-        {
-           display.subscribeToInternalMqttTopics();
-        }
-    }
-    #endif
-
     void TM1637_4_Handling::onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic)
     {
         Serial.println("TM1637_4_Handling::onMqttConnectionEstablished");

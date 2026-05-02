@@ -9,13 +9,8 @@
 // Save Settings permanently in flash memory.
 // --------------------------------------------------------------------------------------------------------------------
 
-#ifndef __SETTINGS_HPP__
-#include "Settings.hpp"
-#endif
-
-#ifndef __DEFINES_HPP__
 #include "Defines.hpp"
-#endif
+#include "Settings.hpp"
 
 namespace IotZoo
 {

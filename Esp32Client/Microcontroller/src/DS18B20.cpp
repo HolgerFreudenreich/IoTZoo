@@ -176,20 +176,6 @@ namespace IotZoo
     {
         debug("DS18B20::publishInternalMqtt. Count of TopicLinks: " + String(TopicLinks.size()));
         DeviceBase::publishInternalMqtt();
-
-return; // fixme Holger
-
-        std::vector<float> temperatures           = requestTemperatures();
-        int                indexTemperatureSensor = 0;
-
-        for (const auto& temperatureCelsius : temperatures)
-        {
-            String topic = getBaseTopic() + "/ds18b20_manager/0/sensor/" + String(indexTemperatureSensor) + "/celsius";
-
-            //internalMqttClient->publish(topic, String(temperatureCelsius, 1));
-
-            indexTemperatureSensor++;
-        }
     }
 
 } // namespace IotZoo
