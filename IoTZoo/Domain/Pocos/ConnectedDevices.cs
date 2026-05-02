@@ -10,7 +10,6 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
-
 namespace Domain.Pocos;
 
 public static class ConnectedDevices

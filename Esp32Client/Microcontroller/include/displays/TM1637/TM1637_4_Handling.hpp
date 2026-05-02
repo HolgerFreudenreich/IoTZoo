@@ -30,9 +30,6 @@ namespace IotZoo
         TM1637_4_Handling();
 
         void onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic);
-#ifdef USE_INTERNAL_MQTT
-        virtual void subscribeToInternalMqttTopics() override;
-#endif
     };
 } // namespace IotZoo
 #endif // __TM_1637_4_HANDLING_HPP

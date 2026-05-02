@@ -835,10 +835,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 #ifdef USE_TM1637_4
     if (nullptr != tm1637_4Handling)
     {
-        tm1637_4Handling->onMqttConnectionEstablished(mqttClient, getBaseTopic());
-#ifdef USE_INTERNAL_MQTT
-        tm1637_4Handling->subscribeToInternalMqttTopics(); // independent of external MQTT broker.
-#endif                                                     // USE_INTERNAL_MQTT
+        tm1637_4Handling->onMqttConnectionEstablished(mqttClient, getBaseTopic()); // USE_INTERNAL_MQTT
     }
 #endif
 
@@ -1499,6 +1496,7 @@ void makeInstanceConfiguredDevices()
 
                     bool   flipDisplay = false;
                     String serverDownText;
+                    bool   enableServerDownText = false;
                     for (JsonVariant property : arrProperties)
                     {
                         String propertyName  = property["Name"];
@@ -1514,16 +1512,24 @@ void makeInstanceConfiguredDevices()
                             propertyValue.toLowerCase();
                             serverDownText = propertyValue;
                         }
+                        else if (propertyName == "enableServerDownText")
+                        {
+                            propertyValue.toLowerCase();
+                            serverDownText       = propertyValue;
+                            enableServerDownText = propertyValue == "true";
+                        }
                     }
-                    tm1637_4Handling = new TM1637_4_Handling();
+                    if (nullptr == tm1637_4Handling)
+                    {
+                        tm1637_4Handling = new TM1637_4_Handling();
+                        TM1637_Handling::setInternalCallback(globalInternalMqttClient);                        
+                    }
 
-#ifdef USE_INTERNAL_MQTT
-                    tm1637_4Handling->setInternalMqttClient(globalInternalMqttClient);
-#endif // USE_INTERNAL_MQTT
                     DeviceBase& device = tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
-
+                    device.setEnableServerDownText(enableServerDownText);
                     Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
-                                   ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
+                                   ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay) +
+                                   ", enableServerDownText: " + String(enableServerDownText));
                 }
 #endif // USE_TM1637_4
 
@@ -1531,9 +1537,13 @@ void makeInstanceConfiguredDevices()
                 if (deviceType == "TM1637_6")
                 {
                     Serial.println("TM1637_6 display");
-                    tm1637_6Handling = new TM1637_6_Handling();
-                    int clkPin       = arrPins[0]["MicrocontrollerGpoPin"];
-                    int dioPin       = arrPins[1]["MicrocontrollerGpoPin"];
+                    if (nullptr == tm1637_6Handling)
+                    {
+                        tm1637_6Handling = new TM1637_6_Handling();
+                    }
+
+                    int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
+                    int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
 
                     bool   flipDisplay = false;
                     String serverDownText;
@@ -1566,7 +1576,8 @@ void makeInstanceConfiguredDevices()
                     DeviceBase& device = tm1637_6Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
                     device.setEnableServerDownText(enableServerDownText);
 
-                    Serial.println("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin));
+                    Serial.println("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin) +
+                                   "enableServerDownText: " + String(enableServerDownText));
                 }
 #endif // USE_TM1637_6
 
@@ -1992,6 +2003,11 @@ void setup()
     Serial.println("BaseTopic: " + getBaseTopic());
 #endif
     makeInstanceConfiguredDevices();
+
+    if (nullptr != tm1637_4Handling)
+    {
+        tm1637_4Handling->subscribeToInternalMqttTopics(globalInternalMqttClient, getBaseTopic());
+    }
     lastAliveTime = millis() - settings->getAliveIntervalMillis();
 
 #ifdef USE_HB0014
@@ -2500,9 +2516,9 @@ void loop()
             lastServerAliveMillis = millis();
         }
 
-        if (loopDurationMs < 10)
+        if (loopDurationMs < 5)
         {
-            delay(10 - loopDurationMs);
+            delay(5 - loopDurationMs);
         }
         digitalWrite(LED_BUILTIN, LOW); // turn the LED off to indicate that the device is offline.
     }

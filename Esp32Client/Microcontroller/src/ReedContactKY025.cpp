@@ -82,7 +82,7 @@ namespace IotZoo
         DeviceBase::loop();
         if (millis() - lastLoopMillis < 200)
         {
-            Serial.println("KY025 skip loop");
+            debug("KY025 skip loop");
             return;
         }
 

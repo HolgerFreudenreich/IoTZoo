@@ -46,8 +46,6 @@ namespace IotZoo
             return Tm1637DisplayType::Digits4;
         }
 
-
-
         void begin()
         {
             tm1637_4_Display->begin(true);

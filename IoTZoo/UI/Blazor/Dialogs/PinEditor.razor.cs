@@ -96,9 +96,9 @@ public class PinEditorBase : EditorBase
         }
     }
 
-    protected async Task RemoveDataSource(string topic)
+    protected async Task RemoveDataSource(TopicLink topicLink)
     {
-        if (string.IsNullOrEmpty(topic))
+        if (topicLink == null)
         {
             return;
         }
@@ -106,32 +106,16 @@ public class PinEditorBase : EditorBase
         {
             return;
         }
-        // Find the first matching data source.
-        TopicLink? toRemove = null;
-        foreach (var ds in ConnectedDevice.TopicLinks)
+
+        try
         {
-            // Use property name 'Topic' as used in markup.
-            if (string.Equals(ds?.TriggeringTopic, topic, StringComparison.Ordinal))
-            {
-                toRemove = ds;
-                break;
-            }
+            ConnectedDevice.TopicLinks.Remove(topicLink);
+        }
+        catch
+        {
         }
 
-        if (toRemove != null)
-        {
-            // Attempt to remove; DataSources is assumed to be a mutable collection (e.g., List<T>).
-            // Use dynamic removal to avoid assumptions about the concrete collection type.
-            try
-            {
-                ConnectedDevice.TopicLinks.Remove(toRemove);
-            }
-            catch
-            {
-            }
-
-            await InvokeAsync(StateHasChanged);
-        }
+        await InvokeAsync(StateHasChanged);
     }
 
     protected async Task EditDataSource(string topic)

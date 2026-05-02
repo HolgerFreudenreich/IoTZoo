@@ -9,6 +9,7 @@
 // Firmware for ESP8266 and ESP32 Microcontrollers
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
+#include "DebugHelper.hpp"
 
 #ifdef USE_MQTT
 #include "MqttClient.hpp"
@@ -75,7 +76,7 @@ namespace IotZoo
     bool MqttClient::publish(const String& topic, const String& payload, bool retain)
     {
         Serial.println("─┐");
-        Serial.println(">>> Publishing topic:\r\n" + topic + "\r\n\r\npayload ↣ " + payload + "\r\n" +
+        debug(">>> Publishing topic:\r\n" + topic + "\r\n\r\npayload ↣ " + payload + "\r\n" +
                      "\r\nMqttBrokerIp: " + this->mqttClient->getMqttServerIp());
         if (!mqttClient->isConnected())
         {
@@ -91,13 +92,13 @@ namespace IotZoo
     /// @return
     bool MqttClient::subscribe(const String& topic, MessageReceivedCallback messageReceivedCallback, uint8_t qos)
     {
-        Serial.println("Subscribing to topic: " + topic + ", qos: " + String(qos));
+        debug("Subscribing to topic: " + topic + ", qos: " + String(qos));
         return printSuccess(mqttClient->subscribe(topic, messageReceivedCallback, qos));
     }
 
     bool MqttClient::subscribe(const String& topic, MessageReceivedCallbackWithTopic messageReceivedCallback, uint8_t qos)
     {
-        Serial.println("Subscribing to topic: " + topic + ", qos: " + String(qos));
+        debug("Subscribing to topic: " + topic + ", qos: " + String(qos));
         return printSuccess(mqttClient->subscribe(topic, messageReceivedCallback, qos));
     }
 
@@ -119,7 +120,7 @@ namespace IotZoo
 
     void MqttClient::removeRetainedMessageFromBroker(const String& topic)
     {
-        Serial.println("*** Removing topic " + topic);
+        debug("*** Removing topic " + topic);
         publish(topic, "", true);
     }
 
@@ -130,17 +131,16 @@ namespace IotZoo
     }
 
     bool MqttClient::printSuccess(bool ok)
-    {
-        Serial.println("");
+    {        
         if (ok)
         {
-            Serial.println(" -> OK " + String(millis()));
+            debug(" -> OK " + String(millis()));
         }
         else
         {
-            Serial.println(" -> NOK " + String(millis()));
+            debug(" -> NOK " + String(millis()));
         }
-        Serial.println("─┘");
+        debug("─┘");
         return ok;
     }
 } // namespace IotZoo
