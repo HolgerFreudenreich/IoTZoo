@@ -1,4 +1,5 @@
 #include "./InternalMqtt/InternalMqtt.h"
+#include "Defines.hpp"
 
 #ifdef USE_INTERNAL_MQTT
 
@@ -169,7 +170,8 @@ void InternalMqttBroker::loop()
 
 InternalMqttError InternalMqttBroker::subscribe(const InternalTopic& topic, uint8_t qos)
 {
-    debug("MqttBroker::subscribe");
+    debug("InternalMqttBroker::subscribe");
+
     if (remoteBroker && remoteBroker->connected())
     {
         return remoteBroker->subscribe(topic, qos);
@@ -251,10 +253,9 @@ void InternalMqttClient::clientAlive(uint32_t more_seconds)
 
 void InternalMqttClient::loop()
 {
-    debug("InternalMqttClient::loop");
     if (keep_alive && (millis() >= alive))
     {
-        if (localBroker)
+        if (nullptr != localBroker)
         {
             debug("timeout client");
             close();
@@ -322,17 +323,19 @@ void InternalMqttClient::resubscribe()
 
 InternalMqttError InternalMqttClient::subscribe(InternalTopic topic, uint8_t qos)
 {
-    debug("Subscribing to internal topic " << String(topic.c_str()));
+    debug("Subscribing to internal topic " + String(topic.c_str()));
     InternalMqttError ret = MqttOk;
 
     subscriptions.insert(topic);
 
     if (localBroker == nullptr) // remote broker
     {
+        debug("Subscribing to remote topic " + String(topic.c_str()));
         return sendTopic(topic, MqttMessage::Type::Subscribe, qos);
     }
     else
     {
+        debug("Subscribing to local topic " + String(topic.c_str()));
         return localBroker->subscribe(topic, qos);
     }
     return ret;
@@ -712,10 +715,12 @@ InternalMqttError InternalMqttClient::publishIfSubscribed(const InternalTopic& t
     {
         if (tcpClient)
         {
+            debug("Forwarding message for topic: " << topic.c_str() << " to external broker");
             retval = msg.sendTo(this);
         }
         else
         {
+            debug("Processing message for topic: " << topic.c_str());
             processMessage(&msg);
         }
     }
@@ -725,9 +730,14 @@ InternalMqttError InternalMqttClient::publishIfSubscribed(const InternalTopic& t
 bool InternalMqttClient::isSubscribedTo(const InternalTopic& topic) const
 {
     for (const auto& subscription : subscriptions)
+    {
         if (subscription.matches(topic))
+        {
+            debug("Found subscription for topic: " << topic.c_str());
             return true;
-
+        }
+    }
+    debug("No subscription found for topic: " << topic.c_str());
     return false;
 }
 
@@ -810,7 +820,7 @@ void MqttMessage::add(const char* p, size_t len, bool addLength)
 
 void MqttMessage::encodeLength()
 {
-    debug("encodingLength");
+    debug("encodeLength");
     if (state != Complete)
     {
         int length = buffer.size() - 3; // 3 = 1 byte for header + 2 bytes for pre-reserved length field.

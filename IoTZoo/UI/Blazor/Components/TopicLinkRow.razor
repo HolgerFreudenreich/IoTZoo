@@ -6,13 +6,10 @@
 
       <MudStack Row="true">
          <!-- Remove -->
-
          <MudIconButton Style="height:50px;" Icon="@Icons.Material.Outlined.Remove"
                         Color="Color.Error"
                         Size="Size.Medium"
-                        OnClick="@(() => OnRemove.InvokeAsync(TopicLinks.TriggeringTopic))" />
-     
-
+                        OnClick="@(() => OnRemove.InvokeAsync(TopicLinks))" />
          <!-- Edit -->
          <MudIconButton Style="height:50px;" Icon="@Icons.Material.Outlined.Edit"
                         Color="Color.Info"
@@ -64,7 +61,7 @@
    public TopicLink TopicLinks { get; set; } = null!;
 
    [Parameter]
-   public EventCallback<string> OnRemove { get; set; }
+   public EventCallback<TopicLink> OnRemove { get; set; }
 
    [Parameter]
    public EventCallback<string> OnEdit { get; set; }

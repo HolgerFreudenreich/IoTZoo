@@ -10,7 +10,6 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
-
 namespace Domain.Pocos;
 
 public static class ConnectedDevices
@@ -56,7 +55,8 @@ public static class ConnectedDevices
             PropertyValues = new List<PropertyValue>
          {
                new PropertyValue { Name = "flipDisplay", Value = "false" },
-               new PropertyValue { Name = "serverDownText", Value = "----" }
+               new PropertyValue { Name = "serverDownText", Value = "----" },
+               new PropertyValue { Name = "enableServerDownText", Value = "true" }
         }
         };
     }
@@ -81,7 +81,8 @@ public static class ConnectedDevices
                       }
                     },
             PropertyValues = new List<PropertyValue> { new PropertyValue { Name = "flipDisplay", Value = "false" },
-                                                    new PropertyValue { Name = "serverDownText", Value = "-------" } }
+                                                       new PropertyValue { Name = "serverDownText", Value = "-------" },
+                                                       new PropertyValue { Name = "enableServerDownText", Value = "true" }}
         };
     }
 
@@ -109,8 +110,10 @@ public static class ConnectedDevices
                                     PinName               = "DIO" // GPIO connected to data line of module
                                  }
          },
-            PropertyValues = new List<PropertyValue> {
-                                                    new PropertyValue { Name = "serverDownText", Value = "---------" }
+            PropertyValues = new List<PropertyValue>
+         {
+                                                      new PropertyValue { Name = "serverDownText", Value = "---------" },
+                                                      new PropertyValue { Name = "enableServerDownText", Value = "true" }
          }
         };
     }

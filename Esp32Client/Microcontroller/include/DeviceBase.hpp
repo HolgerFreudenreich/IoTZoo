@@ -42,7 +42,9 @@ namespace IotZoo
         DeviceBase(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic)
             : deviceIndex(deviceIndex), settings(settings), mqttClient(mqttClient), baseTopic(baseTopic)
         {
+            this->baseTopic.toLowerCase();
             Serial.println("Constructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
+            setEnableServerDownText(false);
         }
 
         virtual ~DeviceBase()
@@ -60,15 +62,16 @@ namespace IotZoo
         bool EvaluateExpression(const TopicLink& topicLink)
         {
             bool doIt = false;
-            if (topicLink.Expression.length() == 0)
+            debug("EvaluateExpression. topicLink.Expression: " + topicLink.Expression +
+                  ", Expression length: " + String(topicLink.Expression.length()) + ", topicLink.Payload: " + topicLink.Payload);
+
+            if (topicLink.Expression == nullptr || topicLink.Expression.length() == 0 || topicLink.Expression.equalsIgnoreCase("null"))
             {
                 doIt = true; // no expression means "always publish"
             }
             else
             {
-                debug("EvaluateExpression. topicLink.Expression: " + topicLink.Expression);
-
-                StaticJsonDocument<512> jsonDocument;
+                StaticJsonDocument<256> jsonDocument;
 
                 if (!deserializeStaticJsonAndPublishError(jsonDocument, topicLink.Expression))
                 {
@@ -84,9 +87,23 @@ namespace IotZoo
                         doIt = true;
                     }
                 }
-                else if (strOperator == "<")
+                else if (strOperator == "<" || strOperator == "<=" || strOperator == ">=")
                 {
                     if (topicLink.Payload.toDouble() < referenceValue)
+                    {
+                        doIt = true;
+                    }
+                }
+                else if (strOperator == "<=")
+                {
+                    if (topicLink.Payload.toDouble() <= referenceValue)
+                    {
+                        doIt = true;
+                    }
+                }
+                else if (strOperator == ">=")
+                {
+                    if (topicLink.Payload.toDouble() >= referenceValue)
                     {
                         doIt = true;
                     }
@@ -98,15 +115,51 @@ namespace IotZoo
                         doIt = true;
                     }
                 }
-
                 debug("Payload: " + topicLink.Payload + " " + "Expression operator: " + strOperator + " value: " + referenceValue +
                       ", -> doIt: " + String(doIt));
             }
             return doIt;
         }
 
-        virtual void setPayloadPropertyOfTopicLink(TopicLink& topicLink)
+        // Override this method to set the topicLink.Payload based on the current device data. This is needed if topicLink.TargetPayload is "input" or
+        // empty. topicLink.Payload will be send via internal MQTT.
+        // Return true if topicLink.Payload has been set, false otherwise.
+        virtual bool setPayloadPropertyOfTopicLink(TopicLink& topicLink)
         {
+            debug("DeviceBase::setPayloadPropertyOfTopicLink. topicLink.TriggeringTopic: " + topicLink.TriggeringTopic +
+                  ", topicLink.Expression: " + topicLink.Expression + ", topicLink.TargetTopic: " + topicLink.TargetTopic +
+                  ", topicLink.TargetPayload: " + topicLink.TargetPayload);
+            topicLink.TargetPayload.trim();
+            if (topicLink.TargetPayload.length() && !topicLink.TargetPayload.equalsIgnoreCase("input") &&
+                !topicLink.TargetPayload.equalsIgnoreCase("null"))
+            {
+                topicLink.Payload =
+                    topicLink.TargetPayload; // default to configured TargetPayload if TriggeringTopic does not match any known topic.)
+                debug("Using TargetTopic: " + topicLink.TargetTopic + " as Payload: " + topicLink.Payload + "length: (" + topicLink.Payload.length() +
+                      ")");
+                return true;
+            }
+
+            if (topicLink.TargetTopic.length() == 0)
+            {
+                debug("⚠️ Warning: TargetTopic is empty! This means that the received TriggeringTopic message will not be published to any topic.");
+            }
+
+            return false;
+        }
+
+        void setEnableServerDownText(bool enable)
+        {
+            debug("DeviceBase::SetEnableServerDownText. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic +
+                  ", enable: " + String(enable));
+            enableServerDownText = enable;
+        }
+
+        bool getEnableServerDownText() const
+        {
+            debug("DeviceBase::getEnableServerDownText. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic +
+                  ", enableServerDownText: " + String(enableServerDownText));
+            return enableServerDownText;
         }
 
         virtual void publishInternalMqtt()
@@ -115,7 +168,7 @@ namespace IotZoo
 
             if (nullptr != internalMqttClient)
             {
-                // Has an internal component interest on counter changes?
+                // Has an internal component interest on the triggering topic?
                 for (auto& topicLink : TopicLinks)
                 {
                     // Should the event take place?
@@ -125,13 +178,13 @@ namespace IotZoo
                     {
                         doPublish = true; // no expression means "always publish"
                     }
-
-                    if (topicLink.TargetPayload.isEmpty() ||
-                        topicLink.TargetPayload.equalsIgnoreCase("input")) // if no payload is configured, publish the device data as payload.
+                    if (!setPayloadPropertyOfTopicLink(topicLink))
                     {
-                        setPayloadPropertyOfTopicLink(topicLink);
+                        debug("OfTopiDeviceBase::publishInternalMqtt. setPayloadPropertycLink did not set topicLink.Payload! "
+                              "topicLink.TriggeringTopic: " +
+                              topicLink.TriggeringTopic + ", topicLink.Expression: " + topicLink.Expression +
+                              ", topicLink.TargetTopic: " + topicLink.TargetTopic);
                     }
-
                     doPublish = EvaluateExpression(topicLink);
 
                     if (doPublish)
@@ -143,7 +196,6 @@ namespace IotZoo
         }
 
 #endif // USE_INTERNAL_MQTT
-
         int getDeviceIndex() const
         {
             return deviceIndex;
@@ -269,6 +321,7 @@ namespace IotZoo
         String      deviceName;
         String      baseTopic;
         bool        mqttCallbacksAreRegistered = false;
+        bool        enableServerDownText       = true;
 
 #ifdef USE_INTERNAL_MQTT
         InternalMqttClient* internalMqttClient = nullptr;

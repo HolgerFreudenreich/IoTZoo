@@ -312,7 +312,7 @@ class InternalMqttClient
             }
             Console << ']';
         }
-        Console << TinyConsole::erase_to_end << endl;
+        Console << TinyConsole::erase_to_end << _EndLineCode::endl;
 #endif
     }
 
