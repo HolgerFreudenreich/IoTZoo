@@ -57,7 +57,11 @@ namespace IotZoo
                     String topicName = topic.TopicName;
                     debug("Subscribing to internal MQTT topic: " + topicName);
                     InternalTopic internalTopic(topic.TopicName.c_str());
-                    internalMqttClient->subscribe(internalTopic);
+                    InternalMqttError error = internalMqttClient->subscribe(internalTopic);
+                    if (error != MqttOk)
+                    {
+                        debug("Failed to subscribe to internal MQTT topic: " + topicName);
+                    }
                 }
             }
         }
@@ -376,7 +380,7 @@ namespace IotZoo
 
     void TM1637_Handling::setInternalCallback(InternalMqttClient* const internalMqttClient)
     {
-        debug("Setting internal MQTT callback for TM1637_Handling...");
+        debug("Setting internal MQTT callback for TM1637_Handling... You need a callback and a subscription to receive internal MQTT messages.");
 
         if (internalMqttClient == nullptr)
         {
