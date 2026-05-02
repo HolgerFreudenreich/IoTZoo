@@ -1,4 +1,5 @@
 #include "./InternalMqtt/InternalMqtt.h"
+#include "Defines.hpp"
 
 #ifdef USE_INTERNAL_MQTT
 
@@ -323,7 +324,6 @@ void InternalMqttClient::resubscribe()
 InternalMqttError InternalMqttClient::subscribe(InternalTopic topic, uint8_t qos)
 {
     debug("Subscribing to internal topic " + String(topic.c_str()));
-
     InternalMqttError ret = MqttOk;
 
     subscriptions.insert(topic);

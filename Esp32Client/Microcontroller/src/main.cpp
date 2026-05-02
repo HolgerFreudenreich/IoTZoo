@@ -835,7 +835,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 #ifdef USE_TM1637_4
     if (nullptr != tm1637_4Handling)
     {
-        tm1637_4Handling->onMqttConnectionEstablished(mqttClient, getBaseTopic()); // USE_INTERNAL_MQTT
+        tm1637_4Handling->onMqttConnectionEstablished(mqttClient, getBaseTopic());
     }
 #endif
 
@@ -843,9 +843,6 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     if (nullptr != tm1637_6Handling)
     {
         tm1637_6Handling->onMqttConnectionEstablished(settings, mqttClient, getBaseTopic());
-#ifdef USE_INTERNAL_MQTT
-        tm1637_6Handling->subscribeToInternalMqttTopics(); // independent of external MQTT broker.
-#endif                                                     // USE_INTERNAL_MQTT
     }
 #endif
 
@@ -1522,7 +1519,7 @@ void makeInstanceConfiguredDevices()
                     if (nullptr == tm1637_4Handling)
                     {
                         tm1637_4Handling = new TM1637_4_Handling();
-                        TM1637_Handling::setInternalCallback(globalInternalMqttClient);                        
+                        TM1637_Handling::setInternalCallback(globalInternalMqttClient);
                     }
 
                     DeviceBase& device = tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
@@ -1540,6 +1537,7 @@ void makeInstanceConfiguredDevices()
                     if (nullptr == tm1637_6Handling)
                     {
                         tm1637_6Handling = new TM1637_6_Handling();
+                        TM1637_Handling::setInternalCallback(globalInternalMqttClient);
                     }
 
                     int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
@@ -1570,9 +1568,7 @@ void makeInstanceConfiguredDevices()
                             enableServerDownText = propertyValue == "true";
                         }
                     }
-#ifdef USE_INTERNAL_MQTT
-                    tm1637_6Handling->setInternalMqttClient(globalInternalMqttClient);
-#endif // USE_INTERNAL_MQTT
+
                     DeviceBase& device = tm1637_6Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
                     device.setEnableServerDownText(enableServerDownText);
 
@@ -1878,6 +1874,7 @@ void notifyCallbackHeartRate(NimBLERemoteCharacteristic* pBLERemoteCharacteristi
 
 #ifdef USE_INTERNAL_MQTT
     {
+        debug("Notify callback heart rate. data[1]: " + String(data[1]));
         InternalMqttClient* internalMqttClient = heartRateSensor->getInternalMqttClient();
         if (nullptr != internalMqttClient)
         {
@@ -2004,10 +2001,19 @@ void setup()
 #endif
     makeInstanceConfiguredDevices();
 
+#ifdef USE_TM1637_4
     if (nullptr != tm1637_4Handling)
     {
         tm1637_4Handling->subscribeToInternalMqttTopics(globalInternalMqttClient, getBaseTopic());
     }
+#endif
+
+#ifdef USE_TM1637_6
+    if (nullptr != tm1637_6Handling)
+    {
+        tm1637_6Handling->subscribeToInternalMqttTopics(globalInternalMqttClient, getBaseTopic());
+    }
+#endif
     lastAliveTime = millis() - settings->getAliveIntervalMillis();
 
 #ifdef USE_HB0014
