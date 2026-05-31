@@ -44,8 +44,7 @@ namespace IotZoo
 #ifdef USE_INTERNAL_MQTT
     void TM1637_Handling::subscribeToInternalMqttTopics(InternalMqttClient* internalMqttClient, const String& baseTopic)
     {
-        debug("TM1637_Handling subscribing to internal MQTT topics...");
-
+        Serial.println("TM1637_Handling subscribing to internal MQTT topics...");
         // Which devices want to subscribe to this topic? We don't know that here.
         // Subscribe to all available topics.
         for (auto& display : displays1637)
@@ -56,11 +55,16 @@ namespace IotZoo
                 {
                     String topicName = topic.TopicName;
                     debug("Subscribing to internal MQTT topic: " + topicName);
+
                     InternalTopic internalTopic(topic.TopicName.c_str());
                     InternalMqttError error = internalMqttClient->subscribe(internalTopic);
                     if (error != MqttOk)
                     {
-                        debug("Failed to subscribe to internal MQTT topic: " + topicName);
+                        debug("Failed to subscribe to internal MQTT topic: " + String(internalTopic.c_str()) + ", error code: " + String(error)); 
+                    }
+                    else
+                    {
+                        debug("Successfully subscribed to internal MQTT topic: " + String(internalTopic.c_str()));
                     }
                 }
             }
@@ -356,8 +360,10 @@ namespace IotZoo
     }
 
 #ifdef USE_INTERNAL_MQTT
+//  set callback
     static void onInternalReceivedData(const InternalMqttClient* /* srce */, const InternalTopic& topic, const char* payload, size_t /* length */)
     {
+        Serial.println("onInternalReceivedData topic: " + String(topic.c_str()) + " payload: " + String(payload));
         String strTopic = String(topic.c_str());
         if (strTopic.endsWith("/number"))
         {
@@ -380,8 +386,8 @@ namespace IotZoo
 
     void TM1637_Handling::setInternalCallback(InternalMqttClient* const internalMqttClient)
     {
-        debug("Setting internal MQTT callback for TM1637_Handling... You need a callback and a subscription to receive internal MQTT messages.");
-
+        Serial.println("Setting internal MQTT callback for TM1637_Handling... You need a callback and a subscription to receive internal MQTT messages.");
+ // wait for the internal MQTT client to be initialized and connected. Otherwise, we may miss messages.;
         if (internalMqttClient == nullptr)
         {
             Serial.println("Internal MQTT client is not available. Cannot set internal callbacks for TM1637_Handling.");

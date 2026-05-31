@@ -138,12 +138,34 @@ namespace IotZoo
             // don't do anything unless value changed.
             if (encoderChanged())
             {
-                Serial.print("Value encoder " + String(deviceIndex) + ": ");
                 long rotaryEncoderValue = readEncoder();
-
-                Serial.println(rotaryEncoderValue);
-
+                Serial.print("Value encoder [" + String(deviceIndex) + "]: " + String(rotaryEncoderValue));
                 mqttClient->publish(topicEncoderValue, String(rotaryEncoderValue));
+
+                if (internalMqttClient != nullptr)
+                {
+
+                    debug("Count of TopicLinks: " + String(getTopicLinks().size()));
+                    // Has an internal component interest on counter changes?
+                    for (auto& topicLink : getTopicLinks())
+                    {
+                        debug("topicLink.TriggeringTopic: " + topicLink.TriggeringTopic);
+                        if (topicLink.TriggeringTopic.equalsIgnoreCase(topicEncoderValue))
+                        {
+                            topicLink.Payload = String(rotaryEncoderValue).c_str();
+                            InternalMqttError error = internalMqttClient->publish(topicLink);
+                            if (error != InternalMqttError::MqttOk)
+                            {
+                                debug("Failed to publish internal MQTT message for topic: " + topicLink.TargetTopic + ", error code: " + String(error));
+                            }
+                        }
+                    }
+
+                }
+                else 
+                {
+                    debug("internalMqttClient is nullptr!");
+                }
             }
         }
         catch (const std::exception& e)

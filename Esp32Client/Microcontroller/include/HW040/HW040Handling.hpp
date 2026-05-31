@@ -20,35 +20,33 @@
 
 namespace IotZoo
 {
-  class HW040Handling : public DeviceHandlingBase
-  {
-  public:
-    HW040Handling();
+    class HW040Handling : public DeviceHandlingBase
+    {
+      public:
+        HW040Handling();
 
-    void setup();
+        void setup();
 
-    /// @brief Let the user know what the device can do.
-    /// @param topics
-    void addMqttTopicsToRegister(std::vector<Topic> *const topics) const;
+        /// @brief Let the user know what the device can do.
+        /// @param topics
+        void addMqttTopicsToRegister(std::vector<Topic>* const topics) const;
 
-    /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
-    /// @param mqttClient
-    /// @param baseTopic
-    void onMqttConnectionEstablished(MqttClient *mqttClient, const String &baseTopic);
+        /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
+        /// @param mqttClient
+        /// @param baseTopic
+        void onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic);
 
-    void addDevice(int deviceIndex, Settings* const settings, MqttClient *mqttClient, const String &baseTopic,
-                   int boundaryMinValue,
-                   int boundaryMaxValue,
-                   bool circleValues,
-                   int acceleration,
-                   uint8_t encoderSteps,
-                   uint8_t encoderAPin,
-                   uint8_t encoderBPin,
-                   int encoderButtonPin,
-                   int encoderVccPin);
-    void loop();
-  };
-}
+        DeviceBase& addDevice(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, int boundaryMinValue,
+                              int boundaryMaxValue, bool circleValues, int acceleration, uint8_t encoderSteps, uint8_t encoderAPin,
+                              uint8_t encoderBPin, int encoderButtonPin, int encoderVccPin);
+        void        loop();
+
+#ifdef USE_INTERNAL_MQTT
+        static void  setInternalCallback(InternalMqttClient* const internalMqttClient);
+        virtual void subscribeToInternalMqttTopics(InternalMqttClient* internalMqttClient, const String& baseTopic) override;
+#endif
+    };
+} // namespace IotZoo
 
 #endif // __HW040_HANDLING_HPP__
 #endif // USE_HW040

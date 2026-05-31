@@ -36,11 +36,13 @@ namespace IotZoo
         static NimBLEAddress*              pServerAddress;
         static bool                        doConnect;
         static bool                        connected;
+
         static NimBLERemoteCharacteristic* pRemoteCharacteristic;
 
         bool onoff = true;
 
         notify_callback notifyCallback;
+        uint8_t        advertisingTimeout;
 
       public:
         HeartRateSensor(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic,
@@ -82,6 +84,12 @@ namespace IotZoo
         void setup(notify_callback callbackMethod, int scanDuration = 60);
 
         void loop();
+
+        uint8_t getAdvertisingTimeout() const
+        {
+            return advertisingTimeout;
+        }
+    
     };
 } // namespace IotZoo
 #endif // __BLE_HEART_RATE_SENSOR_HPP__

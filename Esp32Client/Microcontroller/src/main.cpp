@@ -59,6 +59,7 @@ IotZoo::WS2818* ws2812 = nullptr;
 #endif
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
+#include "BLEHeartRateReceiver.hpp"
 #include "BLEHeartRateSensor.hpp"
 IotZoo::HeartRateSensor* heartRateSensor = nullptr;
 void                     connectToHeartRateSensor(int advertisingTimeout = 30);
@@ -166,7 +167,7 @@ enum class DayMode
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.2.5";
+String firmwareVersion = "0.2.6";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -191,6 +192,8 @@ String macAddress;
 
 bool topicsRegistered = false;
 
+void TaskInitHeartRateSensor(void* pvParameters);
+
 /// @brief Restarts the microcontroller.
 void restart()
 {
@@ -204,6 +207,7 @@ String getMacAddress()
 {
     // It would be even possible to set the MAC address!
     macAddress = WiFi.macAddress();
+    // macAddress.toLowerCase();
     debug("MAC: " << macAddress);
     return macAddress;
 }
@@ -356,7 +360,7 @@ bool onReceivedMicrocontrollerConfiguration(const String& json)
 }
 
 #ifdef USE_HW040
-IotZoo::HW040Handling hw040Handling;
+IotZoo::HW040Handling* hw040Handling = nullptr;
 #endif
 
 #if defined(USE_MQTT)
@@ -776,7 +780,10 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 #endif
 
 #ifdef USE_HW040
-    hw040Handling.onMqttConnectionEstablished(mqttClient, getBaseTopic());
+    if (nullptr != hw040Handling)
+    {
+        hw040Handling->onMqttConnectionEstablished(mqttClient, getBaseTopic());
+    }
 #endif
 
 #ifdef USE_STEPPER_MOTOR
@@ -1687,12 +1694,22 @@ void makeInstanceConfiguredDevices()
                         }
                     }
 
-                    hw040Handling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), boundaryMinValue, boundaryMaxValue, circleValues,
-                                            acceleration, encoderSteps, clkPin, dtPin, swPin, -1);
+                    hw040Handling = new IotZoo::HW040Handling();
+
+                    DeviceBase& device =
+                        hw040Handling->addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), boundaryMinValue, boundaryMaxValue, circleValues,
+                                                 acceleration, encoderSteps, clkPin, dtPin, swPin, -1);
+                    device.setInternalMqttClient(globalInternalMqttClient);
+                    device.setTopicLinks(*topicLinks);
+
                     Serial.println("HW-040 rotary encoder initialized! CLK Pin is " + String(clkPin) + ", DT Pin is " + String(dtPin) +
                                    ", MS Pin is " + String(swPin) + ", boundaryMinValue is " + String(boundaryMinValue) + ", boundaryMaxValue is " +
                                    String(boundaryMaxValue) + ", acceleration is " + String(acceleration) + ", circleValues is " +
                                    String(circleValues) + ", encoderSteps is " + String(encoderSteps));
+                }
+                if (nullptr != hw040Handling)
+                {
+                    HW040Handling::setInternalCallback(globalInternalMqttClient);
                 }
 #endif // USE_HW040
 
@@ -1715,7 +1732,12 @@ void makeInstanceConfiguredDevices()
                     heartRateSensor->setTopicLinks(*topicLinks);
                     heartRateSensor->setInternalMqttClient(globalInternalMqttClient);
 #endif
-                    connectToHeartRateSensor(advertisingTimeoutSeconds);
+                    debug("Heart rate sensor configuration loaded! Advertising timeout seconds: " + String(advertisingTimeoutSeconds));
+
+                    int* pAdvertisingTimeout = new int(advertisingTimeoutSeconds);
+                    xTaskCreate(TaskInitHeartRateSensor, "TaskInitHeartRateSensor", 4096, pAdvertisingTimeout, 1, NULL);
+
+                    debug("Heart rate sensor task created.");
                 }
 #endif // USE_BLE_HEART_RATE_SENSOR
             }
@@ -1901,9 +1923,15 @@ void notifyCallbackHeartRate(NimBLERemoteCharacteristic* pBLERemoteCharacteristi
 
 void connectToHeartRateSensor(int advertisingTimeout)
 {
-    String topic = getBaseTopic() + "/pulse/0/scan_started";
+    debug("Connecting to heart rate sensor. Timeout: " << advertisingTimeout << " s");
 
-    mqttClient->publish(topic, "BLE scan started to find advertising heart rate sensor. Timeout is set to " + String(advertisingTimeout) + " s.");
+#ifdef USE_MQTT
+    if (nullptr != mqttClient)
+    {
+        String topic = getBaseTopic() + "/pulse/0/scan_started";
+        mqttClient->publish(topic, "BLE scan started to find advertising heart rate sensor. Timeout is set to " + String(advertisingTimeout) + " s.");
+    }
+#endif
 
     if (nullptr != heartRateSensor)
     {
@@ -1939,7 +1967,7 @@ void setup()
         sleep(1000);
     }
 
-#endif
+#endif // ERASE_FLASH
 
 #if defined(USE_REST_SERVER)
     connectToWiFi();
@@ -1999,6 +2027,7 @@ void setup()
 
     Serial.println("BaseTopic: " + getBaseTopic());
 #endif
+
     makeInstanceConfiguredDevices();
 
 #ifdef USE_TM1637_4
@@ -2006,12 +2035,17 @@ void setup()
     {
         tm1637_4Handling->subscribeToInternalMqttTopics(globalInternalMqttClient, getBaseTopic());
     }
-#endif
+    else
+    {
+        Serial.println("tm1637_4Handling is null");
+    }
+
+#endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
     if (nullptr != tm1637_6Handling)
     {
-        tm1637_6Handling->subscribeToInternalMqttTopics(globalInternalMqttClient, getBaseTopic());
+        tm1637_6Handling->subscribeToInternalMqttTopSubscribed TM1637_4 to internal MQTT toics(globalInternalMqttClient, getBaseTopic());
     }
 #endif
     lastAliveTime = millis() - settings->getAliveIntervalMillis();
@@ -2172,7 +2206,10 @@ void registerTopics()
 #endif // USE_MAX7219
 
 #ifdef USE_HW040
-    hw040Handling.addMqttTopicsToRegister(&topics);
+    if (nullptr != hw040Handling)
+    {
+        hw040Handling->addMqttTopicsToRegister(&topics);
+    }
 #endif // USE_HW040
 
 #ifdef USE_HC_SR501
@@ -2317,6 +2354,7 @@ void loop()
 
 #ifdef USE_INTERNAL_MQTT
         internalBroker->loop();
+        globalInternalMqttClient->loop();
 #endif // USE_INTERNAL_MQTT
 
         lastLoopStartTime = millis();
@@ -2433,7 +2471,10 @@ void loop()
         // The preconditions are fulfilled (MQTT connected).
 
 #ifdef USE_HW040
-        hw040Handling.loop();
+        if (nullptr != hw040Handling)
+        {
+            hw040Handling->loop();
+        }
 #endif
 
 #ifdef USE_STEPPER_MOTOR
@@ -2534,5 +2575,50 @@ void loop()
         delay(1000);
     }
 }
+
+#ifdef USE_BLE_HEART_RATE_SENSOR
+void TaskInitHeartRateSensor(void* pvParameters)
+{
+    if (nullptr == pvParameters)
+    {
+        debug("ERROR TaskInitHeartRateSensor: No advertising timeout provided!");
+        vTaskDelete(nullptr);
+        return;
+    }
+    int* pAdvertisingTimeout = (int*)pvParameters;
+    int advertisingTimeout  = 0; 
+    if (nullptr != pAdvertisingTimeout)
+    {
+        advertisingTimeout = *pAdvertisingTimeout;
+        delete pAdvertisingTimeout;
+        debug("TaskInitHeartRateSensor started with advertising timeout: " + String(advertisingTimeout) + " s");
+    }
+    if (advertisingTimeout <= 0)
+    {
+        advertisingTimeout = 30; // default timeout
+        debug("TaskInitHeartRateSensor: Invalid advertising timeout provided. Using default timeout: "
+              + String(advertisingTimeout) + " s");
+    }
+
+    // Warten bis alle Initialisierungen abgeschlossen sind (kurze Wartezeit)
+    vTaskDelay(pdMS_TO_TICKS(2000)); // 2 Sekunden Wartezeit
+
+    // Null-Pointer Checks
+    if (nullptr == heartRateSensor)
+    {
+        debug("ERROR TaskInitHeartRateSensor: Heart rate sensor not initialized!");
+        vTaskDelete(nullptr);
+        return;
+    }
+
+    // Initialisiere BLE Heart Rate Sensor
+    debug("TaskInitHeartRateSensor: Initiating BLE heart rate sensor connection (non-blocking)...");
+
+    connectToHeartRateSensor(advertisingTimeout); // Timeout für die Verbindung zum Herzfrequenzsensor
+
+    debug("TaskInitHeartRateSensor: Completed. BLE scan running asynchronously.");
+    vTaskDelete(nullptr); // Task beendet sich selbst
+}
+#endif // USE_BLE_HEART_RATE_SENSOR
 
 // --- end of main.cpp
