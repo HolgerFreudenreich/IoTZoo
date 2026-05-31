@@ -21,6 +21,7 @@ namespace IotZoo
     {
         Serial.println("Constructor HeartRateSensor. advertisingTimeOut: " + String(advertisingTimeOut) + " s");
         charUUID = (NimBLEUUID((uint16_t)0x2A37));
+        this->advertisingTimeout = advertisingTimeOut;
     }
 
     HeartRateSensor::~HeartRateSensor()
@@ -93,6 +94,7 @@ namespace IotZoo
         Serial.println("BLE scan done. Found: " + String(results.getCount() + " BLE devices."));
     }
 
+
     void HeartRateSensor::loop()
     {
         // If the flag "doConnect" is true then we have scanned for and found the desired
@@ -136,9 +138,10 @@ namespace IotZoo
     }
 
     // Initialize static members.
-    NimBLEUUID                  HeartRateSensor::serviceUUID           = (NimBLEUUID((uint16_t)0x180D));
-    bool                        HeartRateSensor::connected             = false;
-    bool                        HeartRateSensor::doConnect             = false;
+    NimBLEUUID HeartRateSensor::serviceUUID = (NimBLEUUID((uint16_t)0x180D));
+    bool       HeartRateSensor::connected   = false;
+    bool       HeartRateSensor::doConnect   = false;
+
     NimBLEAddress*              HeartRateSensor::pServerAddress        = nullptr;
     NimBLERemoteCharacteristic* HeartRateSensor::pRemoteCharacteristic = nullptr;
 } // namespace IotZoo
