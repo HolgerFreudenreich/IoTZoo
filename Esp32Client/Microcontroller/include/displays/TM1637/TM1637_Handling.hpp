@@ -46,15 +46,14 @@ namespace IotZoo
 
         static void callbackMqttOnReceivedDataTm1637Temperature(const String& topic, const String& message);
 
-        static void setInternalCallback(InternalMqttClient* const internalMqttClient);
-
         DeviceBase& addDevice(const String& baseTopic, int deviceIndex, int clkPin, int dioPin, bool flipDisplay, const String& serverDownText);
 
         static TM1637* getDisplayByDeviceIndex(int index);
 
-         void onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic);
+        void onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic);
 
 #ifdef USE_INTERNAL_MQTT
+        static void  setInternalCallback(InternalMqttClient* const internalMqttClient);
         virtual void subscribeToInternalMqttTopics(InternalMqttClient* internalMqttClient, const String& baseTopic) override;
 #endif
 

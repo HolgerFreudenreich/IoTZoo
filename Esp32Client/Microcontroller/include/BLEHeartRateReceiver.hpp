@@ -23,63 +23,63 @@
 
 namespace IotZoo
 {
-  class HeartRateMonitor
-  {
-
-  protected:
-    // The remote service we wish to connect to.
-    static NimBLEUUID serviceUUID;
-    // The characteristic of the remote service we are interested in.
-    NimBLEUUID charUUID;
-
-    static NimBLEAddress *pServerAddress;
-    static bool doConnect;
-    static bool connected;
-    static NimBLERemoteCharacteristic *pRemoteCharacteristic;
-
-    bool onoff = true;
-
-    notify_callback notifyCallback;
-
-  public:
-    HeartRateMonitor();
-
-    virtual ~HeartRateMonitor()
+    class HeartRateMonitor
     {
-      Serial.println("Deleting HeartRateMonitor.");
-    }
 
-    bool connectToServer(NimBLEAddress pAddress);
+      protected:
+        // The remote service we wish to connect to.
+        static NimBLEUUID serviceUUID;
+        // The characteristic of the remote service we are interested in.
+        NimBLEUUID charUUID;
 
-    /// @brief Scan for BLE servers and find the first one that advertises the service we are looking for.
-    class AdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks
-    {
-      // Called for each advertising BLE server.
-      void onResult(NimBLEAdvertisedDevice *advertisedDevice)
-      {
-        Serial.println("BLE Advertised Device found with serviceUUID: " + String(advertisedDevice->getServiceUUID().toString().c_str()));
+        static NimBLEAddress*              pServerAddress;
+        static bool                        doConnect;
+        static bool                        connected;
+        static NimBLERemoteCharacteristic* pRemoteCharacteristic;
 
-        // We have found a device, let us now see if it contains the service we are looking for.
-        if (advertisedDevice->haveServiceUUID() && advertisedDevice->getServiceUUID().equals(serviceUUID))
+        bool onoff = true;
+
+        notify_callback notifyCallback;
+
+      public:
+        HeartRateMonitor();
+
+        virtual ~HeartRateMonitor()
         {
-          Serial.println("Found our device! Stopping scan for heart rate device.");
-          advertisedDevice->getScan()->stop();
-          Serial.println("Scan stopped!");
-          pServerAddress = new NimBLEAddress(advertisedDevice->getAddress());
-
-          doConnect = true;
+            Serial.println("Deleting HeartRateMonitor.");
         }
-      }
+
+        bool connectToServer(NimBLEAddress pAddress);
+
+        /// @brief Scan for BLE servers and find the first one that advertises the service we are looking for.
+        class AdvertisedDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks
+        {
+            // Called for each advertising BLE server.
+            void onResult(NimBLEAdvertisedDevice* advertisedDevice)
+            {
+                Serial.println("BLE Advertised Device found with serviceUUID: " + String(advertisedDevice->getServiceUUID().toString().c_str()));
+
+                // We have found a device, let us now see if it contains the service we are looking for.
+                if (advertisedDevice->haveServiceUUID() && advertisedDevice->getServiceUUID().equals(serviceUUID))
+                {
+                    Serial.println("Found our device! Stopping scan for heart rate device.");
+                    advertisedDevice->getScan()->stop();
+                    Serial.println("Scan stopped!");
+                    pServerAddress = new NimBLEAddress(advertisedDevice->getAddress());
+
+                    doConnect = true;
+                }
+            }
+        };
+
+        /// @brief
+        /// @param callbackMethod
+        /// @param scanDuration
+        /// @return true, if the device is found, otherwise false
+        void setup(notify_callback callbackMethod, int scanDuration = 60);
+
+        void loop();
     };
-
-    /// @brief
-    /// @param callbackMethod
-    /// @param scanDuration
-    /// @return true, if the device is found, otherwise false
-    void setup(notify_callback callbackMethod, int scanDuration = 60);
-
-    void loop();
-  };
-}
+} // namespace IotZoo
 #endif // __BLE_HEARTRATERECEIVER_HPP__
 #endif // USE_BLE_HEART_RATE_SENSOR
