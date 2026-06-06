@@ -94,7 +94,6 @@ namespace IotZoo
         Serial.println("BLE scan done. Found: " + String(results.getCount() + " BLE devices."));
     }
 
-
     void HeartRateSensor::loop()
     {
         // If the flag "doConnect" is true then we have scanned for and found the desired

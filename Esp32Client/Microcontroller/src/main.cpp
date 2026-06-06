@@ -167,7 +167,7 @@ enum class DayMode
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.2.6";
+String firmwareVersion = "0.2.7";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -193,6 +193,8 @@ String macAddress;
 bool topicsRegistered = false;
 
 void TaskInitHeartRateSensor(void* pvParameters);
+void HeartRateSensorLoop(void* pvParameters);
+void MqttClientLoop(void* pvParameters);
 
 /// @brief Restarts the microcontroller.
 void restart()
@@ -316,7 +318,18 @@ bool deserializeStaticJsonAndPublishError(JsonDocument& jsonDocument, const Stri
     return true;
 }
 
-#endif
+void MqttClientLoop(void* pvParameters)
+{
+    while (true)
+    {
+        if (mqttClient)
+        {
+            mqttClient->loop();
+        }
+        vTaskDelay(pdMS_TO_TICKS(25)); // Short delay to reduce CPU usage.
+    }
+}
+#endif // USE_MQTT
 
 void onReceivedConnectedDevicesConfiguration(const String& json)
 {
@@ -1734,8 +1747,7 @@ void makeInstanceConfiguredDevices()
 #endif
                     debug("Heart rate sensor configuration loaded! Advertising timeout seconds: " + String(advertisingTimeoutSeconds));
 
-                    int* pAdvertisingTimeout = new int(advertisingTimeoutSeconds);
-                    xTaskCreate(TaskInitHeartRateSensor, "TaskInitHeartRateSensor", 4096, pAdvertisingTimeout, 1, NULL);
+                    xTaskCreate(TaskInitHeartRateSensor, "TaskInitHeartRateSensor", 4096, (void*)(intptr_t)advertisingTimeoutSeconds, 1, NULL);
 
                     debug("Heart rate sensor task created.");
                 }
@@ -1998,14 +2010,14 @@ void setup()
     {
         tm1637_4Handling->setup();
     }
-#endif
+#endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
     if (nullptr != tm1637_6Handling)
     {
         tm1637_6Handling->setup();
     }
-#endif
+#endif // USE_TM1637_6
 
 #if defined(USE_MQTT)
     char* mqttClientName = new char[18]();
@@ -2026,7 +2038,8 @@ void setup()
     mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, nullptr, nullptr, 1883);
 
     Serial.println("BaseTopic: " + getBaseTopic());
-#endif
+    xTaskCreate(MqttClientLoop, "MqttClientLoop", 4096, nullptr, 1, nullptr);
+#endif // USE_MQTT
 
     makeInstanceConfiguredDevices();
 
@@ -2058,19 +2071,24 @@ void setup()
         oled1306->setTextLine(1, "?");
         oled1306->setTextLine(2, "Watt");
     }
-#endif
-#endif
-}
+#endif // USE_OLED_SSD1306
+
+#endif // USE_HB0014
+
+#ifdef USE_BLE_HEART_RATE_SENSOR
+    xTaskCreate(HeartRateSensorLoop, "HeartRateSensorLoop", 4096, nullptr, 1, nullptr);
+#endif // USE_BLE_HEART_RATE_SENSOR
+
+} // setup
 
 #ifdef USE_MQTT
-
 void publishViaMqtt(const String& topicName, const String& payload)
 {
     Serial.println(topicName);
     Serial.println(payload);
     mqttClient->publish(topicName, payload);
 }
-#endif
+#endif // USE_MQTT
 
 /// @brief Register all from this microcontroller supported topics at the IOTZOO client.
 void registerTopics()
@@ -2367,7 +2385,7 @@ void loop()
         }
 
 #if defined(USE_MQTT)
-        mqttClient->loop();
+        //mqttClient->loop();
 #ifndef USE_INTERNAL_MQTT
         if (millis() - lastLoopStartTime > 10000)
         {
@@ -2387,12 +2405,12 @@ void loop()
             String topic = getBaseTopic() + "/started";
             mqttClient->publish(topic, "STARTED");
         }
-#endif
+#endif // USE_MQTT
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
         if (nullptr != heartRateSensor)
         {
-            heartRateSensor->loop();
+            //   heartRateSensor->loop();
         }
 #endif // USE_BLE_HEART_RATE_SENSOR
 
@@ -2577,27 +2595,23 @@ void loop()
 }
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
+
 void TaskInitHeartRateSensor(void* pvParameters)
 {
+    /*
     if (nullptr == pvParameters)
     {
         debug("ERROR TaskInitHeartRateSensor: No advertising timeout provided!");
         vTaskDelete(nullptr);
         return;
     }
-    int* pAdvertisingTimeout = (int*)pvParameters;
-    int advertisingTimeout  = 0; 
-    if (nullptr != pAdvertisingTimeout)
-    {
-        advertisingTimeout = *pAdvertisingTimeout;
-        delete pAdvertisingTimeout;
-        debug("TaskInitHeartRateSensor started with advertising timeout: " + String(advertisingTimeout) + " s");
-    }
+    int advertisingTimeout = (int)(intptr_t)pvParameters;
+*/
+    int advertisingTimeout = 120;
     if (advertisingTimeout <= 0)
     {
-        advertisingTimeout = 30; // default timeout
-        debug("TaskInitHeartRateSensor: Invalid advertising timeout provided. Using default timeout: "
-              + String(advertisingTimeout) + " s");
+        advertisingTimeout = 60;
+        debug("TaskInitHeartRateSensor: Invalid advertising timeout provided. Using default timeout: " + String(advertisingTimeout) + " s");
     }
 
     // Warten bis alle Initialisierungen abgeschlossen sind (kurze Wartezeit)
@@ -2619,6 +2633,20 @@ void TaskInitHeartRateSensor(void* pvParameters)
     debug("TaskInitHeartRateSensor: Completed. BLE scan running asynchronously.");
     vTaskDelete(nullptr); // Task beendet sich selbst
 }
+
+void HeartRateSensorLoop(void* pvParameters)
+{
+    while (true)
+    {
+        if (nullptr != heartRateSensor)
+        {
+            heartRateSensor->loop();
+            debug("HeartRateSensorLoop: Heart rate sensor loop executed.");
+        }
+        vTaskDelay(pdMS_TO_TICKS(100)); // Short delay to reduce CPU usage.
+    }
+}
+
 #endif // USE_BLE_HEART_RATE_SENSOR
 
 // --- end of main.cpp
