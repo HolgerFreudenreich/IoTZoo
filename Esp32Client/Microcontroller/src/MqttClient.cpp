@@ -39,7 +39,7 @@ namespace IotZoo
     MqttClient::MqttClient(const char* mqttClientName, const char* wifiSsid, const char* wifiPassword, const char* mqttServerIp,
                            const char* mqttUsername, const char* mqttPassword, const short mqttServerPort, int bufferSize)
     {
-        Serial.println("Constructor MqttClient mqttServerIp: " + String(mqttServerIp) + ":" + String(mqttServerPort));
+        debug("Constructor MqttClient mqttServerIp: " + String(mqttServerIp) + ":" + String(mqttServerPort));
         mqttClient = new EspMQTTClient(wifiSsid,       // SSID
                                        wifiPassword,   // PWD SSID
                                        mqttServerIp,   // MQTT Broker server ip
@@ -64,7 +64,7 @@ namespace IotZoo
 
     MqttClient::~MqttClient()
     {
-        Serial.println("Destructor MqttClient");
+        debug("Destructor MqttClient");
     }
 
     void MqttClient::enableLastWillMessage(const String& topic, const String& message,
@@ -75,7 +75,7 @@ namespace IotZoo
 
     bool MqttClient::publish(const String& topic, const String& payload, bool retain)
     {
-        Serial.println("─┐");
+        debug("─┐");
         debug(">>> Publishing topic:\r\n" + topic + "\r\n\r\npayload ↣ " + payload + "\r\n" +
                      "\r\nMqttBrokerIp: " + this->mqttClient->getMqttServerIp());
         if (!mqttClient->isConnected())
