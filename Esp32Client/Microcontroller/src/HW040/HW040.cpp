@@ -10,7 +10,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
 #ifdef USE_HW040
-
+#include "DebugHelper.hpp"
 #include "HW040/HW040.hpp"
 #include "HW040/HW040Helper.hpp"
 #include "MqttClient.hpp"
@@ -139,12 +139,11 @@ namespace IotZoo
             if (encoderChanged())
             {
                 long rotaryEncoderValue = readEncoder();
-                Serial.print("Value encoder [" + String(deviceIndex) + "]: " + String(rotaryEncoderValue));
+                debug("Value encoder [" + String(deviceIndex) + "]: " + String(rotaryEncoderValue));
                 mqttClient->publish(topicEncoderValue, String(rotaryEncoderValue));
 
                 if (internalMqttClient != nullptr)
                 {
-
                     debug("Count of TopicLinks: " + String(getTopicLinks().size()));
                     // Has an internal component interest on counter changes?
                     for (auto& topicLink : getTopicLinks())
@@ -160,7 +159,6 @@ namespace IotZoo
                             }
                         }
                     }
-
                 }
                 else 
                 {
