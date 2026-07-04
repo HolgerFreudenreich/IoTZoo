@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoWarn>NU1902</NoWarn>
+    <NoWarn>NU1902;NU1903</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -21,14 +21,14 @@
     <PackageReference Include="HueApi.ColorConverters" Version="3.1.0" />
     <PackageReference Include="JsonPath.Net" Version="3.0.2" />
     <PackageReference Include="MailKit" Version="4.17.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.3.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.6.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
-    <PackageReference Include="MQTTnet" Version="5.1.0.1559" />
-    <PackageReference Include="MQTTnet.AspNetCore" Version="5.1.0.1559" />
-    <PackageReference Include="MudBlazor" Version="9.5.0" />
+    <PackageReference Include="MQTTnet" Version="5.2.0.1603" />
+    <PackageReference Include="MQTTnet.AspNetCore" Version="5.2.0.1603" />
+    <PackageReference Include="MudBlazor" Version="9.6.0" />
     <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="Npgsql" Version="10.0.3" />
     <PackageReference Include="SQLite" Version="3.13.0" />
