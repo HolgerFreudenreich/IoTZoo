@@ -80,7 +80,7 @@ IotZoo::Rd03D* rd03d = nullptr;
 IotZoo::Buzzer* buzzer = nullptr;
 #endif
 
-#ifdef ARDUINO_ESP32_DEV
+#if defined(ARDUINO_ESP32_DEV) || defined(ARDUINO_ARCH_ESP32)
 #include "Settings.hpp"
 using namespace IotZoo;
 Settings* settings = nullptr;
@@ -178,7 +178,9 @@ unsigned long lastServerAliveMillis = millis();
 long          loopCounter           = 0;
 long          loopDurationMs        = 0;
 
+#ifndef LED_BUILTIN
 static const uint8_t LED_BUILTIN = 2;
+#endif
 
 DayMode dayMode = DayMode::Unknown;
 
@@ -1053,7 +1055,7 @@ void makeInstanceConfiguredDevices()
                     triggeringTopic.toLowerCase();
                     String targetTopic = topicLinkVariant["TargetTopic"].as<String>();
                     targetTopic.trim();
-                    targetTopic.toLowerCase();
+                    //targetTopic.toLowerCase();
 
                     String targetPayload = topicLinkVariant["TargetPayload"].as<String>();
                     // Example: { "Operator": ">", "Value": "130"}
