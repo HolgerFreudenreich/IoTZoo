@@ -11,6 +11,7 @@
 
 #include "Defines.hpp"
 #include "Settings.hpp"
+#include "DebugHelper.hpp"
 
 namespace IotZoo
 {
@@ -20,14 +21,14 @@ namespace IotZoo
 
         if (!preferences.begin(NamespaceNameConfig)) // create namespace config if it does not exist yet.
         {
-            Serial.println("Settings failure!");
+            debug("Settings failure!");
         }
         preferences.end();
     }
 
     Settings::~Settings()
     {
-        Serial.println("Destructor Settings");
+        debug("Destructor Settings");
     }
 
     void Settings::saveDeviceConfigurations(const String& json)
@@ -37,34 +38,34 @@ namespace IotZoo
 
     void Settings::saveConfigurationData(const String& key, const String& data)
     {
-        Serial.println("save configuration. key: " + key + ", NamespaceNameConfig: " + NamespaceNameConfig + ", data: " + data);
+        debug("save configuration. key: " + key + ", NamespaceNameConfig: " + NamespaceNameConfig + ", data: " + data);
         if (key.length() == 0)
         {
             return;
         }
         preferences.begin(NamespaceNameConfig, false);
         int bytesWritten = preferences.putString(key.c_str(), data);
-        Serial.print("Bytes written: " + String(bytesWritten));
+        debug("Bytes written: " + String(bytesWritten));
         if (bytesWritten == data.length())
         {
-            Serial.println(" (ok)");
+            debug(" (ok)");
         }
         preferences.end();
-        Serial.println("Check: " + loadConfiguration(key));
+        debug("Check: " + loadConfiguration(key));
     }
 
     String Settings::loadConfiguration(const String& key)
     {
-        Serial.println("load configuration. key: " + key + ", NamespaceNameConfig: " + NamespaceNameConfig);
+        debug("load configuration. key: " + key + ", NamespaceNameConfig: " + NamespaceNameConfig);
 
         if (!preferences.begin(NamespaceNameConfig, true))
         {
-            Serial.println("namespace not found in config");
+            debug("namespace not found in config");
             return "";
         }
 
         String data = preferences.getString(key.c_str(), "");
-        Serial.println("Loaded data: " + data);
+        debug("Loaded data: " + data);
 
         preferences.end();
         return data;
@@ -112,7 +113,7 @@ namespace IotZoo
     {
         try
         {
-            Serial.println("storeData to '" + key + "' data: '" + data + "'");
+            debug("storeData to '" + key + "' data: '" + data + "'");
             int size = 0;
             if (preferences.begin(NamespaceNameConfig, false))
             {
@@ -123,7 +124,7 @@ namespace IotZoo
         }
         catch (const std::exception& e)
         {
-            Serial.println(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
+            debug(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
             return false;
         }
     }
@@ -132,7 +133,7 @@ namespace IotZoo
     {
         if (printLog)
         {
-            Serial.println("getData '" + key + "', fallback is '" + fallbackValue + "'");
+            debug("getData '" + key + "', fallback is '" + fallbackValue + "'");
         }
 
         String data;
@@ -146,23 +147,23 @@ namespace IotZoo
             preferences.end();
             if (data == "null")
             {
-                Serial.println("Using fallback '" + fallbackValue + "'!");
+                debug("Using fallback '" + fallbackValue + "'!");
                 return fallbackValue;
             }
         }
         catch (const std::exception& e)
         {
-            Serial.println(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
+            debug(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
             return fallbackValue;
         }
         if (data.length() == 0)
         {
-            Serial.println("Using fallback '" + fallbackValue + "'!");
+            debug("Using fallback '" + fallbackValue + "'!");
             return fallbackValue;
         }
         if (printLog)
         {
-            Serial.println(key + ": " + data);
+            debug(key + ": " + data);
         }
         return data;
     }
@@ -203,6 +204,7 @@ namespace IotZoo
 
     long Settings::getIntervalTemperatureSensorsMillis()
     {
+        debug("getIntervalTemperatureSensorsMillis");
         preferences.begin(NamespaceNameConfig, true);
         long interval = preferences.getLong("interval_temperature_sensors", 30000);
         preferences.end();
@@ -211,6 +213,7 @@ namespace IotZoo
 
     void Settings::setIntervalTemperatureSensorsMillis(long interval)
     {
+        debug("setIntervalTemperatureSensorsMillis: " + String(interval));
         preferences.begin(NamespaceNameConfig, false);
         preferences.putLong("interval_temperature_sensors", interval);
         preferences.end();

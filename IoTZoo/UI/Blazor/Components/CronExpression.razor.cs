@@ -20,7 +20,7 @@ namespace IotZoo.Components;
 public partial class CronExpression : ComponentBase
 {
    public Domain.Pocos.CronExpression Cron { get; } = new();
-   
+
    public List<DateTime> Occurences { get; set; } = new();
 
    [Inject]

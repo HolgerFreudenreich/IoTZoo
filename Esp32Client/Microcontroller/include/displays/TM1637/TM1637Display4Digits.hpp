@@ -38,7 +38,10 @@ namespace IotZoo
 
         virtual void onIotZooClientUnavailable() override
         {
-            tm1637_4_Display->showString(getServerDownText().c_str());
+            if (getEnableServerDownText())
+            {
+                tm1637_4_Display->showString(getServerDownText().c_str());
+            }
         }
 
         virtual Tm1637DisplayType getDisplayType() const override

@@ -148,7 +148,6 @@ catch (MqttCommunicationTimedOutException exception)
 {
     // Maybe you do not have internet access or a wrong configured MQTTClient.
     Console.WriteLine(exception.GetBaseException().Message);
-
 }
 catch (Exception exception)
 {
@@ -176,10 +175,6 @@ app.UseSwaggerUI(c =>
                      });
 
 app.UseHttpsRedirection();
-
-
-
-
 
 //app.UseStaticFiles();
 

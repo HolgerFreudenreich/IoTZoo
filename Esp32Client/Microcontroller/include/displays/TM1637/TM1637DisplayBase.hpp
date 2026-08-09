@@ -179,7 +179,7 @@ namespace IotZoo
         }
 
       protected:
-        String serverDownText = "----";
+        String serverDownText = "- - -";
     };
 
 } // namespace IotZoo

@@ -58,10 +58,9 @@ namespace IotZoo
                                          uint8_t encoderAPin, uint8_t encoderBPin, int encoderButtonPin, int encoderVccPin)
     {
 
-        DeviceBase& device =
-            HW040Helper::rotaryEncoders.emplace_back(deviceIndex, settings, mqttClient, baseTopic, boundaryMinValue, boundaryMaxValue, circleValues,
-                                                     acceleration, encoderSteps, encoderAPin, encoderBPin, encoderButtonPin, encoderVccPin);
-        return device;
+        HW040Helper::rotaryEncoders.emplace_back(deviceIndex, settings, mqttClient, baseTopic, boundaryMinValue, boundaryMaxValue, circleValues,
+                                                 acceleration, encoderSteps, encoderAPin, encoderBPin, encoderButtonPin, encoderVccPin);
+        return HW040Helper::rotaryEncoders.back();
     }
 
     void HW040Handling::loop()

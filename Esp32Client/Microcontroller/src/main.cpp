@@ -80,7 +80,7 @@ IotZoo::Rd03D* rd03d = nullptr;
 IotZoo::Buzzer* buzzer = nullptr;
 #endif
 
-#ifdef ARDUINO_ESP32_DEV
+#if defined(ARDUINO_ESP32_DEV) || defined(ARDUINO_ARCH_ESP32)
 #include "Settings.hpp"
 using namespace IotZoo;
 Settings* settings = nullptr;
@@ -167,7 +167,7 @@ enum class DayMode
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.2.6";
+String firmwareVersion = "0.2.7";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -178,7 +178,9 @@ unsigned long lastServerAliveMillis = millis();
 long          loopCounter           = 0;
 long          loopDurationMs        = 0;
 
+#ifndef LED_BUILTIN
 static const uint8_t LED_BUILTIN = 2;
+#endif
 
 DayMode dayMode = DayMode::Unknown;
 
@@ -192,7 +194,9 @@ String macAddress;
 
 bool topicsRegistered = false;
 
-void TaskInitHeartRateSensor(void* pvParameters);
+void taskInitHeartRateSensor(void* pvParameters);
+void heartRateSensorLoop(void* pvParameters);
+void mqttClientLoop(void* pvParameters);
 
 /// @brief Restarts the microcontroller.
 void restart()
@@ -316,7 +320,18 @@ bool deserializeStaticJsonAndPublishError(JsonDocument& jsonDocument, const Stri
     return true;
 }
 
-#endif
+void mqttClientLoop(void* pvParameters)
+{
+    while (true)
+    {
+        if (mqttClient)
+        {
+            mqttClient->loop();
+        }
+        vTaskDelay(pdMS_TO_TICKS(25)); // Short delay to reduce CPU usage.
+    }
+}
+#endif // USE_MQTT
 
 void onReceivedConnectedDevicesConfiguration(const String& json)
 {
@@ -405,7 +420,7 @@ String serializeMicrocontroller()
     return json;
 }
 
-void AddMicrocontrollerNestedJsonObject(JsonDocument* jsonDocument)
+void addMicrocontrollerNestedJsonObject(JsonDocument* jsonDocument)
 {
     JsonObject jsonObjectMicrocontroller         = jsonDocument->createNestedObject("Microcontroller");
     jsonObjectMicrocontroller["MacAddress"]      = WiFi.getHostname();
@@ -415,7 +430,7 @@ void AddMicrocontrollerNestedJsonObject(JsonDocument* jsonDocument)
     jsonObjectMicrocontroller["BoardType"]       = identifyBoard();
 }
 
-void AddAliveNestedJsonObject(JsonDocument* jsonDocument)
+void addAliveNestedJsonObject(JsonDocument* jsonDocument)
 {
     JsonObject jsonObjectAlive            = jsonDocument->createNestedObject("Alive");
     jsonObjectAlive["AliveCounter"]       = aliveCounter;
@@ -426,7 +441,7 @@ void AddAliveNestedJsonObject(JsonDocument* jsonDocument)
     jsonObjectAlive["AliveAckLedEnabled"] = settings->getAliveAckLedMode();
 }
 
-void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
+void addSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
 {
     JsonObject jsonObjectSupportedDevices = jsonDocument->createNestedObject("SupportedDevices");
 #ifdef USE_HW040
@@ -643,18 +658,18 @@ void publishErrorMessage(const String& errorMessage)
 /// @return Json for alive message
 String createAliveJson()
 {
-    StaticJsonDocument<4096> jsonDocument; // on stack
-    // DynamicJsonDocument jsonDocument(4096); // on heap
+    //StaticJsonDocument<4096> jsonDocument; // on stack
+    DynamicJsonDocument jsonDocument(4096); // on heap
 
-    AddMicrocontrollerNestedJsonObject(&jsonDocument);
-    AddAliveNestedJsonObject(&jsonDocument);
-    AddSupportedDevicesNestedJsonObject(&jsonDocument);
+    addMicrocontrollerNestedJsonObject(&jsonDocument);
+    addAliveNestedJsonObject(&jsonDocument);
+    addSupportedDevicesNestedJsonObject(&jsonDocument);
 
     String json;
     serializeJson(jsonDocument, json);
     return json;
 }
-#endif
+#endif // USE_MQTT
 
 // ------------------------------------------------------------------------------------------------
 // Periodically send an alive message.
@@ -995,9 +1010,9 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 }
 #endif // USE_MQTT
 
-/**
- * @brief Loads the configuration for the connected devices and instantiates them.
- */
+// The configuration is stored in the flash memory of the microcontroller.
+// The configuration is loaded via the IotZooClient and stored in the flash memory.
+// After loading the configuration, the devices are instantiated and configured according to the configuration.
 void makeInstanceConfiguredDevices()
 {
     Serial.println("Loading device configurations and instantiate devices...");
@@ -1040,7 +1055,7 @@ void makeInstanceConfiguredDevices()
                     triggeringTopic.toLowerCase();
                     String targetTopic = topicLinkVariant["TargetTopic"].as<String>();
                     targetTopic.trim();
-                    targetTopic.toLowerCase();
+                    //targetTopic.toLowerCase();
 
                     String targetPayload = topicLinkVariant["TargetPayload"].as<String>();
                     // Example: { "Operator": ">", "Value": "130"}
@@ -1455,7 +1470,7 @@ void makeInstanceConfiguredDevices()
                     Serial.println("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
                 }
 #ifdef USE_WS2818_PIXEL_MATRIX
-                else if (deviceType == "PixelMatrix")
+                if (deviceType == "PixelMatrix")
                 {
                     Serial.println("Configuration of NEO pixel matrix...");
                     int  dioPin                = arrPins[0]["MicrocontrollerGpoPin"];
@@ -1734,8 +1749,7 @@ void makeInstanceConfiguredDevices()
 #endif
                     debug("Heart rate sensor configuration loaded! Advertising timeout seconds: " + String(advertisingTimeoutSeconds));
 
-                    int* pAdvertisingTimeout = new int(advertisingTimeoutSeconds);
-                    xTaskCreate(TaskInitHeartRateSensor, "TaskInitHeartRateSensor", 4096, pAdvertisingTimeout, 1, NULL);
+                    xTaskCreate(taskInitHeartRateSensor, "TaskInitHeartRateSensor", 4096, (void*)(intptr_t)advertisingTimeoutSeconds, 1, NULL);
 
                     debug("Heart rate sensor task created.");
                 }
@@ -1743,7 +1757,7 @@ void makeInstanceConfiguredDevices()
             }
         }
     }
-}
+} // end of setup()
 
 #if defined(USE_REST_SERVER)
 #if defined(USE_MQTT)
@@ -1822,7 +1836,7 @@ void handlePostDeviceConfig()
     webServer.send(200, "application/json", "{}");
 }
 
-/// @brief Blazor app sends microcontroller config.
+// @brief Blazor app sends microcontroller config.
 void handlePostMicrocontrollerConfig()
 {
     debug("Received microcontroller config (POST).");
@@ -1865,7 +1879,7 @@ void handlePostMicrocontrollerConfig()
     doRestart = true;
 }
 
-#endif
+#endif // USE_REST_SERVER
 
 void connectToWiFi()
 {
@@ -1998,14 +2012,14 @@ void setup()
     {
         tm1637_4Handling->setup();
     }
-#endif
+#endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
     if (nullptr != tm1637_6Handling)
     {
         tm1637_6Handling->setup();
     }
-#endif
+#endif // USE_TM1637_6
 
 #if defined(USE_MQTT)
     char* mqttClientName = new char[18]();
@@ -2026,7 +2040,8 @@ void setup()
     mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, nullptr, nullptr, 1883);
 
     Serial.println("BaseTopic: " + getBaseTopic());
-#endif
+    xTaskCreate(mqttClientLoop, "MqttClientLoop", 16384, nullptr, 1, nullptr);
+#endif // USE_MQTT
 
     makeInstanceConfiguredDevices();
 
@@ -2058,19 +2073,24 @@ void setup()
         oled1306->setTextLine(1, "?");
         oled1306->setTextLine(2, "Watt");
     }
-#endif
-#endif
-}
+#endif // USE_OLED_SSD1306
+
+#endif // USE_HB0014
+
+#ifdef USE_BLE_HEART_RATE_SENSOR
+    xTaskCreate(heartRateSensorLoop, "HeartRateSensorLoop", 4096, nullptr, 1, nullptr);
+#endif // USE_BLE_HEART_RATE_SENSOR
+
+} // setup
 
 #ifdef USE_MQTT
-
 void publishViaMqtt(const String& topicName, const String& payload)
 {
     Serial.println(topicName);
     Serial.println(payload);
     mqttClient->publish(topicName, payload);
 }
-#endif
+#endif // USE_MQTT
 
 /// @brief Register all from this microcontroller supported topics at the IOTZOO client.
 void registerTopics()
@@ -2367,7 +2387,7 @@ void loop()
         }
 
 #if defined(USE_MQTT)
-        mqttClient->loop();
+        // mqttClient->loop();
 #ifndef USE_INTERNAL_MQTT
         if (millis() - lastLoopStartTime > 10000)
         {
@@ -2387,12 +2407,12 @@ void loop()
             String topic = getBaseTopic() + "/started";
             mqttClient->publish(topic, "STARTED");
         }
-#endif
+#endif // USE_MQTT
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
         if (nullptr != heartRateSensor)
         {
-            heartRateSensor->loop();
+            //   heartRateSensor->loop();
         }
 #endif // USE_BLE_HEART_RATE_SENSOR
 
@@ -2577,31 +2597,27 @@ void loop()
 }
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
-void TaskInitHeartRateSensor(void* pvParameters)
+
+void taskInitHeartRateSensor(void* pvParameters)
 {
+    /*
     if (nullptr == pvParameters)
     {
         debug("ERROR TaskInitHeartRateSensor: No advertising timeout provided!");
         vTaskDelete(nullptr);
         return;
     }
-    int* pAdvertisingTimeout = (int*)pvParameters;
-    int advertisingTimeout  = 0; 
-    if (nullptr != pAdvertisingTimeout)
-    {
-        advertisingTimeout = *pAdvertisingTimeout;
-        delete pAdvertisingTimeout;
-        debug("TaskInitHeartRateSensor started with advertising timeout: " + String(advertisingTimeout) + " s");
-    }
+    int advertisingTimeout = (int)(intptr_t)pvParameters;
+*/
+    int advertisingTimeout = 120;
     if (advertisingTimeout <= 0)
     {
-        advertisingTimeout = 30; // default timeout
-        debug("TaskInitHeartRateSensor: Invalid advertising timeout provided. Using default timeout: "
-              + String(advertisingTimeout) + " s");
+        advertisingTimeout = 60;
+        debug("TaskInitHeartRateSensor: Invalid advertising timeout provided. Using default timeout: " + String(advertisingTimeout) + " s");
     }
 
-    // Warten bis alle Initialisierungen abgeschlossen sind (kurze Wartezeit)
-    vTaskDelay(pdMS_TO_TICKS(2000)); // 2 Sekunden Wartezeit
+    // Wait until all initializations are complete (short waiting period)
+    vTaskDelay(pdMS_TO_TICKS(2000)); // 2 seonds
 
     // Null-Pointer Checks
     if (nullptr == heartRateSensor)
@@ -2611,14 +2627,28 @@ void TaskInitHeartRateSensor(void* pvParameters)
         return;
     }
 
-    // Initialisiere BLE Heart Rate Sensor
+    // Initialize  BLE Heart Rate Sensor
     debug("TaskInitHeartRateSensor: Initiating BLE heart rate sensor connection (non-blocking)...");
 
-    connectToHeartRateSensor(advertisingTimeout); // Timeout für die Verbindung zum Herzfrequenzsensor
+    connectToHeartRateSensor(advertisingTimeout); // Set a timeout for the connection to the heart rate sensor.
 
     debug("TaskInitHeartRateSensor: Completed. BLE scan running asynchronously.");
     vTaskDelete(nullptr); // Task beendet sich selbst
 }
+
+void heartRateSensorLoop(void* pvParameters)
+{
+    while (true)
+    {
+        if (nullptr != heartRateSensor)
+        {
+            heartRateSensor->loop();
+            debug("HeartRateSensorLoop: Heart rate sensor loop executed.");
+        }
+        vTaskDelay(pdMS_TO_TICKS(100)); // Short delay to reduce CPU usage.
+    }
+}
+
 #endif // USE_BLE_HEART_RATE_SENSOR
 
 // --- end of main.cpp
