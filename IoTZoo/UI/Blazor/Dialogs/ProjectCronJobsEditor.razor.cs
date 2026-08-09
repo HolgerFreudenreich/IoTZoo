@@ -21,74 +21,179 @@ namespace IotZoo.Dialogs;
 
 public class ProjectCronJobsEditorBase : EditorBase
 {
-   [Parameter]
-   public Project Project { get; set; } = null!;
+    [Parameter]
+    public Project Project { get; set; } = null!;
 
-   protected List<CronJob> CronJobs { get; set; } = new List<CronJob>();
+    protected List<CronJob> CronJobs { get; set; } = new List<CronJob>();
 
-   [Inject]
-   ICronCrudService CronCrudService { get; set; } = null!;
+    [Inject]
+    ICronCrudService CronCrudService { get; set; } = null!;
 
-   [Inject]
-   IJobFactory JobFactory { get; set; } = null!;
+    [Inject]
+    IJobFactory JobFactory { get; set; } = null!;
 
-   public ProjectCronJobsEditorBase()
-   {
-   }
+    public ProjectCronJobsEditorBase()
+    {
+    }
 
-   protected override async Task OnInitializedAsync()
-   {
-      await base.OnInitializedAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
 
-      DialogTitle = "Edit Project Cron Jobs";
-      CronJobs = await CronCrudService.LoadByProject(Project);
-      HashCode = GetHashCodeBase64(CronJobs);
-   }
+        DialogTitle = "Edit Project Cron Jobs";
+        CronJobs = await CronCrudService.LoadByProject(Project, onlyEnabledJobs: false);
+        HashCode = GetHashCodeBase64(CronJobs);
+    }
 
-   protected override async Task Cancel()
-   {
-      await base.Cancel(Project);
-   }
+    protected override async Task Cancel()
+    {
+        MudDialog.Cancel();
+    }
 
-   protected override async Task Save()
-   {
-      try
-      {
-         Snackbar.Clear();
-         await Task.Delay(10);
-         TrimTextFields(Project);
-         if (ValidateFields())
-         {
-            MudDialog.Close(DialogResult.Ok(Project));
-         }
-      }
-      catch (Exception ex)
-      {
-         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-         Snackbar.Add("Unable to save script", Severity.Error);
-      }
-   }
+    protected override async Task Save()
+    {
+        try
+        {
+            Snackbar.Clear();
+            await Task.Delay(10);
+            TrimTextFields(Project);
+            if (ValidateFields())
+            {
+                MudDialog.Close(DialogResult.Ok(Project));
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add("Unable to save script", Severity.Error);
+        }
+    }
 
-   private bool ValidateFields()
-   {
-      return true;
-   }
+    private bool ValidateFields()
+    {
+        return true;
+    }
 
-   public void AddCronJob()
-   {
-      Snackbar.Add("Not yet implemented. You can modify table cron in database iotzoo.db", Severity.Info);
- 
-      //return;
-      //var options = GetDialogOptions();
+    public async Task AddCronJob()
+    {
+        try
+        {
+            var options = GetDialogOptions();
 
-      //var parameters = new DialogParameters { ["CronJob"] = new CronJob { ProjectId = Project.ProjectId } };
+            var parameters = new DialogParameters
+            {
+                ["CronJob"] = new CronJob(),
+                ["Project"] = Project
+            };
 
-      //var dialog = await this.DialogService.ShowAsync<IotZoo.Dialogs.CronJobEditor>("Add Cron Job",
-      //                                                                              parameters,
-      //                                                                              options);
-      //var result = await dialog.Result;
-   }
+            var dialog = await this.DialogService.ShowAsync<IotZoo.Dialogs.AddCronJobDialog>("Add Cron Job",
+                                                                                              parameters,
+                                                                                              options);
+            var result = await dialog.Result;
 
+            if (result != null && !result.Canceled)
+            {
+                // Refresh the cron jobs list after successful insertion
+                CronJobs = await CronCrudService.LoadByProject(Project, onlyEnabledJobs: false);
+                HashCode = GetHashCodeBase64(CronJobs);
+                Snackbar.Add("Cron job added successfully", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add($"Error adding cron job: {ex.Message}", Severity.Error);
+        }
+    }
 
+    public async Task EditCronJob(CronJob cronJob)
+    {
+        try
+        {
+            var options = GetDialogOptions();
+
+            var parameters = new DialogParameters
+            {
+                ["CronJob"] = cronJob,
+                ["Project"] = Project
+            };
+
+            var dialog = await this.DialogService.ShowAsync<IotZoo.Dialogs.EditCronJobDialog>("Edit Cron Job",
+                                                                                               parameters,
+                                                                                               options);
+            var result = await dialog.Result;
+
+            if (result != null && !result.Canceled)
+            {
+                // Refresh the cron jobs list after successful update
+                CronJobs = await CronCrudService.LoadByProject(Project, onlyEnabledJobs: false);
+                HashCode = GetHashCodeBase64(CronJobs);
+                Snackbar.Add("Cron job updated successfully", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add($"Error updating cron job: {ex.Message}", Severity.Error);
+        }
+    }
+
+    public async Task DeleteCronJob(CronJob cronJob)
+    {
+        try
+        {
+            bool? result = await DialogService.ShowMessageBoxAsync(
+               "Delete Cron Job",
+               $"Do you want to delete the cron job '{cronJob.Topic}'?",
+               yesText: "Delete",
+               cancelText: "Cancel");
+
+            if (result == true)
+            {
+                await CronCrudService.Delete(cronJob);
+                // Refresh the cron jobs list after successful deletion
+                CronJobs = await CronCrudService.LoadByProject(Project, onlyEnabledJobs: false);
+                HashCode = GetHashCodeBase64(CronJobs);
+                Snackbar.Add("Cron job deleted successfully. The changes will take effect after a restart.", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add($"Error deleting cron job: {ex.Message}", Severity.Error);
+        }
+    }
+
+    public async Task CloneCronJob(CronJob cronJob)
+    {
+        try
+        {
+            var options = GetDialogOptions();
+
+            var parameters = new DialogParameters
+            {
+                ["SourceCronJob"] = cronJob,
+                ["Project"] = Project
+            };
+
+            var dialog = await this.DialogService.ShowAsync<IotZoo.Dialogs.CloneCronJobDialog>("Clone Cron Job",
+                                                                                               parameters,
+                                                                                               options);
+            var result = await dialog.Result;
+
+            if (result != null && !result.Canceled)
+            {
+                // Refresh the cron jobs list after successful clone
+                CronJobs = await CronCrudService.LoadByProject(Project, onlyEnabledJobs: false);
+                HashCode = GetHashCodeBase64(CronJobs);
+                Snackbar.Add("Cron job cloned successfully", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add($"Error cloning cron job: {ex.Message}", Severity.Error);
+        }
+    }
 }
 

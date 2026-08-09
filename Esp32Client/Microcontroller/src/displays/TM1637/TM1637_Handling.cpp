@@ -403,10 +403,9 @@ namespace IotZoo
     {
         debug("Adding TM1637 device with base topic: " + baseTopic + ", device index: " + String(deviceIndex) + ", clkPin: " + String(clkPin) +
               ", dioPin: " + String(dioPin) + ", flipDisplay: " + String(flipDisplay) + ", serverDownText: " + serverDownText);
-        TM1637& display =
-            displays1637.emplace_back(deviceIndex, nullptr, mqttClient, baseTopic, tm1637DisplayType, clkPin, dioPin, flipDisplay, serverDownText);
+        displays1637.emplace_back(deviceIndex, nullptr, mqttClient, baseTopic, tm1637DisplayType, clkPin, dioPin, flipDisplay, serverDownText);
 
-        return display;
+        return displays1637.back();
     }
 
     // Initialize static members

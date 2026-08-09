@@ -30,11 +30,45 @@
             <MudTh><MudTableSortLabel SortBy="new Func<CronJob, object>(x => x.CronId)">Id</MudTableSortLabel></MudTh>
             <MudTh><MudTableSortLabel SortBy="new Func<CronJob, object>(x => x.ToString())">Expression</MudTableSortLabel></MudTh>
             <MudTh><MudTableSortLabel SortBy="new Func<CronJob, object>(x => x.Topic)">Topic</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<CronJob, object>(x => x.Enabled)">Enabled</MudTableSortLabel></MudTh>
+            <MudTh>Actions</MudTh>
          </HeaderContent>
          <RowTemplate>
             <MudTd DataLabel="Id">@context.CronId</MudTd>
-            <MudTd DataLabel="Mac Address">@context.ToString()</MudTd>
-            <MudTd DataLabel="Mac Address">@context.Topic</MudTd>
+            <MudTd DataLabel="Expression">@context.ToString()</MudTd>
+            <MudTd DataLabel="Topic">@context.Topic</MudTd>
+            <MudTd DataLabel="Enabled">
+               @if (context.Enabled)
+               {
+                  <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" />
+               }
+               else
+               {
+                  <MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" />
+               }
+            </MudTd>
+            <MudTd DataLabel="Actions">
+               <MudTooltip Text="Clone">
+                  <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
+                                 Size="Size.Small"
+                                 Color="Color.Info"
+                                 OnClick="@(() => CloneCronJob(context))">
+                  </MudIconButton>
+               </MudTooltip>
+               <MudTooltip Text="Edit">
+                  <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                 Size="Size.Small"
+                                 OnClick="@(() => EditCronJob(context))">
+                  </MudIconButton>
+               </MudTooltip>
+               <MudTooltip Text="Delete">
+                  <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                 Size="Size.Small"
+                                 Color="Color.Error"
+                                 OnClick="@(() => DeleteCronJob(context))">
+                  </MudIconButton>
+               </MudTooltip>
+            </MudTd>
          </RowTemplate>
       </MudTable>
    </DialogContent>

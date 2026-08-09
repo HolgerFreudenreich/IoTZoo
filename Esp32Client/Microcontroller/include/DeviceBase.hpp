@@ -22,7 +22,7 @@
 #include "./pocos/Topic.hpp"
 
 #include <ArduinoJson.h>
-#ifdef ARDUINO_ESP32_DEV
+#if defined(ARDUINO_ESP32_DEV) || defined(ARDUINO_ARCH_ESP32)
 #include "Settings.hpp"
 #endif
 
@@ -42,7 +42,7 @@ namespace IotZoo
         DeviceBase(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic)
             : deviceIndex(deviceIndex), settings(settings), mqttClient(mqttClient), baseTopic(baseTopic)
         {
-            this->baseTopic.toLowerCase();
+            //this->baseTopic.toLowerCase();
             Serial.println("Constructor DeviceBase. DeviceIndex: " + String(deviceIndex) + ", baseTopic: " + baseTopic);
             setEnableServerDownText(false);
         }
