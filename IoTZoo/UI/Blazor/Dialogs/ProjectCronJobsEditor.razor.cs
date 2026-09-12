@@ -14,7 +14,7 @@ using Domain.Interfaces.Timer;
 using Domain.Pocos;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Quartz.Spi;
+using Quartz;
 using System.Reflection;
 
 namespace IotZoo.Dialogs;
@@ -28,9 +28,6 @@ public class ProjectCronJobsEditorBase : EditorBase
 
     [Inject]
     ICronCrudService CronCrudService { get; set; } = null!;
-
-    [Inject]
-    IJobFactory JobFactory { get; set; } = null!;
 
     public ProjectCronJobsEditorBase()
     {
