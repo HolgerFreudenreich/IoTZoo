@@ -27,6 +27,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using MudBlazor;
+using Quartz;
 using System.Data;
 using System.Globalization;
 using System.Text.Json;
@@ -72,9 +73,13 @@ namespace UnitTests
             services.AddSingleton(new Mock<IProjectCrudService>().Object);
             services.AddSingleton(new Mock<INamespaceCrudService>().Object);
 
-            // Quartz.net
-            services.AddSingleton<Quartz.Spi.IJobFactory, JobFactory>();
+            // Quartz.net - Register jobs and scheduler
             services.AddSingleton<PublishTimeJob>();
+            services.AddSingleton<CalculateNextSunriseAndSunsetJob>();
+
+            // Create a mock scheduler for unit tests
+            var mockScheduler = new Moq.Mock<IScheduler>();
+            services.AddSingleton(mockScheduler.Object);
             //services.AddSingleton<IIoTZooMqttClient, MqttClient>();
 
             services.AddSingleton(new Mock<IIoTZooMqttClient>().Object);

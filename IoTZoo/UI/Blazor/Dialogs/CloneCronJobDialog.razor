@@ -1,0 +1,59 @@
+@inherits CloneCronJobDialogBase
+
+@using IotZoo.Components
+@using MudBlazor
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         Clone Cron Job
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.FirstChild>
+                  <MudText Typo="Typo.body1" Class="mb-4">
+                     Clone existing cron job: <strong>@SourceCronJob.Topic</strong>
+                  </MudText>
+                  <MudTextField @bind-Value="@NewCronJob.Topic"
+                                MaxLength="100"
+                                Required="true"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Topic"
+                                Label="New Topic Name"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal"
+                                HelperText="Enter the new topic name for the cloned job">
+                  </MudTextField>
+                  <br />
+                  <MudText Typo="Typo.body2" Class="mt-4">
+                     The following properties will be cloned:
+                  </MudText>
+                  <MudText Typo="Typo.body2" Class="ml-4">
+                     Expression: <code>@SourceCronJob.ToString()</code>
+                  </MudText>
+                  <MudText Typo="Typo.body2" Class="ml-4">
+                     Enabled: @(SourceCronJob.Enabled ? "Yes" : "No")
+                  </MudText>
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Class="MudButtonText"
+                 Color="Color.Success"
+                 OnClick="Save">
+         Clone
+      </MudButton>
+   </DialogActions>
+</MudDialog>
