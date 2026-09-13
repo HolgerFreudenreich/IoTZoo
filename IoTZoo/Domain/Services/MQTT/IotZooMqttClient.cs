@@ -25,7 +25,7 @@ using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Protocol;
 using MudBlazor;
-using Quartz.Spi;
+using Quartz;
 using System.Reflection;
 using System.Text.Json;
 using Whisper.net.Wave;
@@ -81,7 +81,6 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
                             ITopicHistoryCrudService topicHistoryService,
                             IExpressionEvaluationService expressionEvaluationService,
                             IPrepareTargetPayload prepareTargetPayload,
-                            IJobFactory jobFactory,
                             ICronCrudService cronCrudService,
                             ICountDownFactory countDownFactory)
     {

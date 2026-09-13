@@ -27,6 +27,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Quartz;
+using Quartz.Impl.AdoJobStore;
 
 namespace DeveloperTests;
 
@@ -100,8 +102,15 @@ internal class Program
       services.AddSingleton<IExpressionParser, ExpressionParser>();
 
       // Quartz.net
-      services.AddSingleton<Quartz.Spi.IJobFactory, JobFactory>();
+      services.AddQuartz(q =>
+      {
+         q.UseDefaultThreadPool(tp =>
+         {
+            tp.MaxConcurrency = 20;
+         });
+      });
       services.AddSingleton<PublishTimeJob>();
+      services.AddSingleton<CalculateNextSunriseAndSunsetJob>();
 
       services.AddSingleton<ICronService, CronService>();
 
