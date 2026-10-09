@@ -7,8 +7,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 // Connect «Things» with microcontrollers in a simple way.
 // --------------------------------------------------------------------------------------------------------------------
-#ifndef __DEFINES_HPP__
-#define __DEFINES_HPP__
+#pragma once
 
 #include <WString.h>
 
@@ -20,8 +19,6 @@ namespace IotZoo
 // MQTTBroker settings in the ESP32 are wrong, then there is a chance to correct this over REST.
 #define USE_REST_SERVER
 
-#define USE_DEBUG_MESSAGES 1
-
 // For internal communication between different devices/components connected to the microcontroller.
 // Some tasks should work independently of the internet connection, external MQTT broker and IoTZoo Client.
 // For example, if you have a temperature sensor connected to the microcontroller, you want to be able to read the temperature even if there is no
@@ -29,19 +26,21 @@ namespace IotZoo
 // such as controlling a fan or display the value.
 #define USE_INTERNAL_MQTT
 
-
+#ifdef USE_INTERNAL_MQTT
+#define USE_DEBUG_MESSAGES 0
+#endif // USE_INTERNAL_MQTT
 
     // --------------------------------------------------------------------------------------------------------------------
     // Comment feature(s) out if you run out of memory.
     // --------------------------------------------------------------------------------------------------------------------
-    // #define USE_DS18B20 // Temperature Sensor | Default Pins: DAT: Pin 23
+     //#define USE_DS18B20 // Temperature Sensor | Default Pins: DAT: Pin 23
     // #define USE_HW507 // Humidity Sensor | Default Pins: DAT: Pin 23
     // #define USE_BUTTON // briefly on, then off again after releasing
     // #define USE_GPS
     // #define USE_SWITCH // permanently off or on
 
     // #define USE_KEYPAD      // 4 x 4 Button Matrix | Default Pins: R1: 26, R2: 25, R3: 33, R4: 32, C1: 27, C2: 14, C3: 12, C4: 13
-    // #define USE_LED_AND_KEY // 1 x 8 Button Row combined with 2 TM1638 4 digits displays | Default Pins: STB: 14, CLK: 27, DIO: 26
+    //#define USE_LED_AND_KEY // 1 x 8 Button Row combined with 2 TM1638 4 digits displays | Default Pins: STB: 14, CLK: 27, DIO: 26
     // #define USE_WS2818      // NeoPixel | Default Pins: DIN: 22
     // #ifdef USE_WS2818
     // #define USE_WS2818_PIXEL_MATRIX
@@ -55,25 +54,24 @@ namespace IotZoo
     //  #define USE_RD_03D             // Multi-Target Human Motion Detector
     //  #define USE_STEPPER_MOTOR
 
-#define USE_KY025 // Reed Contact, Default Pin: 19
-// #define USE_HB0014            // Hitchi IR ttl
-// #define USE_HW040 // Rotary Encoder, Default Pins: CLK: 32, DT: 21, MS: 33
+//#define USE_KY025 // Reed Contact, Default Pin: 19
+
+#define USE_HW040 // Rotary Encoder, Default Pins: CLK: 32, DT: 21, MS: 33
 
 // DISPLAYS
 // #define USE_OLED_SSD1306 // OLED, Default Pins: SDA: 21, SCL: 22
-// #define USE_LCD_160X     // 16 x 2, 16 x 4 LCD DISPLAY with I2C HW-061, Default Pins: SDA: 21, SCL: 22
+ //#define USE_LCD_160X     // 16 x 2, 16 x 4 LCD DISPLAY with I2C HW-061, Default Pins: SDA: 21, SCL: 22
 #define USE_TM1637_4 // 4 digits display. You can connect up to 10 items. Default Pins (Item 0): CLK: 27, DIO: 26
-    // #define USE_TM1637_6             // 6 digits display. You can connect up to 10 items. Default Pins: CLK: 14, DIO: 27
+//#define USE_TM1637_6             // 6 digits display. You can connect up to 10 items. Default Pins: CLK: 14, DIO: 27
     // #define USE_MAX7219 // 8x8 Led Dot Matrix, Default Poins: Data: 27, CLK: 25, CS: 26
     // #define USE_BUZZER
     // #define USE_ANALOG_INPUT_PIN // Default Pin: ADC: Pin 35, Possible Pins: 32, 33, 34, 35, 36, 39
-    // #define USE_BLE_HEART_RATE_SENSOR // Bluetooth hearte rate sensor. Needs alot of the available RAM so do not use to many other defines!
+ //#define USE_BLE_HEART_RATE_SENSOR // Bluetooth hearte rate sensor. Needs alot of the available RAM so do not use to many other defines!
 
 } // namespace IotZoo
 
-// #define ERASE_FLASH
+ //#define ERASE_FLASH // Activate flash memory erasure on startup
 
-#endif // __DEFINES_HPP__
 
 // --------------------------------------------------------------------------------------------------------------------
 // PIN LAYOUT ESP32 view from top and USB C port is on left site
@@ -110,3 +108,5 @@ namespace IotZoo
 // correct mode. 20 | IO  4 21 | IO 16 | RX2 22 | IO 17 | TX2 23 | IO  5 | if peripherals are connected to these pins, you may encounter issues when
 // attempting to upload new code or flash the ESP32 with new firmware, as these peripherals prevent the ESP32 from entering the correct mode. 24 | IO
 // 18 | SCK 25 | IO 19 | MISO 26 | IO 21 | SDA 27 | IO  1 | RX 28 | IO  3 | TX 29 | IO 22 | SCL 30 | IO 23 | MOSI
+
+

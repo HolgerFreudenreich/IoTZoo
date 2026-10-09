@@ -17,9 +17,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.12" />
-    <PackageReference Include="Quartz" Version="4.0.1" />
-    <PackageReference Include="Quartz.AspNetCore" Version="4.0.1" />
-    <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="4.0.1" />
+    <PackageReference Include="Quartz" Version="4.4.0" />
+    <PackageReference Include="Quartz.AspNetCore" Version="4.4.0" />
+    <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="4.4.0" />
   </ItemGroup>
 
 </Project>

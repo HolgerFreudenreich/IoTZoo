@@ -50,7 +50,7 @@ namespace IotZoo
                                        mqttServerPort);
 
         mqttClient->setMaxPacketSize(bufferSize); // default is only 128 bytes! When exeeding the message will not be published!
-        mqttClient->enableDebuggingMessages(true);
+        mqttClient->enableDebuggingMessages(USE_DEBUG_MESSAGES > 0);
         // The reconnection should be established after 100 ms.
         mqttClient->setMqttReconnectionAttemptDelay(100);
 

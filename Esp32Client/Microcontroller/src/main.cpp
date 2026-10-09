@@ -96,13 +96,6 @@ std::vector<TrafficLight> trafficLightLeds{};
 std::vector<RemoteGpio> remoteGpios{};
 #endif
 
-#ifdef USE_HB0014
-const int     digitalPinInfraredLed   = 34;
-int           digitalValueInfrared    = 0; // digital readings
-int           digitalValueOldInfrared = 0;
-unsigned long lastMillisInfrared      = millis();
-#endif
-
 #ifdef USE_OLED_SSD1306
 #include "./displays/SSD1306.hpp"
 OledSsd1306Display* oled1306 = nullptr;
@@ -167,7 +160,7 @@ enum class DayMode
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.2.7";
+String firmwareVersion = "0.2.8";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -211,7 +204,7 @@ String getMacAddress()
 {
     // It would be even possible to set the MAC address!
     macAddress = WiFi.macAddress();
-    // macAddress.toLowerCase();
+     macAddress.toLowerCase();
     debug("MAC: " << macAddress);
     return macAddress;
 }
@@ -2060,22 +2053,11 @@ void setup()
 #ifdef USE_TM1637_6
     if (nullptr != tm1637_6Handling)
     {
-        tm1637_6Handling->subscribeToInternalMqttTopSubscribed TM1637_4 to internal MQTT toics(globalInternalMqttClient, getBaseTopic());
+        tm1637_6Handling->subscribeToInternalMqttTopics(globalInternalMqttClient, getBaseTopic());
     }
 #endif
     lastAliveTime = millis() - settings->getAliveIntervalMillis();
 
-#ifdef USE_HB0014
-    pinMode(digitalPinInfraredLed, INPUT);
-#ifdef USE_OLED_SSD1306
-    if (nullptr != oled1306)
-    {
-        oled1306->setTextLine(1, "?");
-        oled1306->setTextLine(2, "Watt");
-    }
-#endif // USE_OLED_SSD1306
-
-#endif // USE_HB0014
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
     xTaskCreate(heartRateSensorLoop, "HeartRateSensorLoop", 4096, nullptr, 1, nullptr);
@@ -2096,7 +2078,7 @@ void publishViaMqtt(const String& topicName, const String& payload)
 void registerTopics()
 {
 #ifdef USE_MQTT
-    Serial.println("Register Known Topics at the IOTZOO client.");
+    debug("Register Known Topics at the IOTZOO client.");
     if (!mqttClient->isConnected())
     {
         return;
@@ -2297,7 +2279,7 @@ void registerTopics()
 /// @brief Called when the IotZoo Client has not responded to the alive message.
 void onIotZooClientUnavailable()
 {
-    Serial.println("*** IoT-Zoo client is unavailable! Please start it! ***");
+    debug("*** IoT-Zoo client is unavailable! Please start it! ***");
 
     String jsonMicrocontroller = serializeMicrocontroller();
 
@@ -2391,14 +2373,14 @@ void loop()
 #ifndef USE_INTERNAL_MQTT
         if (millis() - lastLoopStartTime > 10000)
         {
-            Serial.print("BROKEN MQTT");
+            debug("BROKEN MQTT");
             restart();
         }
 #endif
         if (!mqttClient->isConnected())
         {
             debug("⚠" << mqttClient->getConnectionEstablishedCount() << _EndLineCode::endl);
-            // delay(200);
+            delay(200);
         }
 
         if (!topicsRegistered)
@@ -2511,41 +2493,6 @@ void loop()
         }
 #endif // USE_DS18B20
 
-#ifdef USE_HB0014
-        digitalValueInfrared = digitalRead(digitalPinInfraredLed);
-
-        if (digitalValueInfrared == HIGH && digitalValueOldInfrared == LOW)
-        {
-            long diff = millis() - lastMillisInfrared;
-#ifdef USE_OLED_SSD1306
-            if (nullptr != oled1306)
-            {
-                oled1306->setTextLine(3, String(diff) + " ms");
-            }
-#endif
-            if (diff > 30)
-            {
-                // Umrechnen in Watt
-
-                // 10000 Impulse entsprechen 1 KW/h.
-
-                // Hochrechnen auf 10000 Impulse = 1000 Watt pro Stunde
-                double watt = 360000.0 / diff;
-                Serial.println(String(watt) + " watt");
-#ifdef USE_OLED_SSD1306
-                if (nullptr != oled1306)
-                {
-                    oled1306->setTextLine(1, String(watt, 0));
-                }
-#endif
-                String topic = getBaseTopic() + "/power/0";
-                mqttClient->publish(topic, String(watt, 0));
-                lastMillisInfrared = millis();
-            }
-        }
-        digitalValueOldInfrared = digitalValueInfrared;
-#endif
-
 #ifdef USE_KEYPAD
         buttonMatrixHandling.loop();
 #endif
@@ -2571,7 +2518,7 @@ void loop()
         }
         catch (const std::exception& e)
         {
-            Serial.println(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
+            debug(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
         }
 #endif // USE_HC_SR501
 
