@@ -21,16 +21,10 @@ namespace IotZoo
     void TM1637_4_Handling::onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic)
     {
         Serial.println("TM1637_4_Handling::onMqttConnectionEstablished");
-        if (callbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
-
         this->mqttClient = mqttClient;
         if (nullptr != mqttClient)
         {
-            Serial.println("MQTT client is available. Registering callbacks for TM1637_4_Handling...");
+            Serial.println("MQTT client is available. Subscribing to TM1637_4 topics...");
 
             for (auto& display : displays1637)
             {
@@ -57,7 +51,6 @@ namespace IotZoo
             }
         }
         Serial.println(".");
-        callbacksAreRegistered = true;
     }
 } // namespace IotZoo
 #endif // USE_TM1637_4
