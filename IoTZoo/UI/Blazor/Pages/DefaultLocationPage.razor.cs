@@ -14,6 +14,7 @@
 
 using Domain.Interfaces.Crud;
 using Domain.Pocos;
+using IotZoo.Dialogs;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using MudBlazor.Charts;
@@ -125,6 +126,31 @@ public class DefaultLocationPageBase : PageBase
             Snackbar.Add("NOT Saved!", Severity.Error);
         }
         Calculate();
+    }
+
+    protected async Task OpenMapToChooseLocation()
+    {
+        DialogParameters<LocationPickerDialog> parameters = new()
+        {
+            { x => x.Latitude, Latitude },
+            { x => x.Longitude, Longitude },
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<LocationPickerDialog>("Choose Location",
+                                                                                      parameters,
+                                                                                      new DialogOptions
+                                                                                      {
+                                                                                          MaxWidth = MaxWidth.Large,
+                                                                                          FullWidth = true,
+                                                                                          CloseOnEscapeKey = true,
+                                                                                      });
+        DialogResult? result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: (double latitude, double longitude) })
+        {
+            Latitude = latitude;
+            Longitude = longitude;
+        }
     }
 
     private void Calculate()
