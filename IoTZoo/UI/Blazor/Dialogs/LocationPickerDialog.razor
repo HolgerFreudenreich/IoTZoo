@@ -1,0 +1,17 @@
+@inherits LocationPickerDialogBase
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Choose location</MudText>
+    </TitleContent>
+    <DialogContent>
+        <div id="@MapId" style="position:relative; width:100%; height:500px;"></div>
+        <MudText Typo="Typo.body2">
+            Latitude: @SelectedLatitude.ToString("N4") | Longitude: @SelectedLongitude.ToString("N4")
+        </MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Success" Variant="Variant.Filled" OnClick="Confirm">Use location</MudButton>
+    </DialogActions>
+</MudDialog>
