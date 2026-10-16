@@ -189,7 +189,6 @@ bool topicsRegistered = false;
 
 void taskInitHeartRateSensor(void* pvParameters);
 void heartRateSensorLoop(void* pvParameters);
-void mqttClientLoop(void* pvParameters);
 
 /// @brief Restarts the microcontroller.
 void restart()
@@ -313,17 +312,6 @@ bool deserializeStaticJsonAndPublishError(JsonDocument& jsonDocument, const Stri
     return true;
 }
 
-void mqttClientLoop(void* pvParameters)
-{
-    while (true)
-    {
-        if (mqttClient)
-        {
-            mqttClient->loop();
-        }
-        vTaskDelay(pdMS_TO_TICKS(25)); // Short delay to reduce CPU usage.
-    }
-}
 #endif // USE_MQTT
 
 void onReceivedConnectedDevicesConfiguration(const String& json)
@@ -2033,7 +2021,6 @@ void setup()
     mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, nullptr, nullptr, 1883);
 
     Serial.println("BaseTopic: " + getBaseTopic());
-    xTaskCreate(mqttClientLoop, "MqttClientLoop", 16384, nullptr, 1, nullptr);
 #endif // USE_MQTT
 
     makeInstanceConfiguredDevices();
@@ -2369,7 +2356,7 @@ void loop()
         }
 
 #if defined(USE_MQTT)
-        // mqttClient->loop();
+    mqttClient->loop();
 #ifndef USE_INTERNAL_MQTT
         if (millis() - lastLoopStartTime > 10000)
         {

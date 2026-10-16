@@ -82,11 +82,6 @@ namespace IotZoo
     void StepperMotor::onMqttConnectionEstablished()
     {
         Serial.println("StepperMotor::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
         String topicStepperActions = getBaseTopic() + "/stepper/" + String(getDeviceIndex()) + "/actions";
 
         mqttClient->subscribe(topicStepperActions, [&](const String& json) { onReceivedActionsForStepper(json); });

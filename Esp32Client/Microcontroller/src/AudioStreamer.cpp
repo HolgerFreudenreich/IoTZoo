@@ -126,11 +126,6 @@ namespace IotZoo
     void AudioStreamer::onMqttConnectionEstablished()
     {
         Serial.println("AudioStreamer::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
     }
 
 } // namespace IotZoo
