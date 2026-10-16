@@ -67,6 +67,7 @@
 </MudStack>
 <br />
 <br />
+<div style="position: relative;">
 <MudTable Items="@Rules"
           Filter="new Func<Rule, bool>(SearchHelper.Search)"
           FixedHeader="true"
@@ -187,8 +188,12 @@
       <MudTd DataLabel="">
          <MudCheckBox Disabled="true" @bind-Value="@context.Enabled"></MudCheckBox>
       </MudTd>
-   </RowTemplate>
-</MudTable>
+           </RowTemplate>
+       </MudTable>
+          <MudOverlay Visible="IsBusy" Absolute="true" DarkBackground="true">
+             <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+          </MudOverlay>
+       </div>
 
 @*
 <style>

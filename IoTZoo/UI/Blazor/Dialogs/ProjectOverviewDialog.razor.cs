@@ -34,12 +34,18 @@ public class ProjectOverviewDialogBase : ComponentBase
 
    protected string HtmlContent { get; set; } = string.Empty;
 
+   protected bool IsBusy { get; set; }
+
    protected override async Task OnAfterRenderAsync(bool firstRender)
    {
       await base.OnAfterRenderAsync(firstRender);
       if (firstRender)
       {
-         var microcontrollers = await MicrocontrollerService.GetMicrocontrollers(Project);
+         IsBusy = true;
+         await InvokeAsync(StateHasChanged);
+         try
+         {
+            var microcontrollers = await MicrocontrollerService.GetMicrocontrollers(Project);
 
          StringBuilder sb = new StringBuilder();
          sb.AppendLine("<pre class=\"mermaid\">");
@@ -72,11 +78,16 @@ public class ProjectOverviewDialogBase : ComponentBase
                sb.AppendLine($"    offline! Loading config from device via REST interface failed!");
             }
          }
-         sb.AppendLine("</pre>");
-         HtmlContent = sb.ToString();
-         await InvokeAsync(StateHasChanged);
-      }
-   }
+               sb.AppendLine("</pre>");
+               HtmlContent = sb.ToString();
+               }
+               finally
+               {
+                  IsBusy = false;
+               }
+               await InvokeAsync(StateHasChanged);
+            }
+         }
 
    public void OkBtnPress()
    {

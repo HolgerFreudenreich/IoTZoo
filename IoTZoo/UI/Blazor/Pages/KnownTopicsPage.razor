@@ -48,6 +48,7 @@
 <br />
 <br />
 <br />
+<div style="position: relative;">
 <MudTable Items="@KnownTopics"
           Filter="new Func<KnownTopic, bool>(SearchHelper.Search)"
           FixedHeader="true"
@@ -57,7 +58,7 @@
           Dense="true"
           Hover="true">
       <ColGroup>
-      <col style="width:100px;" />
+      <col style="width:180px;" />
       <col style="width:50px;" />
       <col style="width:50px;" />
       <col style="width:300px;" />
@@ -164,5 +165,9 @@
       <MudTd DataLabel="LastPayload">@context.LastPayload</MudTd>
       <MudTd DataLabel="LastPayloadDateTime">@(context.PayloadUpdatedAt == null ? "never" : context.PayloadUpdatedAt?.ToLocalTime())</MudTd>
       <MudTd DataLabel="LastPayload">@context.KeepHistory</MudTd>
-   </RowTemplate>
-</MudTable>
+       </RowTemplate>
+   </MudTable>
+      <MudOverlay Visible="IsBusy" Absolute="true" DarkBackground="true">
+         <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+      </MudOverlay>
+   </div>

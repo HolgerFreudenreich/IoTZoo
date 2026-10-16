@@ -53,6 +53,7 @@
    </MudTooltip>
 </MudStack>
 <br />
+<div style="position:relative">
 <MudTable Items="@ReceivedTopicsQueue"
 Filter="new Func<TopicEntry, bool>(SearchHelper.Search)"
 FixedHeader="true"
@@ -213,8 +214,12 @@ Hover="true">
 
          }
       }
-   </ChildRowContent>
-</MudTable>
+       </ChildRowContent>
+   </MudTable>
+      <MudOverlay Visible="IsBusy" Absolute="true" DarkBackground="true">
+         <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+      </MudOverlay>
+   </div>
 
 @* <style>
    /* hide scrollbar but allow scrolling */
