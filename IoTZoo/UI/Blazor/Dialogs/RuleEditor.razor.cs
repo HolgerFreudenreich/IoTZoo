@@ -54,6 +54,7 @@ public class RuleEditorBase : EditorBase
       if (null != Rule.TargetTopic)
       {
          KnownTargetTopic.Topic = Rule.TargetTopic;
+         TargetTopicText = Rule.TargetTopic;
       }
       HashCode = GetHashCodeBase64(Rule);
    }
@@ -100,6 +101,12 @@ public class RuleEditorBase : EditorBase
       get;
       set;
    } = new();
+
+   protected string TargetTopicText
+   {
+      get;
+      set;
+   } = string.Empty;
 
    public RuleEditorBase()
    {
@@ -171,6 +178,7 @@ public class RuleEditorBase : EditorBase
 
             KnownTargetTopic = selectedKnownTopic;
             Rule.TargetTopic = selectedKnownTopic.Topic;
+            TargetTopicText = selectedKnownTopic.Topic;
          }
       }
       finally
@@ -213,6 +221,7 @@ public class RuleEditorBase : EditorBase
             knownOutboundTopics.Add(newKnownTopic);
             Rule.TargetTopic = newKnownTopic.Topic;
             KnownTargetTopic = newKnownTopic;
+            TargetTopicText = newKnownTopic.Topic;
          }
       }
       finally
@@ -227,7 +236,7 @@ public class RuleEditorBase : EditorBase
       {
          Snackbar.Clear();
          Rule.SourceTopic = KnownSourceTopic.Topic;
-         Rule.TargetTopic = KnownTargetTopic.Topic;
+         Rule.TargetTopic = ResolveTargetTopic();
          var knownSourceTopic = await KnownTopicsService.GetKnownTopicByTopicName(KnownSourceTopic.ProjectName, KnownSourceTopic.Topic);
          if (knownSourceTopic != null)
          {
@@ -253,6 +262,13 @@ public class RuleEditorBase : EditorBase
          Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
          Snackbar.Add("Unable to save rule!", Severity.Error);
       }
+   }
+
+   private string ResolveTargetTopic()
+   {
+      var topic = TargetTopicText?.Trim() ?? string.Empty;
+      var knownTopic = knownOutboundTopics.FirstOrDefault(data => string.Equals(data.Topic, topic, StringComparison.InvariantCultureIgnoreCase));
+      return knownTopic?.Topic ?? topic;
    }
 
    private bool ValidateFields()

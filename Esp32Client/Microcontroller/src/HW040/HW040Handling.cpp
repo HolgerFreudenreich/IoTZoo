@@ -41,11 +41,6 @@ namespace IotZoo
     void HW040Handling::onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic)
     {
         Serial.println("HW040Handling::onMqttConnectionEstablished");
-        if (callbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
         for (auto& rotaryEncoder : HW040Helper::rotaryEncoders)
         {
             rotaryEncoder.onMqttConnectionEstablished();

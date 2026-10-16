@@ -53,11 +53,6 @@ namespace IotZoo
     void Button::onMqttConnectionEstablished()
     {
         Serial.println("Button::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
 
         mqttClient->subscribe(topicButtonSetCounter,
                               [&](const String& json)

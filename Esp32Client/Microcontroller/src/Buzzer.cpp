@@ -60,11 +60,6 @@ namespace IotZoo
     void Buzzer::onMqttConnectionEstablished()
     {
         Serial.println("Buzzer::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
 
         mqttClient->subscribe(topicBeep,
                               [&](const String& json)
