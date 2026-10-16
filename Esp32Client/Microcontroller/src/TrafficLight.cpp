@@ -83,11 +83,6 @@ namespace IotZoo
     void TrafficLight::onMqttConnectionEstablished()
     {
         Serial.println("TrafficLight::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
         String topicTrafficLightLeds = getBaseTopic() + "/traffic_light/" + String(getDeviceIndex());
         mqttClient->subscribe(topicTrafficLightLeds, [&](const String& payload) { handleTrafficLightPayload(payload); });
     }

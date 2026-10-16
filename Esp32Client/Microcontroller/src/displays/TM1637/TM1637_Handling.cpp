@@ -76,16 +76,25 @@ namespace IotZoo
     void TM1637_Handling::onMqttConnectionEstablished(MqttClient* mqttClient, const String& baseTopic)
     {
         debug("TM1637_4_Handling::onMqttConnectionEstablished");
-        if (callbacksAreRegistered)
-        {
-            debug("Reconnection -> nothing to do.");
-            return;
-        }
-
         this->mqttClient = mqttClient;
         if (nullptr != mqttClient)
         {
             debug("MQTT client is available. Registering callbacks for TM1637_4_Handling...");
+
+            // After a reconnect the broker has lost the subscriptions, so they must be sent again.
+            // EspMQTTClient keeps its local list, so remove the old entries first to avoid wrong callback assignment.
+            if (callbacksAreRegistered)
+            {
+                for (auto& display : displays1637)
+                {
+                    String prefix = baseTopic + "/tm1637_4/" + String(display.getDeviceIndex());
+                    mqttClient->unsubscribe(prefix + "/number");
+                    mqttClient->unsubscribe(prefix + "/time");
+                    mqttClient->unsubscribe(prefix + "/text");
+                    mqttClient->unsubscribe(prefix + "/level");
+                    mqttClient->unsubscribe(prefix + "/temperature");
+                }
+            }
 
             for (auto& display : displays1637)
             {

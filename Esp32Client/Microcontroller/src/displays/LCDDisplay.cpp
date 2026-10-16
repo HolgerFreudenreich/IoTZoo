@@ -99,11 +99,6 @@ namespace IotZoo
     void LcdDisplay::onMqttConnectionEstablished()
     {
         Serial.println("LcdDisplay::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
         subscribeSetLcd160xData();
         subscribeSetBacklight();
 

@@ -47,11 +47,6 @@ namespace IotZoo
     void HT1621::onMqttConnectionEstablished()
     {
         Serial.println("HT1621::onMqttConnectionEstablished. BaseTopic: " + baseTopic);
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
 
         mqttClient->subscribe(baseTopic + "/ht1621/0/temperature",
                               [&](const String& data)

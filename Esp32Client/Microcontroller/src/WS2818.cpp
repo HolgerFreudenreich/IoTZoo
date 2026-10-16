@@ -296,11 +296,6 @@ namespace IotZoo
     void WS2818::onMqttConnectionEstablished()
     {
         Serial.println("WS2818::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
 
         String topic = getBaseTopic() + "/" + deviceName + "/" + String(deviceIndex) + "/setPixelColor";
         mqttClient->subscribe(topic, [&](const String& json) { setPixelColor(json); });

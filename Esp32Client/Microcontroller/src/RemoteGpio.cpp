@@ -45,11 +45,6 @@ namespace IotZoo
     void RemoteGpio::onMqttConnectionEstablished()
     {
         Serial.println("RemoteGpio::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
 
         mqttClient->subscribe(getBaseTopic() + "/gpio/" + String(deviceIndex), [&](const String& json) { handlePayload(json); });
     }
