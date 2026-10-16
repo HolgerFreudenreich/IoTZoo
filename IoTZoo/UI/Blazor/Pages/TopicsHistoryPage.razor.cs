@@ -12,7 +12,9 @@
 
 using Domain.Interfaces.Crud;
 using Domain.Pocos;
+using IotZoo.Dialogs;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 
 namespace IotZoo.Pages;
 
@@ -33,7 +35,7 @@ public class TopicsHistoryPageBase : PageBase
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        base.OnAfterRender(firstRender);
+        await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
             ProjectsCatalog = await ProjectService.LoadProjects();
@@ -65,7 +67,16 @@ public class TopicsHistoryPageBase : PageBase
 
     protected override async Task LoadData()
     {
-        TopicHistoryList = await TopicHistoryService.LoadTopicHistory(SelectedProject);
+        IsBusy = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            TopicHistoryList = await TopicHistoryService.LoadTopicHistory(SelectedProject);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
         await InvokeAsync(StateHasChanged);
     }
 
@@ -86,5 +97,17 @@ public class TopicsHistoryPageBase : PageBase
     {
         TopicHistoryList.Remove(topicHistory);
         TopicHistoryService.DeleteTopicHistoryEntry(topicHistory);
+    }
+
+    protected async Task ShowTopicChart(TopicHistory topicHistory)
+    {
+        var entries = TopicHistoryList.Where(x => x.Topic == topicHistory.Topic).ToList();
+        var parameters = new DialogParameters
+        {
+            { nameof(TopicChartDialogBase.Topic), topicHistory.Topic },
+            { nameof(TopicChartDialogBase.Entries), entries }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true };
+        await DialogService.ShowAsync<TopicChartDialog>(topicHistory.Topic, parameters, options);
     }
 }

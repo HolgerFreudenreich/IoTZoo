@@ -172,7 +172,7 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
         return result.AsList();
     }
 
-    public async Task<List<KnownTopic>> GetKnownTopicsByProjectName(string? projectName, List<MessageDirection>? messageDirections)
+    public async Task<List<KnownTopic>> GetKnownTopicsByProjectName(string? projectName, List<MessageDirection>? messageDirections, int? limit = null)
     {
         if (string.IsNullOrEmpty(projectName))
         {
@@ -194,9 +194,14 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
                 sql += ") ";
             }
 
-            sql += "order by topic;";
+            sql += "order by topic";
+            if (limit.HasValue)
+            {
+                sql += " limit @Limit";
+            }
+            sql += ";";
             result = await Db.QueryAsync<KnownTopic>(sql,
-                                                     new { ProjectName = projectName });
+                                                     new { ProjectName = projectName, Limit = limit });
         }
         catch (Exception exception)
         {

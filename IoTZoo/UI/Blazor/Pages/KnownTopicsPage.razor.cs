@@ -52,14 +52,16 @@ public class KnownTopicsPageBase : PageBase
         }
     }
 
+    protected override void OnInitialized()
+    {
+        DataTransferService.CurrentScreen = ScreenMode.KnownTopics;
+        base.OnInitialized();
+    }
+
     protected override async Task RefreshData(bool firstRender = false)
     {
-        if (firstRender)
-        {
-            DataTransferService.CurrentScreen = ScreenMode.KnownTopics;
-        }
         ProjectsCatalog = await ProjectService.LoadProjects();
-        await base.RefreshData(firstRender); // calls LoadData and StateHasChanged
+        await base.RefreshData(firstRender);
     }
 
     protected async Task CloneTopic(KnownTopic topic)
@@ -81,7 +83,19 @@ public class KnownTopicsPageBase : PageBase
         {
             return;
         }
-        KnownTopics = await KnownTopicsService.GetKnownTopicsByProjectName(SelectedProject.ProjectName, null);
+        IsBusy = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            KnownTopics = await KnownTopicsService.GetKnownTopicsByProjectName(SelectedProject.ProjectName, null, 100);
+            IsBusy = false;
+            await InvokeAsync(StateHasChanged);
+            KnownTopics = await KnownTopicsService.GetKnownTopicsByProjectName(SelectedProject.ProjectName, null);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
         await InvokeAsync(StateHasChanged);
     }
 

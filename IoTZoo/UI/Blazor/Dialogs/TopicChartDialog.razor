@@ -1,0 +1,68 @@
+@inherits TopicChartDialogBase
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">@Topic</MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudStack Row="true">
+         <MudButton Variant="Variant.Outlined"
+                    StartIcon="@Icons.Material.Filled.ArrowBack"
+                    OnClick="@(() => ShiftTime(TimeSpan.FromMinutes(-1)))">
+            -1 Minute
+         </MudButton>
+         <MudButton Variant="Variant.Outlined"
+                    StartIcon="@Icons.Material.Filled.ArrowBack"
+                    OnClick="@(() => ShiftTime(TimeSpan.FromHours(-1)))">
+            -1 Hour
+         </MudButton>
+         <MudButton Variant="Variant.Outlined"
+                    StartIcon="@Icons.Material.Filled.ArrowBack"
+                    OnClick="@(() => ShiftDays(-1))">
+            -1 Day
+         </MudButton>
+         <MudDatePicker Label="Start date"
+                        @bind-Date="StartDate"
+                        Editable="true" />
+         <MudTimePicker Label="Start time"
+                        @bind-Time="StartTime" />
+         <MudDatePicker Label="End date"
+                        @bind-Date="EndDate"
+                        Editable="true" />
+         <MudTimePicker Label="End time"
+                        @bind-Time="EndTime" />
+            <MudButton Variant="Variant.Outlined"
+                       EndIcon="@Icons.Material.Filled.ArrowForward"
+                       OnClick="@(() => ShiftDays(1))">
+               +1 Day
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       EndIcon="@Icons.Material.Filled.ArrowForward"
+                       OnClick="@(() => ShiftTime(TimeSpan.FromHours(1)))">
+               +1 Hour
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       EndIcon="@Icons.Material.Filled.ArrowForward"
+                       OnClick="@(() => ShiftTime(TimeSpan.FromMinutes(1)))">
+               +1 Minute
+            </MudButton>
+         </MudStack>
+      @if (Series.Count > 0)
+      {
+         <MudChart ChartType="ChartType.Line"
+                   ChartSeries="@Series"
+                   ChartLabels="@ChartLabels"
+                   Width="100%"
+                   Height="400px" />
+      }
+      else
+      {
+         <MudText>No numeric values available for this topic.</MudText>
+      }
+   </DialogContent>
+   <DialogActions>
+      <MudButton OnClick="Close">
+         Ok
+      </MudButton>
+   </DialogActions>
+</MudDialog>

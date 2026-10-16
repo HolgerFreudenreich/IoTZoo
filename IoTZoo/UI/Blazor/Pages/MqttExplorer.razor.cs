@@ -77,15 +77,23 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
 
     private async Task OnSelectedProjectChanged(Project? value)
     {
-        ReceivedTopicsQueue.Clear();
-
-        await MqttClient.UnsubscribeAsync(selectedTopic);
-
-        await SubscribeToProjectTopics();
-
-        ReceivedTopicsQueue.Clear();
-
+        IsBusy = true;
         await InvokeAsync(StateHasChanged);
+        try
+        {
+            ReceivedTopicsQueue.Clear();
+
+            await MqttClient.UnsubscribeAsync(selectedTopic);
+
+            await SubscribeToProjectTopics();
+
+            ReceivedTopicsQueue.Clear();
+        }
+        finally
+        {
+            IsBusy = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task SubscribeToProjectTopics()
@@ -119,7 +127,17 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
     {
         if (firstRender)
         {
-            ProjectsCatalog = await ProjectService.LoadProjects();
+            IsBusy = true;
+            StateHasChanged();
+            try
+            {
+                ProjectsCatalog = await ProjectService.LoadProjects();
+            }
+            finally
+            {
+                IsBusy = false;
+                StateHasChanged();
+            }
         }
         await base.OnAfterRenderAsync(firstRender);
     }
