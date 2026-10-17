@@ -16,7 +16,7 @@ public enum ScreenMode
 {
    None = 0,
    MqttExplorer = 1,
-   HueLights = 2,
+   HueComponents = 2,
    Projects = 3,
    PublishTopic = 6,
    Rules = 7,

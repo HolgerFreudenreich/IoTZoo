@@ -17,7 +17,7 @@ using System.Reflection;
 
 namespace IotZoo.Shared;
 
-public class NavMenuBase : ComponentBase
+public class NavMenuBase : ComponentBase, IDisposable
 {
     [Inject]
     protected NavigationManager NavigationManager
@@ -35,7 +35,46 @@ public class NavMenuBase : ComponentBase
         get; set;
     } = null!;
 
-    private string selectedMenuItem = string.Empty;
+    private string selectedMenuItem = "Message Explorer";
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+        SelectMenuItemForLocation();
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        SelectMenuItemForLocation();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void SelectMenuItemForLocation()
+    {
+        string path = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).Split('?')[0];
+
+        string? menuItem = path.ToUpperInvariant() switch
+        {
+            "TOPICSHISTORY" => "Topics History",
+            "KNOWNTOPICS" => "Known Topics",
+            _ => null
+        };
+
+        if (menuItem != null)
+        {
+            selectedMenuItem = menuItem;
+        }
+        else if (selectedMenuItem is "Topics History" or "Known Topics")
+        {
+            selectedMenuItem = string.Empty;
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
     public string SelectedMenuItem
     {
         get => selectedMenuItem;
@@ -43,7 +82,7 @@ public class NavMenuBase : ComponentBase
         {
             try
             {
-                if (string.IsNullOrEmpty(value))
+                if (string.IsNullOrEmpty(value) || value == selectedMenuItem)
                 {
                     return;
                 }
@@ -98,4 +137,5 @@ public class NavMenuBase : ComponentBase
             }
         }
     }
-}
+
+    }

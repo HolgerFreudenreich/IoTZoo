@@ -39,6 +39,10 @@ public class TopicsHistoryPageBase : PageBase
         if (firstRender)
         {
             ProjectsCatalog = await ProjectService.LoadProjects();
+            if (!string.IsNullOrEmpty(ProjectName))
+            {
+                DataTransferService.SelectedProject = ProjectsCatalog.FirstOrDefault(p => p.ProjectName == ProjectName);
+            }
             await LoadData();
         }
     }
@@ -59,9 +63,19 @@ public class TopicsHistoryPageBase : PageBase
         }
     }
 
+    [SupplyParameterFromQuery(Name = "search")]
+    public string? Search { get; set; }
+
+    [SupplyParameterFromQuery(Name = "project")]
+    public string? ProjectName { get; set; }
+
     protected override void OnInitialized()
     {
         DataTransferService.CurrentScreen = ScreenMode.TopicsHistory;
+        if (!string.IsNullOrEmpty(Search))
+        {
+            SearchHelper.SearchString = Search;
+        }
         base.OnInitialized();
     }
 

@@ -63,6 +63,8 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
 
     private string selectedTopic = string.Empty;
 
+    private Dictionary<(string ProjectName, string Topic), KnownTopic> knownTopicsCache = new();
+
     protected JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions
     {
         WriteIndented = true,
@@ -82,6 +84,11 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
         try
         {
             ReceivedTopicsQueue.Clear();
+
+            if (!MqttClient.IsConnected)
+            {
+                return;
+            }
 
             await MqttClient.UnsubscribeAsync(selectedTopic);
 
@@ -132,6 +139,7 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
             try
             {
                 ProjectsCatalog = await ProjectService.LoadProjects();
+                await LoadKnownTopicsCache();
             }
             finally
             {
@@ -175,11 +183,12 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
             topicEntry.Retain = mqttApplicationMessageReceivedEventArgs.ApplicationMessage.Retain;
 
             // Is it a known Topic?
-            var knownTopic = await KnownTopicsDatabaseService.GetKnownTopicByTopicName(topicEntry.ProjectName, topicEntry.Topic);
+            knownTopicsCache.TryGetValue((topicEntry.ProjectName, topicEntry.Topic), out var knownTopic);
 
             if (knownTopic != null)
             {
                 topicEntry.MessageDirection = knownTopic.MessageDirection; // It is expensive to look in table known_topics, but only there is this information.
+                topicEntry.KeepHistory = knownTopic.KeepHistory;
             }
 
             if (GroupTopics)
@@ -238,10 +247,8 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
     public override void Dispose()
     {
         timerServiceRefreshUserInterface.Dispose();
-        if (!string.IsNullOrEmpty(selectedTopic))
-        {
-            MqttClient?.UnsubscribeAsync(selectedTopic);
-        }
+        // No explicit unsubscribe here: base.Dispose() disconnects and disposes the client.
+        // A fire-and-forget UnsubscribeAsync raced with the disconnect and threw MqttClientDisconnectedException.
         base.Dispose();
     }
 
@@ -254,11 +261,29 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
             topicEntry.Rules = await RulesService.GetRulesBySourceTopic(topicEntry);
         }
     }
+
+    protected void TopicHistoryBtnPress(TopicEntry topicEntry)
+    {
+        NavigationManager.NavigateTo($"TopicsHistory?project={Uri.EscapeDataString(topicEntry.ProjectName ?? string.Empty)}&search={Uri.EscapeDataString(topicEntry.Topic)}");
+    }
+
+    protected void KnownTopicBtnPress(TopicEntry topicEntry)
+    {
+        NavigationManager.NavigateTo($"KnownTopics?project={Uri.EscapeDataString(topicEntry.ProjectName ?? string.Empty)}&search={Uri.EscapeDataString(topicEntry.Topic)}");
+    }
     protected override async Task RefreshData(bool firstRender = false)
     {
         await base.RefreshData(firstRender);
         ProjectsCatalog = await ProjectService.LoadProjects();
+        await LoadKnownTopicsCache();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadKnownTopicsCache()
+    {
+        knownTopicsCache = (await KnownTopicsDatabaseService.GetKnownTopics())
+            .GroupBy(knownTopic => (ProjectName: knownTopic.ProjectName ?? string.Empty, Topic: knownTopic.Topic ?? string.Empty))
+            .ToDictionary(group => group.Key, group => group.First());
     }
 
     protected async Task RefreshDataGridAsync()
