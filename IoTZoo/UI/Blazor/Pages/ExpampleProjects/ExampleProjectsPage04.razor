@@ -23,18 +23,18 @@
 <br />
 <MudText Typo="Typo.h5">Step 2 Prepare IotZoo</MudText>
 <br />
-<MudText>- Open IotZoo in Webbrowser</MudText>
+- Open IotZoo in a web browser
 <MudText>- Reboot ESP32, so that it registers into IotZoo.</MudText>
-<MudText>- Navigate to &quot;Known Microcontrollers&quot;, order by BootDateTime desc.</MudText>
-<MudText>- Click Symbol &quot;Configure connected Devices&quot;.</MudText>
-<MudText>- Click Button <b>&quot;ADD HW-040 ROTARY ENCODER&quot;</b>.</MudText>
+- Navigate to &quot;Known Microcontrollers&quot; and sort by BootDateTime descending.
+- Click the symbol &quot;Configure connected Devices&quot;.
+- Click the button <b>&quot;ADD HW-040 ROTARY ENCODER&quot;</b>.
 <MudText>- Edit the associated pins or take the default settings.</MudText>
 <br />
 <MudImage Src="./Projects/0004/Wiring.png" Elevation="25" Class="rounded-lg" Width="1200" />
 <br />
 <br />
 <br />
-<MudText Typo="Typo.h5">Step 3 Connect the cables between ESP32 and  the rotary encoder.</MudText>
+Step 3 Connect the cables between ESP32 and the rotary encoder.
 <br />
 <p>Power off the ESP32 and connect the cables as specified.</p>
 <br />
@@ -71,8 +71,8 @@
 <br />
 <MudText>Navigate to &quot;Rules&quot; in IotZoo</MudText>
 <MudText>Click button &quot;ADD RULE&quot;</MudText>
-<MudText>Choose as Source Topic <b>IOTZOO/HUE_LIGHT_TOGGLE</b></MudText>
-<MudText>Input as Target Topic esp32/&lt;MAC from your ESP32&gt;/rotary_encoder/0/button_pressed. Example: esp32/B0:A7:32:28:3C:F8/rotary_encoder/0/button_pressed</MudText>
+Choose as source topic <b>IOTZOO/HUE_LIGHT_TOGGLE</b>
+Enter as target topic esp32/&lt;MAC from your ESP32&gt;/rotary_encoder/0/button_pressed. Example: esp32/B0:A7:32:28:3C:F8/rotary_encoder/0/button_pressed
 <MudText>Payload <b>9</b></MudText>
 <br />
 <MudImage Src="./Projects/0004/RuleOnOff.png" Elevation="25" Class="rounded-lg" Width="1050" />
