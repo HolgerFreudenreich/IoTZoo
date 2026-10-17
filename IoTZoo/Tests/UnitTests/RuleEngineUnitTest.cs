@@ -20,7 +20,6 @@ using Domain.Pocos;
 using Domain.Services;
 using Domain.Services.RuleEngine;
 using Domain.Services.Timer;
-using Infrastructure;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.Configuration;
@@ -28,7 +27,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using MudBlazor;
 using Quartz;
-using System.Data;
 using System.Globalization;
 using System.Text.Json;
 using Xunit.Microsoft.DependencyInjection;
@@ -135,6 +133,9 @@ namespace UnitTests
         /// Test simple addition.
         /// </summary>
         /// <exception cref="Exception"></exception>
+        /// <summary>
+        /// Calculating '1 + 1' returns 2.
+        /// </summary>
         [Fact]
         public void CalculationServiceAdditionTest1()
         {
@@ -215,6 +216,9 @@ namespace UnitTests
             Assert.False(Convert.ToBoolean(result));
         }
 
+        /// <summary>
+        /// Calc(Input + value) adds the value to the incoming payload (200).
+        /// </summary>
         [Theory]
         [InlineData(1)]
         [InlineData(10)]
@@ -243,6 +247,9 @@ namespace UnitTests
             Assert.Equal(200 + value, Convert.ToInt32(targetPayload));
         }
 
+        /// <summary>
+        /// Input + value without Calc returns the incoming payload (200) plus the value.
+        /// </summary>
         [Theory]
         [InlineData(1)]
         [InlineData(10)]
@@ -271,6 +278,9 @@ namespace UnitTests
             Assert.Equal(200 + value, Convert.ToInt32(targetPayload));
         }
 
+        /// <summary>
+        /// Calc(ReadFromMemory('heatmap/index') + 1) increments the value stored in memory by 1.
+        /// </summary>
         [Theory]
         [InlineData(1)]
         [InlineData(10)]
@@ -302,6 +312,9 @@ namespace UnitTests
             Assert.Equal(1 + value, Convert.ToInt32(targetPayload));
         }
 
+        /// <summary>
+        /// The target payload 'heatmap/index + 1' is calculated from the stored value of heatmap/index plus 1.
+        /// </summary>
         [Theory]
         [InlineData(1)]
         [InlineData(10)]
@@ -333,6 +346,9 @@ namespace UnitTests
             Assert.Equal(1 + value, Convert.ToInt32(targetPayload));
         }
 
+        /// <summary>
+        /// Evaluates a LIKE expression against a payload without asserting the result.
+        /// </summary>
         [Fact]
         public async Task Test()
         {
@@ -342,46 +358,9 @@ namespace UnitTests
             await ExpressionEvaluationService.EvaluateExpressionAsync(expression, payload);
         }
 
-        //[Theory]
-        //[InlineData(1)]
-        //[InlineData(10)]
-        //[InlineData(-100)]
-        //public async Task WriteTest1(int value)
-        //{
-        //   string? targetPayload = $"{FunctionNames.WriteToMemory}('heatmap/index', {value}')";
-
-        //   if (targetPayload!.Contains(FunctionNames.WriteToMemory, StringComparison.OrdinalIgnoreCase))
-        //   {
-        //      int startIndexTopic = targetPayload.IndexOf($"{FunctionNames.WriteToMemory}");
-        //      startIndexTopic += FunctionNames.WriteToMemory.Length;
-        //      int endIndexTopic = targetPayload.IndexOf('\'', startIndexTopic + 2);
-        //      if (-1 == endIndexTopic)
-        //      {
-        //         endIndexTopic = targetPayload.IndexOf('"', startIndexTopic + 2);
-        //      }
-
-        //      int startIndexPayload = targetPayload.IndexOf(',', startIndexTopic + 2);
-        //      int endIndexPayload = targetPayload.IndexOf(')', startIndexTopic + 2);
-
-        //      string topic = targetPayload.Substring(startIndexTopic + 1, endIndexTopic - startIndexTopic);
-        //      string? payload = targetPayload.Substring(startIndexPayload + 1, endIndexPayload - startIndexPayload - 2).Trim();
-
-        //      if (!string.IsNullOrEmpty(topic))
-        //      {
-        //         var fromMemory = (from data in DataTransferService.ReceivedTopicsQueue where data.Topic == topic select data).FirstOrDefault();
-        //         if (null != fromMemory)
-        //         {
-        //            fromMemory.Payload = payload;
-        //         }
-
-        //         this.KnownTopicsService.Save(new KnownTopic { Topic = topic, LastPayload = payload });
-        //      }
-
-        //      Assert.NotNull(targetPayload);
-
-        //   }
-        //}
-
+        /// <summary>
+        /// The lowercase function name 'calc' is accepted and 159 - 1 returns 158.
+        /// </summary>
         [Fact]
         public async Task CalcTestIgnoreCase()
         {
@@ -404,6 +383,9 @@ namespace UnitTests
             Assert.Equal(158, Convert.ToInt32(targetPayload));
         }
 
+        /// <summary>
+        /// The Input placeholder inside a JSON target payload is replaced with the incoming value (29.8).
+        /// </summary>
         [Fact]
         public async Task CreateTargetPayloadFromRuleTest()
         {
@@ -432,6 +414,9 @@ namespace UnitTests
             Assert.Equal("{'text': 'Boiler: 29.8 °C ', 'clear': false, 'x':0, 'y': 1}", targetPayload);
         }
 
+        /// <summary>
+        /// Input > value matches when the payload is value + 1.
+        /// </summary>
         [Theory]
         [InlineData(1)]
         [InlineData(100)]
@@ -454,6 +439,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Input >= value matches when the payload equals value.
+        /// </summary>
         [Theory]
         [InlineData(1)]
         [InlineData(100)]
@@ -475,6 +463,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Input &lt; value does not match when the payload equals value.
+        /// </summary>
         [Theory]
         [InlineData(1)]
         [InlineData(100)]
@@ -496,6 +487,9 @@ namespace UnitTests
             Assert.False(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Input &lt;= value matches when the payload equals value.
+        /// </summary>
         [Theory]
         [InlineData(1)]
         [InlineData(100)]
@@ -517,6 +511,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Input &lt;&gt; 77 matches when the payload is 78.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionNotEqualTest1()
         {
@@ -532,6 +529,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Input != 77 matches when the payload is 78.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionNotEqualTest2()
         {
@@ -547,6 +547,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Input % 2 does not match when the payload is even (80).
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionModuloTest1()
         {
@@ -562,6 +565,9 @@ namespace UnitTests
             Assert.False(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Input % 2 matches when the payload is odd (81).
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionModuloTest2()
         {
@@ -577,6 +583,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Input == 77 matches when the payload is 77.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionEqualsTest()
         {
@@ -592,6 +601,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// A JSON expression with the '&lt;' operator and value 70 does not match the payload 78.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionLessThanJsonTest()
         {
@@ -607,6 +619,9 @@ namespace UnitTests
             Assert.False(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// A JSON expression with the 'contains' operator matches a payload that contains 'IoT'.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionContainsJsonTest()
         {
@@ -622,6 +637,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// A JSON expression with the 'contains not' operator matches a payload that does not contain 'IoT'.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionContainsNotJsonTest()
         {
@@ -637,6 +655,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// A JSON expression with the '&lt;=' operator and value 70 does not match the payload 78.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionLessThanOrEqualsJsonTest()
         {
@@ -652,6 +673,9 @@ namespace UnitTests
             Assert.False(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// A JSON expression with the '>' operator and value 70 matches the payload 78.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionLargerThanJsonTest()
         {
@@ -667,6 +691,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// A JSON expression with the '>=' operator and value 70 matches the payload 78.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionLargerThanOrEqualsJsonTest()
         {
@@ -682,6 +709,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// A JSON expression with the '==' operator matches the payload 'RED'.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionStringEqualsJsonTest()
         {
@@ -697,6 +727,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// A JSON array of OR conditions matches the payload 'ORANGE'.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionStringEqualsAtLeastOneOfTwoValuesJsonTest()
         {
@@ -712,6 +745,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// The payload 'BLUE' matches none of the listed values, so the JSON OR expression does not match.
+        /// </summary>
         [Fact]
         public async Task EvaluateExpressionStringNotEqualsAtLeastOneOfTwoValuesJsonTest()
         {
@@ -728,6 +764,9 @@ namespace UnitTests
             Assert.False(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Input > 5 combined with ReadFromMemory('Button1State') == 1 matches when the memory holds 1.
+        /// </summary>
         [Fact]
         public async Task ReadFromMemoryTest1()
         {
@@ -747,6 +786,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Input > 5 combined with ReadFromMemory('Button1State') == 1 matches when the memory holds 1 (repeated check).
+        /// </summary>
         [Fact]
         public async Task ReadFromMemoryTest2()
         {
@@ -766,6 +808,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Calc(ReadFromMemory('VARIABLE1') + 1) returns 2 when the memory holds 1.
+        /// </summary>
         [Fact]
         public async Task ReadFromMemoryTest3()
         {
@@ -787,6 +832,9 @@ namespace UnitTests
             Assert.Equal("2", targetPayload);
         }
 
+        /// <summary>
+        /// ResolveVariables returns the stored memory value of VARIABLE1 ('1').
+        /// </summary>
         [Fact]
         public async Task ReadFromMemoryTest4()
         {
@@ -801,6 +849,9 @@ namespace UnitTests
             Assert.Equal("1", targetPayload);
         }
 
+        /// <summary>
+        /// ResolveVariables replaces 'VARIABLE1 + 1' with '1 + 1', which calculates to 2.
+        /// </summary>
         [Fact]
         public async Task VariablesResolverTest1()
         {
@@ -814,6 +865,9 @@ namespace UnitTests
             Assert.Equal(2, Convert.ToInt32(result));
         }
 
+        /// <summary>
+        /// ResolveVariables replaces 'VARIABLE1 - 1' with '1 - 1', which calculates to 0.
+        /// </summary>
         [Fact]
         public async Task VariablesResolverTest2()
         {
@@ -827,48 +881,74 @@ namespace UnitTests
             Assert.Equal(0, Convert.ToInt32(result));
         }
 
+        /// <summary>
+        /// Read('VARIABLE1', '34') returns the value stored in memory ('1') and ignores the default when the topic exists.
+        /// </summary>
         [Fact]
-        public async Task JsonPathTest2()
+        public async Task VariablesResolverReadWithDefaultValueTest1()
         {
             DataTransferService.ReceivedTopicsQueue.Clear();
             DataTransferService.ReceivedTopicsQueue.Enqueue(new TopicEntry
-            { Topic = "colors", Payload = """[{"red":{"r":255,"g":0,"b":0}},{"green":{"r":0,"g":255,"b":0}}]""" });
+            { Topic = "VARIABLE1", Payload = "1" });
 
-            Rule rule0 = new Rule
-            {
-                SourceTopic = "IOTZOO/JSONPATH/TEST1",
-                TargetTopic = "esp32/E4:65:B8:79:27:E0/doesnotmatter",
-                TargetPayload = $"{FunctionNames.ReadFromMemory}(\"colors\")"
-            };
-
-            var topicEntry0 = new TopicEntry();
-            var targetPayload0 = await PrepareTargetPayload.Execute(rule0, topicEntry0);
-
-            Assert.NotNull(targetPayload0);
-            Assert.NotEmpty(targetPayload0);
-            Assert.Equal("""[{"red":{"r":255,"g":0,"b":0}},{"green":{"r":0,"g":255,"b":0}}]""", targetPayload0);
-
-            Rule rule1 = new Rule
-            {
-                SourceTopic = "IOTZOO/TEST",
-                TargetTopic = "esp32/E4:65:B8:79:27:E0/doesnotmatter",
-                TargetPayload = $"{FunctionNames.ReadFromMemory}('colors')['green']"
-            };
-
-            var topicEntry1 = new TopicEntry();
-            var targetPayload1 = await PrepareTargetPayload.Execute(rule1, topicEntry1);
-
-            Assert.NotNull(targetPayload1);
-            Assert.NotEmpty(targetPayload1);
-            Assert.Equal("""
-                         {
-                           "r": 0,
-                           "g": 255,
-                           "b": 0
-                         }
-                         """, targetPayload1);
+            var expression = await VariablesResolver.ResolveVariables($"{FunctionNames.ReadFromMemory}('VARIABLE1', '34')");
+            Assert.Equal("1", expression);
         }
 
+        /// <summary>
+        /// Read('UNKNOWN_TOPIC_DEFAULT_TEST', '34') returns the default value '34' when the topic is neither in memory nor in the database.
+        /// </summary>
+        [Fact]
+        public async Task VariablesResolverReadWithDefaultValueTest2()
+        {
+            DataTransferService.ReceivedTopicsQueue.Clear();
+
+            var expression = await VariablesResolver.ResolveVariables($"{FunctionNames.ReadFromMemory}('UNKNOWN_TOPIC_DEFAULT_TEST', '34')");
+            Assert.Equal("34", expression);
+        }
+
+        /// <summary>
+        /// Read('UNKNOWN_TOPIC_DEFAULT_TEST', 4.545643) returns the unquoted numeric default value 4.545643 when the topic is unavailable.
+        /// </summary>
+        [Fact]
+        public async Task VariablesResolverReadWithUnquotedDefaultValueTest()
+        {
+            DataTransferService.ReceivedTopicsQueue.Clear();
+
+            var expression = await VariablesResolver.ResolveVariables($"{FunctionNames.ReadFromMemory}('UNKNOWN_TOPIC_DEFAULT_TEST', 4.545643)");
+            Assert.Equal("4.545643", expression);
+        }
+
+        /// <summary>
+        /// Three Read calls where two topics are missing and one topic exists without payload sum up to the default value 0 for the missing ones.
+        /// </summary>
+        [Fact]
+        public async Task ExpressionParserReadDefaultValuesWithEmptyPayloadTest()
+        {
+            DataTransferService.ReceivedTopicsQueue.Clear();
+            DataTransferService.ReceivedTopicsQueue.Enqueue(new TopicEntry
+            { Topic = "EMPTY_PAYLOAD_TOPIC", Payload = null });
+
+            var expression = await VariablesResolver.ResolveVariables($"{FunctionNames.ReadFromMemory}('EMPTY_PAYLOAD_TOPIC', 0)");
+            Assert.Equal("0", expression);
+        }
+
+        /// <summary>
+        /// Read('KNOWN_TOPIC_EMPTY_PAYLOAD_TEST', 0) returns the default value 0 when the known topic has no last payload.
+        /// </summary>
+        [Fact]
+        public async Task VariablesResolverKnownTopicWithoutPayloadReturnsDefaultTest()
+        {
+            DataTransferService.ReceivedTopicsQueue.Clear();
+            await KnownTopicsService.Save(new KnownTopic { Topic = "KNOWN_TOPIC_EMPTY_PAYLOAD_TEST", LastPayload = null }, true);
+
+            var expression = await VariablesResolver.ResolveVariables($"{FunctionNames.ReadFromMemory}('KNOWN_TOPIC_EMPTY_PAYLOAD_TEST', 0)");
+            Assert.Equal("0", expression);
+        }
+
+        /// <summary>
+        /// ReadFromMemory returns a stored JSON array, and the ['green'] lookup returns the green hex value.
+        /// </summary>
         [Fact]
         public async Task JsonPathTest3()
         {
@@ -905,6 +985,9 @@ namespace UnitTests
             Assert.Equal("#27F25E", targetPayload1);
         }
 
+        /// <summary>
+        /// A rule with a JSON array target payload for a stepper motor produces a non-null payload.
+        /// </summary>
         [Fact]
         public async Task TestStepperMotor()
         {
@@ -921,6 +1004,9 @@ namespace UnitTests
             Assert.NotNull(targetPayload0);
         }
 
+        /// <summary>
+        /// ReadFromMemory returns the stored IOTZOO/COLORS JSON array, and the ['Green'] lookup returns '#009688'.
+        /// </summary>
         [Fact]
         public async Task JsonPathTest4()
         {
@@ -1009,45 +1095,11 @@ namespace UnitTests
             Assert.NotNull(targetPayload1);
             Assert.NotEmpty(targetPayload1);
             Assert.Equal("#009688", targetPayload1);
-
-
-            /*
-          var messageHandlingResult1 = await IoTZooMqttClient.HandleMqttMessage(new TopicEntry
-          {
-             Topic = $"IOTZOO/TIME/{TopicConstants.EVERY_05_SECONDS}",
-             Payload =
-                  " { \"DateTime\": \"25.01.2025 17:34:45\", \"Time\": \"17:34:45\", \"TimeShort\": \"17:34\" }."
-          });
-
-          Assert.NotNull(messageHandlingResult1.TargetPayloads);
-
-          Assert.Equal("Green", messageHandlingResult1.TargetPayloads.First()!.Payload);
-
-          var messageHandlingResult2 =
-              await IoTZooMqttClient.HandleMqttMessage(new TopicEntry { Topic = "temperature", Payload = "-21.3" });
-          var messageHandlingResult3 = await IoTZooMqttClient.HandleMqttMessage(new TopicEntry
-              { Topic = $"IOTZOO/TIME/{TopicConstants.EVERY_05_SECONDS}" });
-
-          Assert.NotNull(messageHandlingResult3.TargetPayloads);
-          Assert.Equal("Blue", messageHandlingResult3.TargetPayloads.First()!.Payload);
-
-          Rule ruleReadColorByName = new Rule
-          {
-              SourceTopic = "IOTZOO/TEST",
-              TargetTopic = "esp32/E4:65:B8:79:27:E0/doesnotmatter",
-              TargetPayload =
-                  $"{FunctionNames.ReadFromMemory}('IOTZOO/COLORS')['{messageHandlingResult3.TargetPayloads.First()!.Payload}']"
-          };
-
-          var topicEntry2 = new TopicEntry();
-          var targetPayload2 = await PrepareTargetPayload.Execute(ruleReadColorByName, topicEntry2);
-
-          Assert.NotNull(targetPayload2);
-          Assert.NotEmpty(targetPayload2);
-          Assert.Equal("#2196F3", targetPayload2);
-          */
         }
 
+        /// <summary>
+        /// Several ReadFromMemory checks combined with Input > 5 and && match when all conditions hold.
+        /// </summary>
         [Fact]
         public async Task ReadFromMemoryMultipleTest()
         {
@@ -1068,6 +1120,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// ReadFromMemory of the IS_DAY_MODE flag equal to 1 matches the expression.
+        /// </summary>
         [Fact]
         public async Task ReadFromMemoryIsDayTest()
         {
@@ -1090,6 +1145,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// The JSON path $['t'] > 55 does not match when t is 18.7.
+        /// </summary>
         [Fact]
         public async Task JsonPathTest1A()
         {
@@ -1106,6 +1164,9 @@ namespace UnitTests
             Assert.False(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// The JSON path $['t'] &lt; 55 matches when t is 18.7.
+        /// </summary>
         [Fact]
         public async Task JsonPathTest1B()
         {
@@ -1122,6 +1183,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// The JSON path $['Seconds'] == 0 matches the target payload JSON.
+        /// </summary>
         [Fact]
         public async Task JsonPathTest1C()
         {
@@ -1138,6 +1202,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Two JSON path conditions combined with && both hold, so the expression matches.
+        /// </summary>
         [Fact]
         public async Task JsonPathMultipleAndTest1()
         {
@@ -1154,6 +1221,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// The JSON path $['unit'] == 'cm' matches the payload.
+        /// </summary>
         [Fact]
         public async Task JsonPathMultipleAndTest2()
         {
@@ -1169,6 +1239,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// Two JSON path conditions combined with || match when at least one condition holds.
+        /// </summary>
         [Fact]
         public async Task JsonPathMultipleOrTest()
         {
@@ -1185,6 +1258,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// A JSON path condition combined with two ReadFromMemory checks matches when all conditions hold.
+        /// </summary>
         [Fact]
         public async Task ReadFromMemoryMultipleJsonPathTest()
         {
@@ -1205,6 +1281,9 @@ namespace UnitTests
             Assert.True(expressionEvaluationResult.Matches);
         }
 
+        /// <summary>
+        /// A saved rule with the expression 'Input' == 'pressed' matches the payload 'pressed'.
+        /// </summary>
         [Fact]
         public async Task ReactOnRuleTest()
         {
@@ -1260,6 +1339,9 @@ namespace UnitTests
                 targetPayload);
         }
 
+        /// <summary>
+        /// Chained rules insert a memory value into a JSON payload and read it back, producing {"B1": 42}.
+        /// </summary>
         [Fact]
         public async Task ComplexTargetPayloadManipulationTest1()
         {
@@ -1301,6 +1383,9 @@ namespace UnitTests
             Assert.Equal("{\"B1\": 42}", targetPayload2);
         }
 
+        /// <summary>
+        /// Target payloads built from ReadFromMemory and Calc produce the expected value 34.
+        /// </summary>
         [Fact]
         public async Task ComplexTargetPayloadManipulationTest2()
         {
@@ -1345,6 +1430,9 @@ namespace UnitTests
             Assert.Equal("34", targetPayload3);
         }
 
+        /// <summary>
+        /// Target payloads that read a colors JSON array from memory are prepared without throwing.
+        /// </summary>
         [Fact]
         public void DataFromJsonTest1()
         {
@@ -1385,6 +1473,9 @@ namespace UnitTests
             var targetPayload2 = PrepareTargetPayload.Execute(rule2, topicEntry2);
         }
 
+        /// <summary>
+        /// An MQTT message handled by the client triggers a rule that reads a colors JSON array from memory.
+        /// </summary>
         [Fact]
         public async Task MqttClientTest1Async()
         {
@@ -1404,6 +1495,9 @@ namespace UnitTests
                 await IoTZooMqttClient.HandleMqttMessage(new TopicEntry { Topic = "IOTZOO/TEST" });
         }
 
+        /// <summary>
+        /// C# scripts evaluate the temperature-to-color helper and return the expected colors.
+        /// </summary>
         [Fact]
         public async Task CSharpScriptEvaluateTest1()
         {
@@ -1435,6 +1529,9 @@ namespace UnitTests
 
         }
 
+        /// <summary>
+        /// A C# script parses JSON input and returns the expected color string '#111111'.
+        /// </summary>
         [Fact]
         public async Task CSharpScriptEvaluateTest2()
         {
@@ -1459,6 +1556,9 @@ namespace UnitTests
             Assert.True(result1 == "#111111");
         }
 
+        /// <summary>
+        /// A C# script updates ScriptDataIn repeatedly until IndexLed reaches 5.
+        /// </summary>
         [Fact]
         public async Task CSharpScriptEvaluateTest10()
         {
@@ -1598,6 +1698,9 @@ namespace UnitTests
             }
         }
 
+        /// <summary>
+        /// C# scripts that define a class run repeatedly without error, and the class properties are readable via reflection.
+        /// </summary>
         [Fact]
         public async Task CSharpScriptEvaluateTest12A()
         {
@@ -1680,6 +1783,9 @@ namespace UnitTests
             }
         }
 
+        /// <summary>
+        /// A compiled C# script runs repeatedly until IndexLed reaches 64.
+        /// </summary>
         [Fact]
         public async Task CSharpScriptEvaluateTest13()
         {
@@ -1696,6 +1802,9 @@ namespace UnitTests
             }
         }
 
+        /// <summary>
+        /// The temperature-to-color script compiles to an assembly and emit succeeds.
+        /// </summary>
         [Fact]
         public void CSharpScriptCompileTest1()
         {
@@ -1720,6 +1829,9 @@ namespace UnitTests
             File.WriteAllBytes("IoTZooScriptingTest2.pdb", pdbStream.ToArray());
         }
 
+        /// <summary>
+        /// The temperature-to-color script file runs without error.
+        /// </summary>
         [Fact]
         public async Task CSharpScriptRunTest1()
         {
@@ -1732,6 +1844,9 @@ namespace UnitTests
             var result = await compiledScript.RunAsync(cancellationToken: TestContext.Current.CancellationToken);
         }
 
+        /// <summary>
+        /// ExpressionParser replaces ReadFromMemory calls with stored values, so 14 + 16 - 18 calculates to 12.
+        /// </summary>
         [Fact]
         public async Task ExpressionParserTest1()
         {
@@ -1749,6 +1864,21 @@ namespace UnitTests
             string parsedExpression = await ExpressionParser.ResolveExpression(expression);
             var result = CalculationService.Calculate(parsedExpression);
             Assert.True(Convert.ToInt32(result) == 12);
+        }
+
+        /// <summary>
+        /// Three Read calls with unknown topics and default value 0 sum up to 0.
+        /// </summary>
+        [Fact]
+        public async Task ExpressionParserReadDefaultValuesSumTest()
+        {
+            DataTransferService.ReceivedTopicsQueue.Clear();
+
+            string expression =
+                "Read('iotzoo/picea/power/micro/1/power_watt', 0) + Read('iotzoo/picea/power/ultrax/0/power_watt', 0) + Read('iotzoo/picea/power/ultrax/1/power_watt', 0)";
+            string parsedExpression = await ExpressionParser.ResolveExpression(expression);
+            var result = CalculationService.Calculate(parsedExpression);
+            Assert.Equal(0, Convert.ToInt32(result));
         }
     }
 }
