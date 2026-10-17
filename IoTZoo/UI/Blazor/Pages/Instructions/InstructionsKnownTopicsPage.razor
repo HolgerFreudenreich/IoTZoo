@@ -8,6 +8,8 @@
 <br />
 <MudText>The system stores the last payload of every known topic. You can read it later with the function Read("&lt;TopicName&gt;").</MudText>
 <br />
+<MudText>Optionally, you can pass a default value as second parameter: Read("&lt;TopicName&gt;", "&lt;DefaultValue&gt;") or Read("&lt;TopicName&gt;", &lt;DefaultValue&gt;). If the topic is not found, the default value is returned.</MudText>
+<br />
 <MudText>When a <MudLink Href="KnownMicrocontrollers">microcontroller</MudLink> with the IOTZOO firmware boots up, it sets up its supported topics automatically. The topics depend on the devices enabled by the #define lines in the firmware (lines that are commented out are disabled).</MudText>
 <br />
 <MudLink Href="Thingstoconnect">Reference of the built-in known topics</MudLink>
