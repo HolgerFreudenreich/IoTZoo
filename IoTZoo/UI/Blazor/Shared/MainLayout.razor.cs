@@ -75,8 +75,8 @@ namespace IotZoo.Shared
             case ScreenMode.SetLocation:
                Title = "Set Location";
                break;
-            case ScreenMode.HueLights:
-               Title = "Philips Hue Lights";
+            case ScreenMode.HueComponents:
+               Title = "Philips Hue Components";
                break;
             case ScreenMode.Projects:
                Title = "Projects";

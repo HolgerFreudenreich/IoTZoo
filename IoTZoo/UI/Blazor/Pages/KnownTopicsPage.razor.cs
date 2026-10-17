@@ -52,15 +52,42 @@ public class KnownTopicsPageBase : PageBase
         }
     }
 
+    [SupplyParameterFromQuery(Name = "search")]
+    public string? Search { get; set; }
+
+    [SupplyParameterFromQuery(Name = "project")]
+    public string? ProjectName { get; set; }
+
+    protected bool SearchTopic(KnownTopic knownTopic)
+    {
+        if (string.IsNullOrEmpty(SearchHelper.SearchString))
+        {
+            return true;
+        }
+        return knownTopic.Topic?.Contains(SearchHelper.SearchString, StringComparison.OrdinalIgnoreCase) == true;
+    }
+
     protected override void OnInitialized()
     {
         DataTransferService.CurrentScreen = ScreenMode.KnownTopics;
+        if (!string.IsNullOrEmpty(Search))
+        {
+            SearchHelper.SearchString = Search;
+        }
         base.OnInitialized();
     }
 
     protected override async Task RefreshData(bool firstRender = false)
     {
         ProjectsCatalog = await ProjectService.LoadProjects();
+        if (!string.IsNullOrEmpty(ProjectName))
+        {
+            var project = ProjectsCatalog.FirstOrDefault(p => p.ProjectName == ProjectName);
+            if (project != null)
+            {
+                DataTransferService.SelectedProject = project;
+            }
+        }
         await base.RefreshData(firstRender);
     }
 
@@ -87,9 +114,6 @@ public class KnownTopicsPageBase : PageBase
         await InvokeAsync(StateHasChanged);
         try
         {
-            KnownTopics = await KnownTopicsService.GetKnownTopicsByProjectName(SelectedProject.ProjectName, null, 100);
-            IsBusy = false;
-            await InvokeAsync(StateHasChanged);
             KnownTopics = await KnownTopicsService.GetKnownTopicsByProjectName(SelectedProject.ProjectName, null);
         }
         finally
