@@ -13,6 +13,7 @@
 namespace IotZoo.Pages;
 
 using Domain.Interfaces.Crud;
+using Domain.Interfaces.MQTT;
 using Domain.Pocos;
 using Domain.Services.Timer;
 using IotZoo.Dialogs;
@@ -46,6 +47,9 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
 
     [Inject]
     public IProjectCrudService ProjectService { get; set; } = null!;
+
+    [Inject]
+    IIoTZooMqttClient IoTZooMqttClient { get; set; } = null!;
 
     protected List<Project> ProjectsCatalog { get; private set; } = new();
 
@@ -310,6 +314,21 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
     protected async Task ClearDataAsync()
     {
         ReceivedTopicsQueue.Clear();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected async Task DeleteRetainedMessageBtnPress(TopicEntry topicEntry)
+    {
+        bool ok = await IoTZooMqttClient.RemoveRetainedMessageFromBroker(topicEntry.FullQualifiedTopic);
+        if (ok)
+        {
+            topicEntry.Retain = false;
+            Snackbar.Add("Retained message deleted.", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Deleting the retained message failed.", Severity.Error);
+        }
         await InvokeAsync(StateHasChanged);
     }
 
