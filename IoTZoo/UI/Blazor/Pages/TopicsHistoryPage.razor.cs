@@ -121,7 +121,7 @@ public class TopicsHistoryPageBase : PageBase
             { nameof(TopicChartDialogBase.Topic), topicHistory.Topic },
             { nameof(TopicChartDialogBase.Entries), entries }
         };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Large, FullWidth = true };
+        var options = new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = true };
         await DialogService.ShowAsync<TopicChartDialog>(topicHistory.Topic, parameters, options);
     }
 }

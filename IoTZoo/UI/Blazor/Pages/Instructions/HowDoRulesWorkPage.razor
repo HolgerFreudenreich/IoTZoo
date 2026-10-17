@@ -5,13 +5,13 @@
 @inherits HowDoRulesWorkPageBase
 
 <br />
-<MudText><b>Rules</b> are at the core of IOTZOO.</MudText>
+<MudText><b>Rules</b> are at the core of IOTZOO. A rule takes a message from one topic and, under certain conditions, publishes a new message to another topic.</MudText>
 <br />
-<MudText><b>Source Topic: </b>Topic which may trigger the Rule dependent on the Expession.</MudText>
+<MudText><b>Source Topic: </b>The topic that the rule listens to. When a message arrives on this topic, the rule checks its expression.</MudText>
 <br />
-<MudText><b>Target Topic: </b>Topic which is published if the rule fires.</MudText>
+<MudText><b>Target Topic: </b>The topic that receives a message when the rule fires.</MudText>
 <br />
-<MudText><b>Expression: </b> Condition that must be met for the rule to be executed. If no condition is specified, the rule is always executed as soon as the corresponding topic is received. You can see the exression as a context based filtering.</MudText>
+<MudText><b>Expression: </b>A condition that must be met before the rule runs. If no expression is set, the rule runs every time a message arrives on the source topic. Think of the expression as a filter that depends on the context.</MudText>
 <br />
 <MudText>The following operators are supported:</MudText>
 <br />
@@ -22,18 +22,18 @@
    <MudText>Example for text comparison: 'Iot' == 'input'.</MudText>
    <MudText>Example for number comparison: 3.14 == input.</MudText>
 </MudStack>
-<MudText>greater than: <b>&gt</b></MudText>
-<MudText>greater than or equal: <b>&gt=</b></MudText>
+<MudText>greater than: <b>&gt;</b></MudText>
+<MudText>greater than or equal: <b>&gt;=</b></MudText>
 <MudText>not the same: <b>&lt;&gt;</b> or <b>!=</b></MudText>
 <MudText>modulo: <b>%</b></MudText>
 <br />
 <MudText>You can also specify an expression in json format instead of working with input.</MudText>
 <br />
 <MudText>{ "Operator": "&lt;", "Value": "70"}</MudText>
-<MudText>{ "Operator": "&lt;=;", "Value": "70"}</MudText>
+<MudText>{ "Operator": "&lt;=", "Value": "70"}</MudText>
 <MudText>{ "Operator": "==", "Value": "70"}</MudText>
 <MudText>{ "Operator": "&gt;", "Value": "70"}</MudText>
-<MudText>{ "Operator": "&gt=", "Value": "70"}</MudText>
+<MudText>{ "Operator": "&gt;=", "Value": "70"}</MudText>
 <MudStack Row="true">
    <MudText>{ "Operator": "&lt;&gt;", "Value": "70"}</MudText><MudText>synonymous { "Operator": "!=", "Value": "70"}</MudText>
 </MudStack>
@@ -49,19 +49,19 @@
 
 <br />
 <br />
-<MudText>The <b>Target Payload</b> of a message can be applied to the expression/condition. In the simplest case, you can use the placeholder <b>input</b> which will be replaced by the payload of the message. The <b>Target Payload</b> is the content of the message.</MudText>
-<MudText>Example: input &lt; 10. The rule is therefore only executed if the payload contains a value &lt; 10, e.g. 8.</MudText>
+<MudText>The payload of the incoming message can be used in the expression. In the simplest case, use the placeholder <b>input</b>, which is replaced by the payload of the message.</MudText>
+<MudText>Example: input &lt; 10. The rule only runs if the payload contains a value below 10, e.g. 8.</MudText>
 <br />
-<MudText>Replacing <b>input</b> with the payload only works if the payload is a simple string or a number. If the payload is a json structure, you dann access the properties in this way:</MudText>
-<MudText>Let us assume, that we have the following Payload in JSON notation: {"tempC": "31.4", "tempF": "597.2"}</MudText>
-<MudText>The expression $['tempC'] > 25 ensures that the TargetTopic is only triggered if the property tempC has a value > 25.</MudText>
-<MudText>In other words: You can use JSONPath to extract a value from JSON.</MudText>
+<MudText>Replacing <b>input</b> only works if the payload is a simple string or a number. If the payload is JSON, access its properties with JSONPath instead:</MudText>
+<MudText>Assume the payload in JSON notation is: {"tempC": "31.4", "tempF": "597.2"}</MudText>
+<MudText>The expression $['tempC'] > 25 ensures that the target topic is only triggered if the property tempC is greater than 25.</MudText>
+<MudText>In other words: JSONPath extracts a value from JSON.</MudText>
 <br />
 <MudLink Href="https://jsonpath.com/">JSONPath Online Evaluator</MudLink>
 <br />
 <br />
-<MudText>You can make the triggering of a Topic dependent on other topics. The Read("&lt;TopicName&gt") function can be used to read the value of a known topic.</MudText>
-<MudText>The expression Read("Button1State") == 1 means that the TargetTopic is only triggered if the Topic Button1State was sent with Payload 1.</MudText>
+<MudText>You can make a rule depend on other topics. The Read("&lt;TopicName&gt;") function reads the last value of a known topic.</MudText>
+<MudText>The expression Read("Button1State") == 1 means that the target topic is only triggered if the topic Button1State last received the payload 1.</MudText>
 <br />
-<MudText>You can also combine serveral validations like input >= 0 && Read("Button1State") == 0</MudText>
+<MudText>You can also combine several conditions, e.g. input >= 0 && Read("Button1State") == 0</MudText>
 <br />
