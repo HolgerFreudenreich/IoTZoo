@@ -49,6 +49,7 @@
    </MudTooltip>
 </MudStack>
 <br />
+<div style="position:relative">
 <MudTable Items="@Microcontrollers"
           Filter="new Func<KnownMicrocontroller, bool>(SearchHelper.Search)"
           FixedHeader="true"
@@ -182,3 +183,7 @@
       </MudTd>
    </RowTemplate>
 </MudTable>
+   <MudOverlay Visible="IsBusy" Absolute="true" DarkBackground="true">
+      <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+   </MudOverlay>
+</div>

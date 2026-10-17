@@ -65,11 +65,7 @@ public class ProjectsPageBase : PageBase
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        base.OnAfterRender(firstRender);
-        if (firstRender)
-        {
-            await LoadData();
-        }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     protected override async Task LoadData()

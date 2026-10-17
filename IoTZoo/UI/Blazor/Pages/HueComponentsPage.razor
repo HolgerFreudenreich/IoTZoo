@@ -36,7 +36,6 @@
          <col style="width:110px;" /> <!-- IsOn Switch-->
          <col style="width:330px;" /> <!-- Brightness Slider-->
          <col style="width:200px;" /> <!-- Color Picker -->
-                   <col /> <!-- Topic -->
       </ColGroup>
       <HeaderContent>
          <MudTh>
@@ -50,7 +49,6 @@
          <MudTh><MudTableSortLabel SortBy="new Func<HueComponent, object?>(x => x.Light.On.IsOn)">Is On?</MudTableSortLabel></MudTh>
          <MudTh><MudTableSortLabel SortBy="new Func<HueComponent, object?>(x => x.Light.Dimming?.Brightness)">Brightness</MudTableSortLabel></MudTh>
          <MudTh>Color</MudTh>
-         <MudTh><MudTableSortLabel SortBy="new Func<HueComponent, object?>(x => x.Topic)">Topic</MudTableSortLabel></MudTh>
       </HeaderContent>
       <RowTemplate>
          <MudTd DataLabel="Id">@context.IdNumeric</MudTd>
@@ -92,7 +90,6 @@
                                                </div>
                                             }
                    </MudTd>
-                   <MudTd DataLabel="Topic">@context.Topic</MudTd>
       </RowTemplate>
    </MudTable>
 }

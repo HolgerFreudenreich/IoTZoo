@@ -128,7 +128,7 @@ public class HueComponentsPageBase : PageBase, IDisposable
    {
       if (firstRender)
       {
-         DataTransferService.CurrentScreen = ScreenMode.HueLights;
+         DataTransferService.CurrentScreen = ScreenMode.HueComponents;
          HueBridgeService.OnLightChanged -= HueBridgeService_OnLightChanged;
          HueBridgeService.OnLightChanged += HueBridgeService_OnLightChanged;
       }

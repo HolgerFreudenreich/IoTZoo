@@ -145,6 +145,8 @@ public class KnownMicrocontrollersPageBase : PageBase, IDisposable
 
     protected override async Task LoadData()
     {
+        IsBusy = true;
+        await InvokeAsync(StateHasChanged);
         try
         {
             if (null == SelectedProject)
@@ -164,7 +166,11 @@ public class KnownMicrocontrollersPageBase : PageBase, IDisposable
         {
             Snackbar.Add(ex.GetBaseException().Message);
         }
-        await InvokeAsync(StateHasChanged);
+        finally
+        {
+            IsBusy = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     public async Task OpenKnownMicrocontrollerEditor()

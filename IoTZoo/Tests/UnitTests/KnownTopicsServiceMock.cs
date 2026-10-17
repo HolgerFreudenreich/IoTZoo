@@ -72,7 +72,7 @@ public class KnownTopicsServiceMock : DataServiceBase, IKnownTopicsCrudService
       return Task.FromResult(result);
    }
 
-   public Task<List<KnownTopic>> GetKnownTopicsByProjectName(string? projectName, List<MessageDirection>? messageDirections)
+   public Task<List<KnownTopic>> GetKnownTopicsByProjectName(string? projectName, List<MessageDirection>? messageDirections, int? limit = null)
    {
       throw new NotImplementedException();
    }
