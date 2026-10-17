@@ -109,50 +109,50 @@
                      <MudText Typo="Typo.h6">@((context.ShowRules == true) ? "Hide Rules" : "Show Rules")</MudText>
                   </TooltipContent>
                </MudTooltip>
-              
-                           <MudTooltip Color="Color.Tertiary">
-                              <ChildContent>
-                                 <MudFab @onclick="@(() => KnownTopicBtnPress(context))"
-                                         Color="Color.Info"
-                                         StartIcon="@Icons.Material.Filled.Topic"
-                                         Size="Size.Small"
-                                         IconSize="Size.Small" />
-                              </ChildContent>
-                              <TooltipContent>
-                                 <MudText Typo="Typo.h6">Known Topic</MudText>
-                              </TooltipContent>
-                           </MudTooltip>
-                            @if (context.Retain)
-                                            {
-                                               <MudTooltip Color="Color.Tertiary">
-                                                  <ChildContent>
-                                                     <MudFab @onclick="@(() => DeleteRetainedMessageBtnPress(context))"
-                                                             Color="Color.Error"
-                                                             StartIcon="@Icons.Material.Filled.Delete"
-                                                             Size="Size.Small"
-                                                             IconSize="Size.Small" />
-                                                  </ChildContent>
-                                                  <TooltipContent>
-                                                     <MudText Typo="Typo.h6">Delete Retained Message</MudText>
-                                                  </TooltipContent>
-                                               </MudTooltip>
-                                            }
-                                                         @if (context.KeepHistory)
+
+               <MudTooltip Color="Color.Tertiary">
+                  <ChildContent>
+                     <MudFab @onclick="@(() => KnownTopicBtnPress(context))"
+                             Color="Color.Info"
+                             StartIcon="@Icons.Material.Filled.Topic"
+                             Size="Size.Small"
+                             IconSize="Size.Small" />
+                  </ChildContent>
+                  <TooltipContent>
+                     <MudText Typo="Typo.h6">Known Topic</MudText>
+                  </TooltipContent>
+               </MudTooltip>
+               @if (context.Retain)
+               {
+                  <MudTooltip Color="Color.Tertiary">
+                     <ChildContent>
+                        <MudFab @onclick="@(() => DeleteRetainedMessageBtnPress(context))"
+                                Color="Color.Error"
+                                StartIcon="@Icons.Material.Filled.Delete"
+                                Size="Size.Small"
+                                IconSize="Size.Small" />
+                     </ChildContent>
+                     <TooltipContent>
+                        <MudText Typo="Typo.h6">Delete Retained Message</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+               }
+               @if (context.KeepHistory)
                {
                   <MudTooltip Color="Color.Tertiary">
                      <ChildContent>
                         <MudFab @onclick="@(() => TopicHistoryBtnPress(context))"
-                                Color="Color.Secondary"
+                                Color="Color.Tertiary"
                                 StartIcon="@Icons.Material.Filled.History"
                                 Size="Size.Small"
                                 IconSize="Size.Small" />
                      </ChildContent>
                      <TooltipContent>
-                                    <MudText Typo="Typo.h6">Topic History</MudText>
-                                 </TooltipContent>
-                              </MudTooltip>
-                           }
-                        </MudStack>
+                        <MudText Typo="Typo.h6">Topic History</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+               }
+            </MudStack>
          </MudTd>
          @*       <MudTd DataLabel="IsKnown">@context.IsKnown</MudTd>
       <MudTd DataLabel="Description">@context.Description</MudTd> *@

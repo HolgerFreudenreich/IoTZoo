@@ -32,6 +32,8 @@ public class TopicChartDialogBase : ComponentBase
 
    protected string[] ChartLabels { get; private set; } = Array.Empty<string>();
 
+   protected string[] XAxisLabels => ChartLabels.Length <= 15 ? ChartLabels : Array.Empty<string>();
+
    private DateTime? _startDate;
 
    private DateTime? _endDate;
@@ -118,14 +120,7 @@ public class TopicChartDialogBase : ComponentBase
       }
    }
 
-   protected void ShiftDays(int days)
-   {
-      _startDate = StartDate?.AddDays(days);
-      _endDate = EndDate?.AddDays(days);
-      BuildChart();
-   }
-
-   protected void ShiftTime(TimeSpan offset)
+   protected void ShiftStart(TimeSpan offset)
    {
       if (StartDate is not null)
       {
@@ -133,6 +128,11 @@ public class TopicChartDialogBase : ComponentBase
          _startDate = start.Date;
          _startTime = start.TimeOfDay;
       }
+      BuildChart();
+   }
+
+   protected void ShiftEnd(TimeSpan offset)
+   {
       if (EndDate is not null)
       {
          var end = EndDate.Value.Date + (EndTime ?? TimeSpan.Zero) + offset;
