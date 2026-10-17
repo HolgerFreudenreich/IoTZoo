@@ -14,6 +14,13 @@
               Color="Color.Primary">
       Add Project
    </MudButton>
+   <MudButton OnClick="OpenProjectImportDialog"
+              Style="height: 40px"
+              StartIcon="@Icons.Material.Filled.Output"
+              Variant="Variant.Filled"
+              Color="Color.Tertiary">
+      Import Project
+   </MudButton>
    <MudSpacer></MudSpacer>
    <MudTooltip Color="Color.Tertiary">
       <ChildContent>
@@ -25,7 +32,7 @@
          <MudText Typo="Typo.h6">Refresh</MudText>
       </TooltipContent>
    </MudTooltip>
-</MudStack> 
+</MudStack>
 <br />
 <br />
 <MudTable Items="@Projects"
@@ -138,6 +145,20 @@
                </ChildContent>
                <TooltipContent>
                   <MudText Typo="Typo.h6">Overview</MudText>
+               </TooltipContent>
+            </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                  <MudFab @onclick="@(() => ExportProject(@context))"
+                          Style="Margin: 1px;"
+                          Color="Color.Info"
+                          StartIcon="@Icons.Material.Filled.Download"
+                          Size="Size.Small"
+                          IconSize="Size.Small" />
+               </ChildContent>
+               <TooltipContent>
+                  <MudText Typo="Typo.h6">Export to Clipboard (JSON)</MudText>
                </TooltipContent>
             </MudTooltip>
          </div>

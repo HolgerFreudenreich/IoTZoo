@@ -122,8 +122,8 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
     {
         try
         {
-            string sql = $"delete from {this.FullQualifiedTableName} where topic = @Topic;";
-            int rowsProcessed = await Db.ExecuteAsync(sql, new { Topic = knownTopic.Topic });
+            string sql = $"delete from {this.FullQualifiedTableName} where known_topic_id = @KnownTopicId;";
+            int rowsProcessed = await Db.ExecuteAsync(sql, new { knownTopic.KnownTopicId });
         }
         catch (Exception ex)
         {

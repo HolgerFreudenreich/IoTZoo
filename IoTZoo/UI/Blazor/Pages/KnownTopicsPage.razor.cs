@@ -172,7 +172,7 @@ public class KnownTopicsPageBase : PageBase
 
     protected void ShowTopicHistory(KnownTopic knownTopic)
     {
-        NavigationManager.NavigateTo("TopicsHistory");
+        NavigationManager.NavigateTo($"TopicsHistory?project={Uri.EscapeDataString(DataTransferService.SelectedProject?.ProjectName ?? string.Empty)}&search={Uri.EscapeDataString(knownTopic.Topic)}");
     }
 
 }

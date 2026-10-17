@@ -6,52 +6,87 @@
    </TitleContent>
    <DialogContent>
       <MudStack Row="true">
-         <MudButton Variant="Variant.Outlined"
-                    StartIcon="@Icons.Material.Filled.ArrowBack"
-                    OnClick="@(() => ShiftTime(TimeSpan.FromMinutes(-1)))">
-            -1 Minute
-         </MudButton>
-         <MudButton Variant="Variant.Outlined"
-                    StartIcon="@Icons.Material.Filled.ArrowBack"
-                    OnClick="@(() => ShiftTime(TimeSpan.FromHours(-1)))">
-            -1 Hour
-         </MudButton>
-         <MudButton Variant="Variant.Outlined"
-                    StartIcon="@Icons.Material.Filled.ArrowBack"
-                    OnClick="@(() => ShiftDays(-1))">
-            -1 Day
-         </MudButton>
-         <MudDatePicker Label="Start date"
-                        @bind-Date="StartDate"
-                        Editable="true" />
-         <MudTimePicker Label="Start time"
-                        @bind-Time="StartTime" />
-         <MudDatePicker Label="End date"
-                        @bind-Date="EndDate"
-                        Editable="true" />
-         <MudTimePicker Label="End time"
-                        @bind-Time="EndTime" />
+         <MudStack>
+            <MudDatePicker Label="Start date"
+                           @bind-Date="StartDate"
+                           Editable="true" />
+            <MudTimePicker Label="Start time"
+                           @bind-Time="StartTime" />
+            <MudButton Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                       OnClick="@(() => ShiftStart(TimeSpan.FromDays(-1)))">
+               -1 Day
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                       OnClick="@(() => ShiftStart(TimeSpan.FromHours(-1)))">
+               -1 Hour
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                       OnClick="@(() => ShiftStart(TimeSpan.FromMinutes(-1)))">
+               -1 Minute
+            </MudButton>
             <MudButton Variant="Variant.Outlined"
                        EndIcon="@Icons.Material.Filled.ArrowForward"
-                       OnClick="@(() => ShiftDays(1))">
+                       OnClick="@(() => ShiftStart(TimeSpan.FromDays(1)))">
                +1 Day
             </MudButton>
             <MudButton Variant="Variant.Outlined"
                        EndIcon="@Icons.Material.Filled.ArrowForward"
-                       OnClick="@(() => ShiftTime(TimeSpan.FromHours(1)))">
+                       OnClick="@(() => ShiftStart(TimeSpan.FromHours(1)))">
                +1 Hour
             </MudButton>
             <MudButton Variant="Variant.Outlined"
                        EndIcon="@Icons.Material.Filled.ArrowForward"
-                       OnClick="@(() => ShiftTime(TimeSpan.FromMinutes(1)))">
+                       OnClick="@(() => ShiftStart(TimeSpan.FromMinutes(1)))">
                +1 Minute
             </MudButton>
          </MudStack>
+         <MudStack>
+            <MudDatePicker Label="End date"
+                           @bind-Date="EndDate"
+                           Editable="true" />
+            <MudTimePicker Label="End time"
+                           @bind-Time="EndTime" />
+            <MudButton Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                       OnClick="@(() => ShiftEnd(TimeSpan.FromDays(-1)))">
+               -1 Day
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                       OnClick="@(() => ShiftEnd(TimeSpan.FromHours(-1)))">
+               -1 Hour
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                       OnClick="@(() => ShiftEnd(TimeSpan.FromMinutes(-1)))">
+               -1 Minute
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       EndIcon="@Icons.Material.Filled.ArrowForward"
+                       OnClick="@(() => ShiftEnd(TimeSpan.FromDays(1)))">
+               +1 Day
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       EndIcon="@Icons.Material.Filled.ArrowForward"
+                       OnClick="@(() => ShiftEnd(TimeSpan.FromHours(1)))">
+               +1 Hour
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       EndIcon="@Icons.Material.Filled.ArrowForward"
+                       OnClick="@(() => ShiftEnd(TimeSpan.FromMinutes(1)))">
+               +1 Minute
+            </MudButton>
+         </MudStack>
+      </MudStack>
       @if (Series.Count > 0)
       {
          <MudChart ChartType="ChartType.Line"
                    ChartSeries="@Series"
-                   ChartLabels="@ChartLabels"
+                   ChartLabels="@XAxisLabels"
+                   MatchBoundsToSize="true"
                    Width="100%"
                    Height="400px" />
       }
