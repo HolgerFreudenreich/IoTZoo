@@ -26,6 +26,17 @@
 <br />
 <MudText Typo="Typo.h5">Step 2 Copy the source code to the Raspberry Pi</MudText>
 <br />
+<MudText>If the iotzoo container is already running, stop and delete it.</MudText>
+<MudStack Row="true">
+   <MudText>docker stop iotzoo 2>/dev/null; docker rm iotzoo 2>/dev/null; docker rmi iotzoo:latest 2>/dev/null;</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("docker stop iotzoo 2>/dev/null; docker rm iotzoo 2>/dev/null; docker rmi iotzoo:latest 2>/dev/null;"))"
+           Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.ContentCopy"
+           Size="Size.Small"
+           IconSize="Size.Small" />
+</MudStack>
+
+<br />
 <MudText>A convinient method is to do this with WinSCP.</MudText>
 <br />
 <br />
@@ -85,7 +96,7 @@
 <br>
 <MudStack Row="true">
    <MudText>Click here if you want all commands from Step 3 and Step 4 summarized</MudText>
-   <MudFab @onclick="@(() => CopyToClipboard("docker stop iotzoo 2>/dev/null; docker rm iotzoo 2>/dev/null; docker rmi iotzoo:latest 2>/dev/null; docker build --force-rm -f ./UI/Blazor/Dockerfile -t iotzoo .; docker save iotzoo:latest -o iotzoo.tar; docker load -i iotzoo.tar; docker run -e TZ=Europe/Berlin -p 8085:8080 -p 1883:1883 -d --restart always --name iotzoo iotzoo:latest"))"
+   <MudFab @onclick="@(() => CopyToClipboard("docker build --force-rm -f ./UI/Blazor/Dockerfile -t iotzoo .; docker save iotzoo:latest -o iotzoo.tar; docker load -i iotzoo.tar; docker run -e TZ=Europe/Berlin -p 8085:8080 -p 1883:1883 -d --restart always --name iotzoo iotzoo:latest"))"
            Color="Color.Success"
            StartIcon="@Icons.Material.Filled.ContentCopy"
            Size="Size.Large"
