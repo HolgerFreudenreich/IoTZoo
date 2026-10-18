@@ -21,10 +21,17 @@
    </div>
    <MudButton OnClick="Delete"
               Style="height: 40px"
-              StartIcon="@Icons.Material.Filled.Add"
+              StartIcon="@Icons.Material.Filled.DeleteForever"
               Variant="Variant.Filled"
               Color="Color.Error">
       Delete all
+   </MudButton>
+   <MudButton OnClick="OpenDeleteDialog"
+              Style="height: 40px"
+              StartIcon="@Icons.Material.Filled.Delete"
+              Variant="Variant.Filled"
+              Color="Color.Warning">
+      Delete
    </MudButton>
    <MudSpacer></MudSpacer>
    <MudTooltip Color="Color.Tertiary">

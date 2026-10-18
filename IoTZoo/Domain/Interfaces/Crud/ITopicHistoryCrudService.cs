@@ -23,4 +23,6 @@ public interface ITopicHistoryCrudService
    Task DeleteAll();
 
    Task DeleteTopicHistoryEntry(TopicHistory topicHistory);
+
+   Task DeleteTopicHistoryEntries(string? topic, DateTime from, DateTime to);
 }
