@@ -113,6 +113,23 @@ public class TopicsHistoryPageBase : PageBase
         TopicHistoryService.DeleteTopicHistoryEntry(topicHistory);
     }
 
+    protected async Task OpenDeleteDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            { nameof(DeleteFromTopicHistoryDialogBase.Topics), TopicHistoryList.Select(x => x.Topic).Distinct().OrderBy(x => x).ToList() }
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<DeleteFromTopicHistoryDialog>("Delete from topic history", parameters, options);
+        var result = await dialog.Result;
+        if (result == null || result.Canceled || result.Data is not DeleteFromTopicHistoryDialogBase.DeleteRange range)
+        {
+            return;
+        }
+        await TopicHistoryService.DeleteTopicHistoryEntries(range.Topic, range.From, range.To);
+        await LoadData();
+    }
+
     protected async Task ShowTopicChart(TopicHistory topicHistory)
     {
         var entries = TopicHistoryList.Where(x => x.Topic == topicHistory.Topic).ToList();
