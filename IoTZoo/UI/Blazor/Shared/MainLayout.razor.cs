@@ -81,6 +81,9 @@ namespace IotZoo.Shared
             case ScreenMode.Projects:
                Title = "Projects";
                break;
+            case ScreenMode.Dashboards:
+               Title = "Dashboards";
+               break;
             case ScreenMode.Components:
                Title = "Components";
                break;
@@ -117,7 +120,10 @@ namespace IotZoo.Shared
             case ScreenMode.InstructionsKnownTopics:
                Title = "What is a Topic?";
                break;
-            case ScreenMode.Scripts:
+            case ScreenMode.InstructionsDashboard:
+                            Title = "How do Dashboards work?";
+                            break;
+                         case ScreenMode.Scripts:
                Title = "Scripts";
                break;
             case ScreenMode.ThingsToConnect:

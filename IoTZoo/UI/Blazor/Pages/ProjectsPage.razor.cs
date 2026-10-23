@@ -57,6 +57,12 @@ public class ProjectsPageBase : PageBase
     [Inject]
     ICronService CronService { get; set; } = null!;
 
+    [Inject]
+    public IDashboardCrudService DashboardService { get; set; } = null!;
+
+    [Inject]
+    public IDashboardItemsCrudService DashboardItemsService { get; set; } = null!;
+
     protected List<Project>? Projects
     {
         get;
@@ -66,7 +72,14 @@ public class ProjectsPageBase : PageBase
     public sealed record ProjectExport(Project Project,
                                        List<KnownTopic>? KnownTopics,
                                        List<Rule>? Rules,
-                                       List<KnownMicrocontroller>? KnownMicrocontrollers);
+                                       List<KnownMicrocontroller>? KnownMicrocontrollers,
+                                       List<DashboardExport>? Dashboards = null);
+
+    public sealed record DashboardExport(Dashboard Dashboard,
+                                         List<DashboardItemExport> Items);
+
+    public sealed record DashboardItemExport(DashboardItem Item,
+                                             string TopicName);
 
     protected override void OnInitialized()
     {
@@ -172,7 +185,8 @@ public class ProjectsPageBase : PageBase
                 project,
                 await KnownTopicsService.GetKnownTopicsByProjectName(project.ProjectName, null),
                 await RulesService.GetRulesByProject(project) ?? new List<Rule>(),
-                await MicrocontrollerDatabaseService.GetMicrocontrollers(project));
+                await MicrocontrollerDatabaseService.GetMicrocontrollers(project),
+                await GetDashboardExports(project));
 
             var serializerOptions = new JsonSerializerOptions
             {
@@ -188,6 +202,29 @@ public class ProjectsPageBase : PageBase
             Logger.LogError(exception, $"Export of project '{project.ProjectName}' failed!");
             Snackbar.Add($"Exporting project to clipboard failed: {exception.GetBaseException().Message}", Severity.Error);
         }
+    }
+
+    private async Task<List<DashboardExport>> GetDashboardExports(Project project)
+    {
+        var knownTopics = await KnownTopicsService.GetKnownTopicsByProjectName(project.ProjectName, null);
+        var topicNames = knownTopics.ToDictionary(t => t.KnownTopicId, t => t.Topic);
+        var dashboards = (await DashboardService.GetDashboards())
+            .Where(d => d.ProjectId == project.ProjectId)
+            .OrderBy(d => d.IndexInProject)
+            .ToList();
+
+        var result = new List<DashboardExport>();
+        foreach (var dashboard in dashboards)
+        {
+            var items = (await DashboardItemsService.GetDashboardItemsByDashboardId(dashboard.DashboardId))
+                .OrderBy(item => item.IndexInDashboard)
+                .Where(item => topicNames.ContainsKey(item.KnownTopicId))
+                .Select(item => new DashboardItemExport(item, topicNames[item.KnownTopicId]))
+                .ToList();
+            result.Add(new DashboardExport(dashboard, items));
+        }
+
+        return result;
     }
 
     protected async Task OpenProjectImportDialog()
@@ -302,6 +339,55 @@ public class ProjectsPageBase : PageBase
         {
             microcontroller.ProjectName = projectName;
             await MicrocontrollerDatabaseService.Save(microcontroller, false);
+        }
+
+        if (export.Dashboards != null)
+        {
+            int importedProjectId = importedProject.ProjectId;
+            List<Dashboard> existingDashboards = (await DashboardService.GetDashboards())
+                .Where(d => d.ProjectId == importedProjectId)
+                .ToList();
+
+            foreach (DashboardExport dashboardExport in export.Dashboards)
+            {
+                Dashboard dashboard = dashboardExport.Dashboard;
+                dashboard.ProjectId = importedProjectId;
+
+                int dashboardId;
+                Dashboard? existingDashboard = existingDashboards.FirstOrDefault(d => d.DashboardName == dashboard.DashboardName);
+                if (existingDashboard != null)
+                {
+                    dashboard.DashboardId = existingDashboard.DashboardId;
+                    await DashboardService.Update(dashboard);
+                    dashboardId = dashboard.DashboardId;
+
+                    foreach (DashboardItem existingItem in await DashboardItemsService.GetDashboardItemsByDashboardId(dashboardId))
+                    {
+                        await DashboardItemsService.Delete(existingItem);
+                    }
+                }
+                else
+                {
+                    dashboard.DashboardId = 0;
+                    dashboardId = await DashboardService.Insert(dashboard);
+                }
+
+                foreach (DashboardItemExport itemExport in dashboardExport.Items)
+                {
+                    KnownTopic? knownTopic = await KnownTopicsService.GetKnownTopicByTopicName(projectName, itemExport.TopicName);
+                    if (knownTopic == null)
+                    {
+                        continue;
+                    }
+
+                    await DashboardItemsService.Insert(new DashboardItem
+                    {
+                        DashboardId = dashboardId,
+                        KnownTopicId = knownTopic.KnownTopicId,
+                        IndexInDashboard = itemExport.Item.IndexInDashboard
+                    });
+                }
+            }
         }
 
         Snackbar.Add($"The project '{projectName}' is imported!", Severity.Success);

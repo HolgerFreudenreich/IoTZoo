@@ -1,0 +1,37 @@
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">Clone Dashboard</MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudTextField @bind-Value="DashboardName"
+                    MaxLength="100"
+                    Required="true"
+                    Immediate="true"
+                    Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.Dashboard"
+                    Label="New Dashboard Name"
+                    Variant="Variant.Text"
+                    Margin="Margin.Normal" />
+   </DialogContent>
+   <DialogActions>
+      <MudButton OnClick="Cancel">Cancel</MudButton>
+      <MudButton Variant="Variant.Filled"
+                 StartIcon="@Icons.Material.Filled.ContentCopy"
+                 Color="Color.Success"
+                 Size="Size.Small"
+                 Disabled="string.IsNullOrWhiteSpace(DashboardName)"
+                 OnClick="Confirm">Clone</MudButton>
+   </DialogActions>
+</MudDialog>
+
+@code {
+   [CascadingParameter]
+   private IMudDialogInstance MudDialog { get; set; } = null!;
+
+   [Parameter]
+   public string DashboardName { get; set; } = string.Empty;
+
+   private void Cancel() => MudDialog.Cancel();
+
+   private void Confirm() => MudDialog.Close(DialogResult.Ok(DashboardName.Trim()));
+}

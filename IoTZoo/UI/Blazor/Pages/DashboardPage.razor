@@ -1,0 +1,21 @@
+@inherits DashboardPageBase
+@using IotZoo.Components
+
+<MudStack Class="d-flex flex-column gap-2">
+   @for (var index = 0; index < TopicItems.Count; index++)
+   {
+      var currentIndex = index;
+      var item = TopicItems[currentIndex];
+      <MudStack Row="true" AlignItems="AlignItems.Center">
+         <TopicComponent Topic="@item.Topic" Message="@item.Message" DateOfReceipt="@item.DateOfReceipt" DateTimeFormat="@DateTimeFormat" OnDelete="OnDelete" />
+         <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
+                        Size="Size.Small"
+                        Disabled="@(currentIndex == 0)"
+                        OnClick="() => MoveTopic(currentIndex, currentIndex - 1)" />
+         <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward"
+                        Size="Size.Small"
+                        Disabled="@(currentIndex == TopicItems.Count - 1)"
+                        OnClick="() => MoveTopic(currentIndex, currentIndex + 1)" />
+      </MudStack>
+   }
+</MudStack>

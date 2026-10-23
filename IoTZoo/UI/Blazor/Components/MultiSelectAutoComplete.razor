@@ -1,0 +1,46 @@
+﻿@typeparam T
+
+<div style="width: 100%;">
+
+   <MudAutocomplete T="@T"
+                    @ref="autoComplete"
+                    Value="theValue"
+                    ValueChanged="OnValueChangedAsync"
+                    TransformOrigin="Origin.TopCenter"
+                    AnchorOrigin="Origin.BottomCenter"
+                    Variant="Variant.Text"
+                    SearchFunc="SearchWrapper"
+                    ShowProgressIndicator="false"
+                    Label="@Label"
+                    Required="false"
+                    Clearable="true"
+                    Immediate="true"
+                    CoerceValue="true"
+                    OpenOnFocus="false"
+                    Margin="Margin.Dense"
+                    ToStringFunc="@GetNameFunc" />
+
+   <MudChipSet AllClosable="true" OnClose="@((MudChip<T> chip) => RemoveValue(chip))">
+
+      @if (Required && !selectedValues.Any())
+      {
+         <MudText Color="Color.Error" Typo="Typo.subtitle2">
+            @RequiredError
+         </MudText>
+      }
+      else
+      {
+         @foreach (var val in selectedValues)
+         {
+            <MudChip T="T"
+                     @key="GetIDFunc(val)"
+                     Value="val"
+                     Size="Size.Large"
+                     Color="Color.Primary">
+               @GetNameFunc(val)
+            </MudChip>
+         }
+      }
+   </MudChipSet>
+
+</div>

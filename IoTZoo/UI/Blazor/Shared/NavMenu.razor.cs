@@ -57,6 +57,7 @@ public class NavMenuBase : ComponentBase, IDisposable
         {
             "TOPICSHISTORY" => "Topics History",
             "KNOWNTOPICS" => "Known Topics",
+            "DASHBOARDS" => "Dashboards",
             _ => null
         };
 
@@ -121,6 +122,9 @@ public class NavMenuBase : ComponentBase, IDisposable
 
                     case "WHAT IS A TOPIC?":
                         NavigationManager.NavigateTo("INSTRUCTIONSKNOWNTOPICS");
+                        break;
+                    case "HOW DO DASHBOARDS WORK?":
+                        NavigationManager.NavigateTo("INSTRUCTIONSDASHBOARD");
                         break;
                     case "PUBLISH TOPIC":
                         JsRuntime.InvokeVoidAsync("openNewTab", "PublishTopic");

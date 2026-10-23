@@ -1,0 +1,25 @@
+<MudStack Row="true">
+   <MudText Typo="Typo.body1">@Topic</MudText>
+   <MudText Typo="Typo.body1">@Message</MudText>
+   @(DateOfReceipt?.ToLocalTime().ToString($"{DateTimeFormat}.fff"))
+   <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                  Size="Size.Small"
+                  OnClick="() => OnDelete.InvokeAsync(Topic)" />
+</MudStack>
+
+@code {
+   [Parameter]
+   public string Topic { get; set; } = string.Empty;
+
+   [Parameter]
+   public string Message { get; set; } = string.Empty;
+
+   [Parameter]
+   public DateTime? DateOfReceipt { get; set; }
+
+   [Parameter]
+   public string DateTimeFormat { get; set; } = string.Empty;
+
+   [Parameter]
+   public EventCallback<string> OnDelete { get; set; }
+}

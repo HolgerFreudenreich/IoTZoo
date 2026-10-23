@@ -36,6 +36,11 @@ public class KnownTopicsServiceMock : DataServiceBase, IKnownTopicsCrudService
       return Task.FromResult(knownTopics);
    }
 
+   public Task<KnownTopic?> GetKnownTopicById(int knownTopicId)
+   {
+      return Task.FromResult(knownTopics.FirstOrDefault(knownTopic => knownTopic.KnownTopicId == knownTopicId));
+   }
+
    public Task Delete(KnownTopic knownTopic)
    {
       return Task.FromResult(knownTopics.Remove(knownTopic));
