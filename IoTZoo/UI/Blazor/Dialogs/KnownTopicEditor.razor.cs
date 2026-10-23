@@ -38,6 +38,14 @@ public class KnownTopicEditorBase : EditorBase
       }
 
       HashCode = GetHashCodeBase64(KnownTopic);
+
+      Dashboards = await DashboardService.GetDashboards();
+      if (KnownTopic.KnownTopicId > 0)
+      {
+         var dashboardItems = await DashboardItemsService.GetDashboardItemsByKnownTopicId(KnownTopic.KnownTopicId);
+         SelectedDashboards = Dashboards.Where(dashboard => dashboardItems.Any(item => item.DashboardId == dashboard.DashboardId)).ToList();
+      }
+
       await base.OnInitializedAsync();
    }
 
@@ -48,6 +56,24 @@ public class KnownTopicEditorBase : EditorBase
       set;
    } = null!;
 
+   [Inject]
+   private IDashboardCrudService DashboardService
+   {
+      get;
+      set;
+   } = null!;
+
+   [Inject]
+   private IDashboardItemsCrudService DashboardItemsService
+   {
+      get;
+      set;
+   } = null!;
+
+   protected List<Dashboard> Dashboards { get; set; } = new();
+
+   protected List<Dashboard> SelectedDashboards { get; set; } = new();
+
    public KnownTopicEditorBase()
    {
    }
@@ -55,6 +81,14 @@ public class KnownTopicEditorBase : EditorBase
    protected override async Task Cancel()
    {
       await Cancel(KnownTopic);
+   }
+
+   protected Task<IEnumerable<Dashboard>> SearchDashboards(string value, CancellationToken token)
+   {
+      IEnumerable<Dashboard> result = string.IsNullOrWhiteSpace(value)
+         ? Dashboards
+         : Dashboards.Where(dashboard => dashboard.DashboardName.Contains(value, StringComparison.OrdinalIgnoreCase));
+      return Task.FromResult(result);
    }
 
    private async Task<bool> ValidateFieldsAsync()
@@ -104,6 +138,7 @@ public class KnownTopicEditorBase : EditorBase
          }
 
          await KnownTopicsService.Save(KnownTopic);
+         await DashboardItemsService.SaveDashboardsForKnownTopic(KnownTopic.KnownTopicId, SelectedDashboards.Select(dashboard => dashboard.DashboardId));
          MudDialog.Close(DialogResult.Ok(KnownTopic));
       }
       catch (Exception ex)

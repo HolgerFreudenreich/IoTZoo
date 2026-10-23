@@ -34,6 +34,8 @@ public interface IKnownTopicsCrudService
 
    public Task<List<KnownTopic>> GetKnownTopics();
 
+   public Task<KnownTopic?> GetKnownTopicById(int knownTopicId);
+
    Task<KnownTopic?> LoadByTopicName(string topic);
 
    Task<string?> LoadProjectNameByTopicName(string topic);

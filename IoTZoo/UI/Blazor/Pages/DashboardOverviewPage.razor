@@ -1,0 +1,87 @@
+@page "/Dashboards"
+
+@using Domain.Pocos
+
+@inherits DashboardOverviewPageBase
+
+<MudStack Row="true">
+   <div style="width:250px">
+      <MudSelect T="Project"
+                 Margin="Margin.Dense"
+                 Label="Project"
+                 @bind-Value="SelectedProject"
+                 AnchorOrigin="Origin.BottomCenter"
+                 Variant="Variant.Text"
+                 Clearable="true">
+         @foreach (var project in this.ProjectsCatalog)
+         {
+            <MudSelectItem Value="@project">@project?.ProjectName</MudSelectItem>
+         }
+      </MudSelect>
+   </div>
+   @if (SelectedProject == null)
+   {
+      <MudAlert Severity="Severity.Info">Please select a project to manage dashboards.</MudAlert>
+   }
+   else
+   {
+      <MudButton Variant="Variant.Filled"
+                 StartIcon="@Icons.Material.Filled.Add"
+                 Color="Color.Primary"
+                 Size="Size.Small"
+                 OnClick="OpenDashboardEditor">Add Dashboard</MudButton>
+   }
+</MudStack>
+
+@if (SelectedProject != null)
+{
+   <MudTabs Elevation="2"
+            Rounded="true"
+            ApplyEffectsToContainer="true"
+            TabPanelsClass="pa-6">
+      @foreach (var dashboard in Dashboards)
+      {
+         <MudTabPanel Text="@dashboard.DashboardName">
+            <DashboardPage @key="dashboard.DashboardName"
+                           Topics="DashboardTopics.GetValueOrDefault(dashboard.DashboardId, [])"
+                           Messages="Messages.ToDictionary(m => m.Key, m => m.Value)"
+                           MessageReceipts="MessageReceipts.ToDictionary(m => m.Key, m => m.Value)"
+                           DateTimeFormat="@DataTransferService.DateTimeFormat"
+                           OnDelete="topic => RemoveTopicFromDashboard(dashboard, topic)"
+                           OnTopicReordered="args => ReorderTopicInDashboard(dashboard, args.SourceIndex, args.TargetIndex)" />
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-4">
+               <MudButton Variant="Variant.Outlined"
+                          StartIcon="@Icons.Material.Filled.Add"
+                          Color="Color.Primary"
+                          Size="Size.Small"
+                          OnClick="() => AddTopicToDashboard(dashboard)">Add Topic</MudButton>
+               <MudButton Variant="Variant.Outlined"
+                          StartIcon="@Icons.Material.Filled.Edit"
+                          Color="Color.Default"
+                          Size="Size.Small"
+                          OnClick="() => RenameDashboard(dashboard)">Rename</MudButton>
+               <MudButton Variant="Variant.Outlined"
+                          StartIcon="@Icons.Material.Filled.ArrowBack"
+                          Color="Color.Default"
+                          Size="Size.Small"
+                          OnClick="() => MoveDashboard(dashboard, -1)">Move Left</MudButton>
+               <MudButton Variant="Variant.Outlined"
+                          StartIcon="@Icons.Material.Filled.ArrowForward"
+                          Color="Color.Default"
+                          Size="Size.Small"
+                          OnClick="() => MoveDashboard(dashboard, 1)">Move Right</MudButton>
+               <MudButton Variant="Variant.Outlined"
+                          StartIcon="@Icons.Material.Filled.ContentCopy"
+                          Color="Color.Default"
+                          Size="Size.Small"
+                          OnClick="() => CloneDashboard(dashboard)">Clone</MudButton>
+               <MudButton Variant="Variant.Outlined"
+                          StartIcon="@Icons.Material.Filled.Delete"
+                          Color="Color.Error"
+                          Size="Size.Small"
+                          OnClick="() => DeleteDashboard(dashboard)">Delete Dashboard</MudButton>
+            </MudStack>
+         </MudTabPanel>
+      }
+   </MudTabs>
+}

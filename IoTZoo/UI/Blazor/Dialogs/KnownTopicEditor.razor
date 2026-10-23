@@ -63,7 +63,26 @@
                                 Margin="Margin.Normal"
                                 Lines="3">
                   </MudTextField>
+                  <MudSelect T="MessageDirection"
+                             @bind-Value="@KnownTopic.MessageDirection"
+                             Label="Message direction"
+                             Variant="Variant.Text"
+                             Margin="Margin.Normal"
+                             Adornment="Adornment.Start"
+                             AdornmentIcon="@Icons.Material.Filled.SwapHoriz">
+                     <MudSelectItem T="MessageDirection" Value="MessageDirection.Inbound">Inbound</MudSelectItem>
+                     <MudSelectItem T="MessageDirection" Value="MessageDirection.Outbound">Outbound</MudSelectItem>
+                     <MudSelectItem T="MessageDirection" Value="MessageDirection.Internal">Internal</MudSelectItem>
+                  </MudSelect>
                   <MudSwitch @bind-Value="@KnownTopic.KeepHistory" Label="Keep history" />
+                  <MultiSelectAutoComplete T="Dashboard"
+                                           Values="SelectedDashboards"
+                                           ValuesChanged="@(values => SelectedDashboards = values)"
+                                           SearchFunc="SearchDashboards"
+                                           GetNameFunc="@(dashboard => dashboard?.DashboardName)"
+                                           GetIDFunc="@(dashboard => dashboard.DashboardId)"
+                                           Label="Dashboards" />
+
                </MudFocusTrap>
                <br />
             </MudCardContent>

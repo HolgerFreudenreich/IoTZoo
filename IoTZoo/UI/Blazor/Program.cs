@@ -79,6 +79,8 @@ builder.Services.AddTransient<IMicrocontrollerService, MicrocontrollerService>()
 builder.Services.AddSingleton<IKnownTopicsCrudService, KnownTopicsDatabaseService>();
 builder.Services.AddSingleton<IScriptCrudService, ScriptDatabaseService>();
 builder.Services.AddSingleton<IScriptService, CSharpScriptService>();
+builder.Services.AddSingleton<IDashboardCrudService, DashboardDatabaseService>();
+builder.Services.AddSingleton<IDashboardItemsCrudService, DashboardItemsDatabaseService>();
 
 builder.Services.AddSingleton<IComponentService, ComponentDatabaseService>();
 builder.Services.AddSingleton<IStorageBinCrudService, StorageBinService>();

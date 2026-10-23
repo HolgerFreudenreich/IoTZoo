@@ -29,11 +29,11 @@
     <PackageReference Include="MQTTnet" Version="5.2.0.1603" />
     <PackageReference Include="MQTTnet.AspNetCore" Version="5.2.0.1603" />
     <PackageReference Include="MudBlazor" Version="9.11.0" />
-    <PackageReference Include="NAudio" Version="3.2.0" />
+    <PackageReference Include="NAudio" Version="3.3.0" />
     <PackageReference Include="Npgsql" Version="10.0.3" />
-    <PackageReference Include="Quartz" Version="4.5.1" />
-    <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="4.5.1" />
-    <PackageReference Include="SQLite" Version="3.54.0" />
+    <PackageReference Include="Quartz" Version="4.6.0" />
+    <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="4.6.0" />
+    <PackageReference Include="SQLite" Version="3.54.1" />
     <PackageReference Include="Whisper.net" Version="1.9.1" />
     <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
   </ItemGroup>

@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
--- table 001 topic_prefix
+-- table 001 known_topic_prefix
 ---------------------------------------------------------------------------------------------------
 create table if not exists known_topic_prefix
 (
@@ -23,7 +23,6 @@ create table if not exists project
 (
   -- primary key
   project_id integer primary key AUTOINCREMENT,
-  --topic_prefix character varying(30) not null,
   project_name character varying(40) not null,
   description character varying(1000) null,
   constraint uk_project unique (project_name)
@@ -176,8 +175,41 @@ create table if not exists rule
   constraint fk_rule_namespace_name foreign key (namespace_name) references known_topic_prefix(topic_prefix) on delete cascade on update cascade
 );
 
+drop table if exists dashboard_item;
+drop table if exists dashboard;
+
 ---------------------------------------------------------------------------------------------------
--- table 008 Metadata to a hue_light
+-- table 008 dashboard
+---------------------------------------------------------------------------------------------------
+create table if not exists dashboard
+(
+  -- primary key
+  dashboard_id integer primary key autoincrement,
+  project_id integer not null,
+  -- The order of the dashboards can be controlled via index_in_project.
+  index_in_project integer not null default 0,
+  dashboard_name character varying(60) not null,
+  enabled boolean not null default true,
+  constraint fk_dashboard_project_id foreign key (project_id) references project(project_id) on delete cascade on update cascade
+);
+
+---------------------------------------------------------------------------------------------------
+-- table 009 dashboard_item
+---------------------------------------------------------------------------------------------------
+create table if not exists dashboard_item
+(
+  -- primary key
+  dashboard_item_id integer primary key autoincrement,
+  dashboard_id integer not null,
+  index_in_dashboard integer not null default 0,
+  known_topic_id integer not null,
+  constraint fk_dashboard_item_dashboard_id foreign key (dashboard_id) references dashboard(dashboard_id) on delete cascade on update cascade,
+  constraint fk_dashboard_item_known_topic_id foreign key (known_topic_id) references known_topic(known_topic_id) on delete cascade on update cascade
+);
+
+
+---------------------------------------------------------------------------------------------------
+-- table 010 Metadata to a hue_light
 ---------------------------------------------------------------------------------------------------
 
 create table if not exists hue_light

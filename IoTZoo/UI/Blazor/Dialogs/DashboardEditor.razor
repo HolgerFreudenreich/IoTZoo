@@ -1,0 +1,48 @@
+@inherits DashboardEditorBase
+
+@using IotZoo.Components
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
+         @DialogTitle
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.LastChild>
+                  <MudTextField @bind-Value="@Dashboard.DashboardName"
+                                MaxLength="100"
+                                Required="true"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Dashboard"
+                                Label="Dashboard Name"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+
+                  <MudCheckBox @bind-Value="@Dashboard.Enabled"
+                               Label="Enabled"
+                               Color="Color.Primary">
+                  </MudCheckBox>
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton OnClick="Cancel">Cancel</MudButton>
+
+      <MudButton Variant="Variant.Filled"
+                 StartIcon="@Icons.Material.Filled.Save"
+                 Color="Color.Success"
+                 Size="Size.Small"
+                 OnClick="Save">Save</MudButton>
+   </DialogActions>
+</MudDialog>
