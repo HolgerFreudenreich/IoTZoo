@@ -85,6 +85,12 @@ public class KnownTopic : BasePoco
       set;
    }
 
+   public string? FriendlyName
+   {
+      get;
+      set;
+   }
+
    /// <summary>
    /// True, if the received topic should be persisted in table topic_history.
    /// </summary>

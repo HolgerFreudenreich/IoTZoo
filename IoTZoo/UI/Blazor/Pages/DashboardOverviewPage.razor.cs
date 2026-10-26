@@ -18,6 +18,7 @@ using IotZoo.Dialogs;
 using Microsoft.AspNetCore.Components;
 using MQTTnet;
 using MudBlazor;
+using System.Text.Json;
 
 public class DashboardOverviewPageBase : MqttPageBase
 {
@@ -49,6 +50,12 @@ public class DashboardOverviewPageBase : MqttPageBase
 
    public Dictionary<int, IReadOnlyList<string>> DashboardTopics { get; } = new();
 
+   public Dictionary<int, Dictionary<string, TopicDisplayType>> DashboardDisplayTypes { get; } = new();
+
+   public Dictionary<int, Dictionary<string, GaugeSettings>> DashboardGaugeSettings { get; } = new();
+
+   public Dictionary<int, Dictionary<string, string?>> DashboardFriendlyNames { get; } = new();
+
    public IReadOnlyList<string> Topics { get; private set; } = [];
 
    public Dictionary<string, string> Messages { get; } = new();
@@ -59,6 +66,10 @@ public class DashboardOverviewPageBase : MqttPageBase
    {
       DataTransferService.CurrentScreen = ScreenMode.Dashboards;
       ProjectsCatalog = (await ProjectService.LoadProjects()).ToList();
+      if (ProjectsCatalog.Count == 1)
+      {
+         SelectedProject = ProjectsCatalog[0];
+      }
       await LoadDashboardsAsync();
       await base.OnInitializedAsync();
    }
@@ -66,29 +77,54 @@ public class DashboardOverviewPageBase : MqttPageBase
    public async Task LoadDashboardsAsync()
    {
       DashboardTopics.Clear();
+      DashboardDisplayTypes.Clear();
+      DashboardGaugeSettings.Clear();
+      DashboardFriendlyNames.Clear();
       Dashboards = SelectedProject == null
          ? new List<Dashboard>()
          : (await DashboardService.GetDashboards()).Where(dashboard => dashboard.ProjectId == SelectedProject.ProjectId).ToList();
 
+      var lastPayloads = new Dictionary<string, KnownTopic>();
       foreach (var dashboard in Dashboards)
       {
          var dashboardItems = await DashboardItemsService.GetDashboardItemsByDashboardId(dashboard.DashboardId);
          var topics = new List<string>();
+         var displayTypes = new Dictionary<string, TopicDisplayType>();
+         var gaugeSettings = new Dictionary<string, GaugeSettings>();
+         var friendlyNames = new Dictionary<string, string?>();
          foreach (var dashboardItem in dashboardItems.OrderBy(item => item.IndexInDashboard))
          {
             var knownTopic = await KnownTopicsService.GetKnownTopicById(dashboardItem.KnownTopicId);
             if (knownTopic != null)
             {
                topics.Add(knownTopic.FullQualifiedTopic);
+               displayTypes[knownTopic.FullQualifiedTopic] = dashboardItem.DisplayType;
+               gaugeSettings[knownTopic.FullQualifiedTopic] = dashboardItem.GaugeSettings;
+               friendlyNames[knownTopic.FullQualifiedTopic] = knownTopic.FriendlyName;
+               lastPayloads[knownTopic.FullQualifiedTopic] = knownTopic;
             }
          }
          DashboardTopics[dashboard.DashboardId] = topics;
+         DashboardDisplayTypes[dashboard.DashboardId] = displayTypes;
+         DashboardGaugeSettings[dashboard.DashboardId] = gaugeSettings;
+         DashboardFriendlyNames[dashboard.DashboardId] = friendlyNames;
       }
 
          Topics = DashboardTopics.Values.SelectMany(topics => topics).Distinct().ToList();
          foreach (var topic in Topics)
          {
-            Messages.TryAdd(topic, string.Empty);
+            if (lastPayloads.TryGetValue(topic, out var knownTopic))
+            {
+               Messages[topic] = knownTopic.LastPayload ?? string.Empty;
+               if (knownTopic.PayloadUpdatedAt is DateTime payloadUpdatedAt)
+               {
+                  MessageReceipts[topic] = payloadUpdatedAt;
+               }
+            }
+            else
+            {
+               Messages.TryAdd(topic, string.Empty);
+            }
          }
          if (MqttClient?.IsConnected == true)
          {
@@ -188,7 +224,7 @@ public class DashboardOverviewPageBase : MqttPageBase
       var parameters = new DialogParameters { ["KnownTopics"] = availableTopics };
       var dialog = await DialogService.ShowAsync<KnownTopicSelectDialog>("Add Topic to Dashboard", parameters);
       var result = await dialog.Result;
-      if (result == null || result.Canceled || result.Data is not KnownTopic selectedTopic)
+      if (result == null || result.Canceled || result.Data is not KnownTopicSelectDialog.KnownTopicSelection selection)
       {
          return;
       }
@@ -196,11 +232,13 @@ public class DashboardOverviewPageBase : MqttPageBase
       await DashboardItemsService.Insert(new DashboardItem
       {
          DashboardId = dashboard.DashboardId,
-         KnownTopicId = selectedTopic.KnownTopicId,
-         IndexInDashboard = (await DashboardItemsService.GetDashboardItemsByDashboardId(dashboard.DashboardId)).Count
-      });
+         KnownTopicId = selection.KnownTopic.KnownTopicId,
+         DisplayType = selection.DisplayType,
+         SettingsJson = selection.DisplayType == TopicDisplayType.Gauge ? JsonSerializer.Serialize(new GaugeSettings()) : null,
+            IndexInDashboard = (await DashboardItemsService.GetDashboardItemsByDashboardId(dashboard.DashboardId)).Count
+         });
 
-      await LoadDashboardsAsync();
+         await LoadDashboardsAsync();
       if (MqttClient.IsConnected)
       {
          foreach (var topic in DashboardTopics.GetValueOrDefault(dashboard.DashboardId, []))
@@ -236,6 +274,8 @@ public class DashboardOverviewPageBase : MqttPageBase
          {
             DashboardId = newDashboardId,
             KnownTopicId = dashboardItem.KnownTopicId,
+            DisplayType = dashboardItem.DisplayType,
+            SettingsJson = dashboardItem.SettingsJson,
             IndexInDashboard = dashboardItem.IndexInDashboard
          });
       }
@@ -249,6 +289,13 @@ public class DashboardOverviewPageBase : MqttPageBase
          }
       }
       StateHasChanged();
+   }
+
+   public bool CanMoveDashboard(Dashboard dashboard, int direction)
+   {
+      int index = Dashboards.FindIndex(item => item.DashboardId == dashboard.DashboardId);
+      int targetIndex = index + direction;
+      return index >= 0 && targetIndex >= 0 && targetIndex < Dashboards.Count;
    }
 
    public async Task MoveDashboard(Dashboard dashboard, int direction)

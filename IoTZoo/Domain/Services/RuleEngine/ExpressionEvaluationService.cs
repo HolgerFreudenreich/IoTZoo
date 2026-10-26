@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 namespace Domain.Services.RuleEngine
 {
@@ -274,8 +275,7 @@ namespace Domain.Services.RuleEngine
                     }
                     else
                     {
-                        expression = expression.Replace(FunctionNames.Input,
-                                                        payload);
+                        expression = Regex.Replace(expression, $@"(?<![\w/']){FunctionNames.Input}(?![\w'/])", _ => payload ?? string.Empty, RegexOptions.IgnoreCase);
 
                         expression = await ExpressionParser.ResolveExpression(expression);
                     }

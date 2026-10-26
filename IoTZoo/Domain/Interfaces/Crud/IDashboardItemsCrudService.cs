@@ -22,7 +22,7 @@ public interface IDashboardItemsCrudService
 
    public Task<List<DashboardItem>> GetDashboardItemsByKnownTopicId(int knownTopicId);
 
-   public Task SaveDashboardsForKnownTopic(int knownTopicId, IEnumerable<int> dashboardIds);
+   public Task SaveDashboardsForKnownTopic(int knownTopicId, IReadOnlyDictionary<int, DashboardItem> dashboardItems);
 
    public Task<DashboardItem?> GetDashboardItemById(int dashboardItemId);
 

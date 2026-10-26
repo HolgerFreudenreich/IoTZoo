@@ -15,8 +15,18 @@
          {
             <MudSelectItem Value="@knownTopic">@knownTopic.FullQualifiedTopic</MudSelectItem>
          }
-      </MudSelect>
-   </DialogContent>
+               </MudSelect>
+               <MudSelect T="TopicDisplayType"
+                    @bind-Value="SelectedDisplayType"
+                    Label="Display Type"
+                    Variant="Variant.Text"
+                    Margin="Margin.Normal">
+            @foreach (var displayType in Enum.GetValues<TopicDisplayType>())
+            {
+               <MudSelectItem Value="@displayType">@displayType</MudSelectItem>
+            }
+         </MudSelect>
+      </DialogContent>
    <DialogActions>
       <MudButton OnClick="Cancel">Cancel</MudButton>
       <MudButton Variant="Variant.Filled"
@@ -37,7 +47,11 @@
 
    private KnownTopic? SelectedKnownTopic { get; set; }
 
+   private TopicDisplayType SelectedDisplayType { get; set; } = TopicDisplayType.Text;
+
    private void Cancel() => MudDialog.Cancel();
 
-   private void Confirm() => MudDialog.Close(DialogResult.Ok(SelectedKnownTopic));
+   private void Confirm() => MudDialog.Close(DialogResult.Ok(new KnownTopicSelection(SelectedKnownTopic!, SelectedDisplayType)));
+
+   public record KnownTopicSelection(KnownTopic KnownTopic, TopicDisplayType DisplayType);
 }

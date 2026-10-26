@@ -384,7 +384,9 @@ public class ProjectsPageBase : PageBase
                     {
                         DashboardId = dashboardId,
                         KnownTopicId = knownTopic.KnownTopicId,
-                        IndexInDashboard = itemExport.Item.IndexInDashboard
+                        IndexInDashboard = itemExport.Item.IndexInDashboard,
+                        DisplayType = itemExport.Item.DisplayType,
+                        SettingsJson = itemExport.Item.SettingsJson
                     });
                 }
             }
