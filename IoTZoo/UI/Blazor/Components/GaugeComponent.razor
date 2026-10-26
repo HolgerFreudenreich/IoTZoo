@@ -1,0 +1,75 @@
+<div style="width:@($"{Size}px");">
+   <svg viewBox="0 0 200 120" width="@Size" height="@(Size * 0.6)">
+      <path d="M 20 100 A 80 80 0 0 1 180 100"
+            fill="none"
+            stroke="#e0e0e0"
+            stroke-width="16"
+            stroke-linecap="round" />
+      <path d="@ValuePath"
+            fill="none"
+            stroke="@Color"
+            stroke-width="16"
+            stroke-linecap="round" />
+      <text x="100" y="90" text-anchor="middle" font-size="22" fill="currentColor">@FormattedValue</text>
+      <text x="100" y="112" text-anchor="middle" font-size="12" fill="currentColor">@Unit</text>
+   </svg>
+   @if (!string.IsNullOrWhiteSpace(Label))
+   {
+      <div style="text-align:center;">@Label</div>
+   }
+</div>
+
+@code {
+   [Parameter]
+   public double Value { get; set; }
+
+   [Parameter]
+   public double Min { get; set; } = 0;
+
+   [Parameter]
+   public double Max { get; set; } = 100;
+
+   [Parameter]
+   public string Label { get; set; } = string.Empty;
+
+   [Parameter]
+   public string Unit { get; set; } = string.Empty;
+
+   [Parameter]
+   public string Color { get; set; } = "#1976d2";
+
+   [Parameter]
+   public int Size { get; set; } = 200;
+
+   private const double Radius = 80;
+   private const double CenterX = 100;
+   private const double CenterY = 100;
+
+   private double Fraction
+   {
+      get
+      {
+         var range = Max - Min;
+         if (range <= 0)
+         {
+            return 0;
+         }
+         return Math.Clamp((Value - Min) / range, 0, 1);
+      }
+   }
+
+   private string FormattedValue => Value.ToString("0.##");
+
+   private string ValuePath
+   {
+      get
+      {
+         var angle = Math.PI * (1 - Fraction);
+         var x = CenterX + Radius * Math.Cos(angle);
+         var y = CenterY - Radius * Math.Sin(angle);
+         var largeArc = Fraction > 0.5 ? 1 : 0;
+         return string.Create(System.Globalization.CultureInfo.InvariantCulture,
+            $"M 20 100 A {Radius} {Radius} 0 {largeArc} 1 {x} {y}");
+      }
+   }
+}

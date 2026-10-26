@@ -25,11 +25,13 @@
    }
    else
    {
-      <MudButton Variant="Variant.Filled"
-                 StartIcon="@Icons.Material.Filled.Add"
-                 Color="Color.Primary"
-                 Size="Size.Small"
-                 OnClick="OpenDashboardEditor">Add Dashboard</MudButton>
+      <div style="height:40px">
+         <MudButton Variant="Variant.Filled"
+                    StartIcon="@Icons.Material.Filled.Add"
+                    Color="Color.Primary"
+                    Size="Size.Small"
+                    OnClick="OpenDashboardEditor">Add Dashboard</MudButton>
+      </div>
    }
 </MudStack>
 
@@ -44,10 +46,15 @@
          <MudTabPanel Text="@dashboard.DashboardName">
             <DashboardPage @key="dashboard.DashboardName"
                            Topics="DashboardTopics.GetValueOrDefault(dashboard.DashboardId, [])"
+                           DisplayTypes="DashboardDisplayTypes.GetValueOrDefault(dashboard.DashboardId, new())"
+                           GaugeSettings="DashboardGaugeSettings.GetValueOrDefault(dashboard.DashboardId, new())"
+                           FriendlyNames="DashboardFriendlyNames.GetValueOrDefault(dashboard.DashboardId, new())"
                            Messages="Messages.ToDictionary(m => m.Key, m => m.Value)"
                            MessageReceipts="MessageReceipts.ToDictionary(m => m.Key, m => m.Value)"
                            DateTimeFormat="@DataTransferService.DateTimeFormat"
+                           Project="SelectedProject"
                            OnDelete="topic => RemoveTopicFromDashboard(dashboard, topic)"
+                                                       OnEdit="LoadDashboardsAsync"
                            OnTopicReordered="args => ReorderTopicInDashboard(dashboard, args.SourceIndex, args.TargetIndex)" />
             <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-4">
                <MudButton Variant="Variant.Outlined"
@@ -60,16 +67,22 @@
                           Color="Color.Default"
                           Size="Size.Small"
                           OnClick="() => RenameDashboard(dashboard)">Rename</MudButton>
-               <MudButton Variant="Variant.Outlined"
-                          StartIcon="@Icons.Material.Filled.ArrowBack"
-                          Color="Color.Default"
-                          Size="Size.Small"
-                          OnClick="() => MoveDashboard(dashboard, -1)">Move Left</MudButton>
-               <MudButton Variant="Variant.Outlined"
-                          StartIcon="@Icons.Material.Filled.ArrowForward"
-                          Color="Color.Default"
-                          Size="Size.Small"
-                          OnClick="() => MoveDashboard(dashboard, 1)">Move Right</MudButton>
+               @if (CanMoveDashboard(dashboard, -1))
+               {
+                  <MudButton Variant="Variant.Outlined"
+                             StartIcon="@Icons.Material.Filled.ArrowBack"
+                             Color="Color.Default"
+                             Size="Size.Small"
+                             OnClick="() => MoveDashboard(dashboard, -1)">Move Left</MudButton>
+               }
+               @if (CanMoveDashboard(dashboard, 1))
+               {
+                  <MudButton Variant="Variant.Outlined"
+                             StartIcon="@Icons.Material.Filled.ArrowForward"
+                             Color="Color.Default"
+                             Size="Size.Small"
+                             OnClick="() => MoveDashboard(dashboard, 1)">Move Right</MudButton>
+               }
                <MudButton Variant="Variant.Outlined"
                           StartIcon="@Icons.Material.Filled.ContentCopy"
                           Color="Color.Default"

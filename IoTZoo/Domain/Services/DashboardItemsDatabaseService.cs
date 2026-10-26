@@ -71,21 +71,35 @@ public class DashboardItemsDatabaseService : DataServiceBase, IDashboardItemsCru
       }
    }
 
-   public async Task SaveDashboardsForKnownTopic(int knownTopicId, IEnumerable<int> dashboardIds)
+    public async Task SaveDashboardsForKnownTopic(int knownTopicId, IReadOnlyDictionary<int, DashboardItem> dashboardItems)
    {
       try
       {
          var existing = await GetDashboardItemsByKnownTopicId(knownTopicId);
-         var wanted = dashboardIds.Distinct().ToList();
 
-         foreach (var item in existing.Where(item => !wanted.Contains(item.DashboardId)))
+         foreach (var item in existing.Where(item => !dashboardItems.ContainsKey(item.DashboardId)))
          {
             await Delete(item);
          }
 
-         foreach (var dashboardId in wanted.Where(id => !existing.Any(item => item.DashboardId == id)))
+         foreach (var item in existing.Where(item => dashboardItems.ContainsKey(item.DashboardId)))
          {
-            await Insert(new DashboardItem { DashboardId = dashboardId, KnownTopicId = knownTopicId });
+            var wanted = dashboardItems[item.DashboardId];
+            item.DisplayType = wanted.DisplayType;
+            item.SettingsJson = wanted.SettingsJson;
+            await Update(item);
+         }
+
+         foreach (var (dashboardId, wanted) in dashboardItems.Where(entry => !existing.Any(item => item.DashboardId == entry.Key)))
+         {
+            await Insert(new DashboardItem
+            {
+               DashboardId = dashboardId,
+               KnownTopicId = knownTopicId,
+               DisplayType = wanted.DisplayType,
+               SettingsJson = wanted.SettingsJson,
+               IndexInDashboard = wanted.IndexInDashboard
+            });
          }
       }
       catch (Exception exception)

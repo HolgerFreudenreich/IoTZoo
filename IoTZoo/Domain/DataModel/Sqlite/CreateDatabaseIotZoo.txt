@@ -95,6 +95,8 @@ create table if not exists known_topic
   project_name character varying(40) null,
   topic character varying(1000) not null, 
   description character varying(1000) null,
+  -- display name shown instead of the topic, if not empty.
+  friendly_name character varying(200) null,
   -- true: Insert the record in table topic_history.
   keep_history boolean,
   -- true, if the message is retained on the broker
@@ -203,7 +205,9 @@ create table if not exists dashboard_item
   dashboard_id integer not null,
   index_in_dashboard integer not null default 0,
   known_topic_id integer not null,
-  constraint fk_dashboard_item_dashboard_id foreign key (dashboard_id) references dashboard(dashboard_id) on delete cascade on update cascade,
+  display_type integer not null default 0,
+  settings_json text null,
+  constraint fk_dashboard_item_dashboard_id
   constraint fk_dashboard_item_known_topic_id foreign key (known_topic_id) references known_topic(known_topic_id) on delete cascade on update cascade
 );
 

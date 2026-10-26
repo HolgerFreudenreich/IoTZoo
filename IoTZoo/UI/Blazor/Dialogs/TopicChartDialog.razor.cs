@@ -84,15 +84,8 @@ public class TopicChartDialogBase : ComponentBase
 
    protected override void OnParametersSet()
    {
-      if (Entries.Count > 0)
-      {
-         var last = Entries.Max(e => e.DateReceived);
-         _endDate ??= last.Date;
-         _endTime ??= last.TimeOfDay;
-         var startDefault = (_endDate.Value.Date + (_endTime ?? TimeSpan.Zero)).AddDays(-1);
-         _startDate ??= startDefault.Date;
-         _startTime ??= startDefault.TimeOfDay;
-      }
+      _startDate ??= DateTime.Today.AddDays(-1);
+      _endDate ??= DateTime.Today;
       BuildChart();
    }
 

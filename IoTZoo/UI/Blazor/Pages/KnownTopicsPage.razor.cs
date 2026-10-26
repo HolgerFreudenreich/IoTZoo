@@ -80,6 +80,10 @@ public class KnownTopicsPageBase : PageBase
     protected override async Task RefreshData(bool firstRender = false)
     {
         ProjectsCatalog = await ProjectService.LoadProjects();
+        if (ProjectsCatalog.Count == 1)
+        {
+            DataTransferService.SelectedProject = ProjectsCatalog[0];
+        }
         if (!string.IsNullOrEmpty(ProjectName))
         {
             var project = ProjectsCatalog.FirstOrDefault(p => p.ProjectName == ProjectName);

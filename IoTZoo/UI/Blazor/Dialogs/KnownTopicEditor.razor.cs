@@ -44,6 +44,7 @@ public class KnownTopicEditorBase : EditorBase
       {
          var dashboardItems = await DashboardItemsService.GetDashboardItemsByKnownTopicId(KnownTopic.KnownTopicId);
          SelectedDashboards = Dashboards.Where(dashboard => dashboardItems.Any(item => item.DashboardId == dashboard.DashboardId)).ToList();
+         SelectedDashboardItems = dashboardItems.ToDictionary(item => item.DashboardId, item => item);
       }
 
       await base.OnInitializedAsync();
@@ -74,6 +75,8 @@ public class KnownTopicEditorBase : EditorBase
 
    protected List<Dashboard> SelectedDashboards { get; set; } = new();
 
+   protected Dictionary<int, DashboardItem> SelectedDashboardItems { get; set; } = new();
+
    public KnownTopicEditorBase()
    {
    }
@@ -89,6 +92,32 @@ public class KnownTopicEditorBase : EditorBase
          ? Dashboards
          : Dashboards.Where(dashboard => dashboard.DashboardName.Contains(value, StringComparison.OrdinalIgnoreCase));
       return Task.FromResult(result);
+   }
+
+   protected void OnDashboardsChanged(List<Dashboard> dashboards)
+   {
+      SelectedDashboards = dashboards;
+      foreach (var dashboard in dashboards.Where(dashboard => !SelectedDashboardItems.ContainsKey(dashboard.DashboardId)))
+      {
+         SelectedDashboardItems[dashboard.DashboardId] = new DashboardItem { DashboardId = dashboard.DashboardId, KnownTopicId = KnownTopic.KnownTopicId };
+      }
+      foreach (var dashboardId in SelectedDashboardItems.Keys.Where(id => dashboards.All(dashboard => dashboard.DashboardId != id)).ToList())
+      {
+         SelectedDashboardItems.Remove(dashboardId);
+      }
+   }
+
+   protected void OnDisplayTypeChanged(int dashboardId, TopicDisplayType displayType)
+   {
+      SelectedDashboardItems[dashboardId].DisplayType = displayType;
+   }
+
+   protected void OnGaugeSettingsChanged(int dashboardId, Action<GaugeSettings> change)
+   {
+      var item = SelectedDashboardItems[dashboardId];
+      var settings = item.GaugeSettings;
+      change(settings);
+      item.GaugeSettings = settings;
    }
 
    private async Task<bool> ValidateFieldsAsync()
@@ -138,7 +167,7 @@ public class KnownTopicEditorBase : EditorBase
          }
 
          await KnownTopicsService.Save(KnownTopic);
-         await DashboardItemsService.SaveDashboardsForKnownTopic(KnownTopic.KnownTopicId, SelectedDashboards.Select(dashboard => dashboard.DashboardId));
+         await DashboardItemsService.SaveDashboardsForKnownTopic(KnownTopic.KnownTopicId, SelectedDashboardItems);
          MudDialog.Close(DialogResult.Ok(KnownTopic));
       }
       catch (Exception ex)

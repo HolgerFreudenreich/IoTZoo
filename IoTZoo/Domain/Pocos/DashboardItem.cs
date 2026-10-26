@@ -10,6 +10,8 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
+using System.Text.Json;
+
 namespace Domain.Pocos;
 
 public class DashboardItem
@@ -21,4 +23,16 @@ public class DashboardItem
    public int IndexInDashboard { get; set; }
 
    public int KnownTopicId { get; set; }
-}
+
+       public TopicDisplayType DisplayType { get; set; } = TopicDisplayType.Text;
+
+       public string? SettingsJson { get; set; }
+
+       public GaugeSettings GaugeSettings
+       {
+           get => string.IsNullOrWhiteSpace(SettingsJson)
+               ? new GaugeSettings()
+               : JsonSerializer.Deserialize<GaugeSettings>(SettingsJson) ?? new GaugeSettings();
+           set => SettingsJson = JsonSerializer.Serialize(value);
+       }
+   }

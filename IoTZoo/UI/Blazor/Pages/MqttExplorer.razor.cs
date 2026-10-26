@@ -143,6 +143,10 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
             try
             {
                 ProjectsCatalog = await ProjectService.LoadProjects();
+                if (ProjectsCatalog.Count == 1)
+                {
+                    DataTransferService.SelectedProject = ProjectsCatalog[0];
+                }
                 await LoadKnownTopicsCache();
             }
             finally

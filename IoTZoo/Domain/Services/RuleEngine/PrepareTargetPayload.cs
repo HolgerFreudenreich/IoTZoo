@@ -16,6 +16,7 @@ using Domain.Pocos;
 using Json.Path;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 namespace Domain.Services.RuleEngine;
 
@@ -64,7 +65,7 @@ public class PrepareTargetPayload : IPrepareTargetPayload
    {
       if (null != expression)
       {
-         expression = expression.Replace(FunctionNames.Input, payload, StringComparison.OrdinalIgnoreCase);
+         expression = Regex.Replace(expression, $@"(?<![\w/']){FunctionNames.Input}(?![\w'/])", _ => payload ?? string.Empty, RegexOptions.IgnoreCase);
          expression = await ExpressionParser.ResolveExpression(expression);
 
          if (expression.Contains("$["))
