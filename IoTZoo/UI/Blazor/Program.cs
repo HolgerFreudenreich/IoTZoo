@@ -57,6 +57,10 @@ builder.Services.AddMudServices(config =>
                                        });
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder.Services.AddSignalR(options =>
+{
+    options.MaximumReceiveMessageSize = 10 * 1024 * 1024;
+});
 
 IConfigurationSection configurationSectionAppSettings = builder.Configuration.GetSection(nameof(AppSettings));
 builder.Services.Configure<AppSettings>(configurationSectionAppSettings);
@@ -75,6 +79,8 @@ builder.Services.AddTransient<IMicrocontrollerService, MicrocontrollerService>()
 builder.Services.AddSingleton<IKnownTopicsCrudService, KnownTopicsDatabaseService>();
 builder.Services.AddSingleton<IScriptCrudService, ScriptDatabaseService>();
 builder.Services.AddSingleton<IScriptService, CSharpScriptService>();
+builder.Services.AddSingleton<IDashboardCrudService, DashboardDatabaseService>();
+builder.Services.AddSingleton<IDashboardItemsCrudService, DashboardItemsDatabaseService>();
 
 builder.Services.AddSingleton<IComponentService, ComponentDatabaseService>();
 builder.Services.AddSingleton<IStorageBinCrudService, StorageBinService>();
@@ -148,7 +154,6 @@ catch (MqttCommunicationTimedOutException exception)
 {
     // Maybe you do not have internet access or a wrong configured MQTTClient.
     Console.WriteLine(exception.GetBaseException().Message);
-
 }
 catch (Exception exception)
 {
@@ -176,10 +181,6 @@ app.UseSwaggerUI(c =>
                      });
 
 app.UseHttpsRedirection();
-
-
-
-
 
 //app.UseStaticFiles();
 

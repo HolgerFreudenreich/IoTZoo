@@ -48,7 +48,7 @@ namespace IotZoo
 
         topics->emplace_back(getBaseTopic() + "/ledAndKey/0/text", "Text to display.", MessageDirection::IotZooClientOutbound);
 
-        topics->emplace_back(getBaseTopic() + "/ledAndKey/0/humber", "Number to display.", MessageDirection::IotZooClientOutbound);
+        topics->emplace_back(getBaseTopic() + "/ledAndKey/0/number", "Number to display.", MessageDirection::IotZooClientOutbound);
         for (int ledNumber = 0; ledNumber < 8; ledNumber++)
         {
             topics->emplace_back(getBaseTopic() + "/ledAndKey/0/led/" + String(ledNumber), "Payload: 0 = off, 1 = on",
@@ -63,11 +63,6 @@ namespace IotZoo
     void TM1638::onMqttConnectionEstablished()
     {
         Serial.println("TM1638::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
         for (int ledNumber = 0; ledNumber < 8; ledNumber++)
         {
             String topicLed = getBaseTopic() + "/ledAndKey/0/led/" + String(ledNumber);

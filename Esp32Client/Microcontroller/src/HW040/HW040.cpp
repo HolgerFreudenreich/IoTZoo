@@ -10,7 +10,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
 #ifdef USE_HW040
-
+#include "DebugHelper.hpp"
 #include "HW040/HW040.hpp"
 #include "HW040/HW040Helper.hpp"
 #include "MqttClient.hpp"
@@ -62,11 +62,6 @@ namespace IotZoo
     void RotaryEncoder::onMqttConnectionEstablished()
     {
         Serial.println("RotaryEncoder::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
         String topic = baseTopic + "/rotary_encoder/" + String(getDeviceIndex()) + "/set_value";
         if (mqttClient->subscribe(topic, [&](const String& payload) { onReceivedRotaryEncoderValue(payload); }))
         {
@@ -138,12 +133,32 @@ namespace IotZoo
             // don't do anything unless value changed.
             if (encoderChanged())
             {
-                Serial.print("Value encoder " + String(deviceIndex) + ": ");
                 long rotaryEncoderValue = readEncoder();
-
-                Serial.println(rotaryEncoderValue);
-
+                debug("Value encoder [" + String(deviceIndex) + "]: " + String(rotaryEncoderValue));
                 mqttClient->publish(topicEncoderValue, String(rotaryEncoderValue));
+
+                if (internalMqttClient != nullptr)
+                {
+                    debug("Count of TopicLinks: " + String(getTopicLinks().size()));
+                    // Has an internal component interest on counter changes?
+                    for (auto& topicLink : getTopicLinks())
+                    {
+                        debug("topicLink.TriggeringTopic: " + topicLink.TriggeringTopic);
+                        if (topicLink.TriggeringTopic.equalsIgnoreCase(topicEncoderValue))
+                        {
+                            topicLink.Payload = String(rotaryEncoderValue).c_str();
+                            InternalMqttError error = internalMqttClient->publish(topicLink);
+                            if (error != InternalMqttError::MqttOk)
+                            {
+                                debug("Failed to publish internal MQTT message for topic: " + topicLink.TargetTopic + ", error code: " + String(error));
+                            }
+                        }
+                    }
+                }
+                else 
+                {
+                    debug("internalMqttClient is nullptr!");
+                }
             }
         }
         catch (const std::exception& e)

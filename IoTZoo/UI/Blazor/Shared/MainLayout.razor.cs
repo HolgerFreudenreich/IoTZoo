@@ -64,7 +64,7 @@ namespace IotZoo.Shared
                Title = "Known Topics";
                break;
             case ScreenMode.TopicsHistory:
-               Title = "Topic History";
+               Title = "Topics History";
                break;
             case ScreenMode.Rules:
                Title = "Rules";
@@ -75,11 +75,14 @@ namespace IotZoo.Shared
             case ScreenMode.SetLocation:
                Title = "Set Location";
                break;
-            case ScreenMode.HueLights:
-               Title = "Philips Hue Lights";
+            case ScreenMode.HueComponents:
+               Title = "Philips Hue Components";
                break;
             case ScreenMode.Projects:
                Title = "Projects";
+               break;
+            case ScreenMode.Dashboards:
+               Title = "Dashboards";
                break;
             case ScreenMode.Components:
                Title = "Components";
@@ -117,7 +120,10 @@ namespace IotZoo.Shared
             case ScreenMode.InstructionsKnownTopics:
                Title = "What is a Topic?";
                break;
-            case ScreenMode.Scripts:
+            case ScreenMode.InstructionsDashboard:
+                            Title = "How do Dashboards work?";
+                            break;
+                         case ScreenMode.Scripts:
                Title = "Scripts";
                break;
             case ScreenMode.ThingsToConnect:

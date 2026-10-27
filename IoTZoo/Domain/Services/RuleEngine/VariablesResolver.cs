@@ -38,10 +38,10 @@ public class VariablesResolver : IVariablesResolver
 
    public int Count(string text, string value)
    {
-      int count = 0, minIndex = text.IndexOf(value, 0);
+      int count = 0, minIndex = text.IndexOf(value, 0, StringComparison.Ordinal);
       while (minIndex != -1)
       {
-         minIndex = text.IndexOf(value, minIndex + value.Length);
+         minIndex = text.IndexOf(value, minIndex + value.Length, StringComparison.Ordinal);
          count++;
       }
       return count;
@@ -128,14 +128,10 @@ public class VariablesResolver : IVariablesResolver
          JsonNode? jsonNode = JsonNode.Parse(payload);
          PathResult? pathResult = path.Evaluate(jsonNode);
 
-         var firstMatch = pathResult.Matches?.FirstOrDefault();
-         JsonNode? jsonNode1 = JsonNode.Parse(payload);
-         PathResult? pathResult1 = path.Evaluate(jsonNode);
-
-         Node? firstMatch1 = pathResult.Matches?.FirstOrDefault();
-         if (firstMatch1 != null && firstMatch1.Value != null)
+         Node? firstMatch = pathResult.Matches?.FirstOrDefault();
+         if (firstMatch != null && firstMatch.Value != null)
          {
-            return firstMatch1.Value.ToString();
+            return firstMatch.Value.ToString();
          }
       }
       catch (Exception exception)
@@ -148,16 +144,16 @@ public class VariablesResolver : IVariablesResolver
    protected async Task<string> ReplaceVariableNameWithVariableContent(string input)
    {
       // Are there many ReadFromMemory occurrences?
-      int nextStartIndex = input.IndexOf(FunctionNames.ReadFromMemory);
+      int nextStartIndex = input.IndexOf(FunctionNames.ReadFromMemory, StringComparison.Ordinal);
       if (-1 == nextStartIndex)
       {
          return input;
       }
-      int indexEnd = input.IndexOf(")");
+      int indexEnd = input.IndexOf(")", StringComparison.Ordinal);
       bool hasBrackets = true;
       if (-1 == indexEnd)
       {
-         indexEnd = input.IndexOf(" ");
+         indexEnd = input.IndexOf(" ", StringComparison.Ordinal);
          hasBrackets = false;
       }
 
@@ -173,7 +169,9 @@ public class VariablesResolver : IVariablesResolver
          topicName = formula.Substring(FunctionNames.ReadFromMemory.Length, formula.Length - FunctionNames.ReadFromMemory.Length);
       }
 
-      string nettoTopicName = topicName.Replace("'", string.Empty).Replace("\"", string.Empty).Trim();
+      string[] topicArguments = topicName.Split(',');
+      string nettoTopicName = topicArguments[0].Replace("'", string.Empty).Replace("\\\"", string.Empty).Trim();
+      string? defaultValue = topicArguments.Length > 1 ? topicArguments[1].Replace("'", string.Empty).Replace("\\\"", string.Empty).Trim() : null;
 
       string output = string.Empty;
 
@@ -189,15 +187,15 @@ public class VariablesResolver : IVariablesResolver
       }
 
       TopicEntry? topicFromMemory = (from data in DataTransferService.ReceivedTopicsQueue where data.FullQualifiedTopic == nettoTopicName select data).SingleOrDefault();
-      if (null != topicFromMemory)
+      if (null != topicFromMemory && !string.IsNullOrEmpty(topicFromMemory.Payload))
       {
          if (hasBrackets)
          {
-            output = input.Replace($"{FunctionNames.ReadFromMemory}({topicName})", topicFromMemory.Payload); // ToDo: handle null == topicFromMemory.Payload
+            output = input.Replace($"{FunctionNames.ReadFromMemory}({topicName})", topicFromMemory.Payload);
          }
          else
          {
-            output = input.Replace($"{FunctionNames.ReadFromMemory}{topicName}", topicFromMemory.Payload); // ToDo: handle null == topicFromMemory.Payload
+            output = input.Replace($"{FunctionNames.ReadFromMemory}{topicName}", topicFromMemory.Payload);
          }
          if (isArrayIndexer)
          {
@@ -208,7 +206,7 @@ public class VariablesResolver : IVariablesResolver
       {
          // Read from Database
          KnownTopic? topicFromDatabase = await KnownTopicsDatabaseService.GetKnownTopicByTopicName("", nettoTopicName); // fixme Holger
-         if (null != topicFromDatabase)
+         if (null != topicFromDatabase && !string.IsNullOrEmpty(topicFromDatabase.LastPayload))
          {
             output = input.Replace($"{FunctionNames.ReadFromMemory}({topicName})", topicFromDatabase.LastPayload);
 
@@ -216,6 +214,10 @@ public class VariablesResolver : IVariablesResolver
             {
                output = HandleJsonPathArrayIndexer(input, topicFromDatabase.LastPayload, indexEnd);
             }
+         }
+         else if (null != defaultValue)
+         {
+            output = input.Replace(formula, defaultValue);
          }
       }
       return output;

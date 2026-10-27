@@ -1,0 +1,103 @@
+@inherits EditCronJobDialogBase
+
+@using IotZoo.Components
+@using MudBlazor
+
+<MudDialog>
+   <TitleContent>
+      <MudText Typo="Typo.h6">
+         Edit Cron Job
+      </MudText>
+   </TitleContent>
+   <DialogContent>
+      <MudGrid>
+         <MudItem xs="12">
+            <MudCardContent>
+               <MudFocusTrap Disabled="false"
+                             DefaultFocus=DefaultFocus.FirstChild>
+                  <MudTextField @bind-Value="@CronJob.Topic"
+                                MaxLength="100"
+                                Required="true"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Topic"
+                                Label="Topic"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal"
+                                HelperText="Enter the MQTT topic name (e.g., sensor/temperature)">
+                  </MudTextField>
+                  <br />
+                  <MudSwitch @bind-Value="@CronJob.Enabled"
+                             Label="Enabled"
+                             Color="Color.Primary">
+                  </MudSwitch>
+                  <br />
+                  <MudText Typo="Typo.h6">Cron Expression</MudText>
+                  <MudDivider Class="my-4" />
+                  <MudStack Row="true">
+                     <MudTextField @bind-Value="@CronJob.SecondExpression"
+                                   Label="Second (0-59), Allowed special chars , - * /"
+                                   Immediate="true"
+                                   Variant="Variant.Text">
+                     </MudTextField>
+                     <MudTextField @bind-Value="@CronJob.MinuteExpression"
+                                   Label="Minute (0-59), Allowed special chars , - * /"
+                                   Immediate="true"
+                                   Variant="Variant.Text">
+                     </MudTextField>
+                     <MudTextField @bind-Value="@CronJob.HourExpression"
+                                   Label="Hour (0-23), Allowed special chars , - * /"
+                                   Immediate="true"
+                                   Variant="Variant.Text">
+                     </MudTextField>
+                     <MudTextField @bind-Value="@CronJob.DayOfMonthExpression"
+                                   Label="Day (1-31), Allowed special chars , - * / ?"
+                                   Immediate="true"
+                                   Variant="Variant.Text">
+                     </MudTextField>
+                     <MudTextField @bind-Value="@CronJob.MonthOfYearExpression"
+                                   Label="Month (1-12) or (JAN-DEC), Allowed special chars , - * /"
+                                   Immediate="true"
+                                   Variant="Variant.Text">
+                     </MudTextField>
+                     <MudTextField @bind-Value="@CronJob.DayOfWeekExpression"
+                                   Label="Day of Week (1-7) or (MON-SUN), Allowed special chars , - * / ?"
+                                   Immediate="true"
+                                   Variant="Variant.Text">
+                     </MudTextField>
+                     <MudButton OnClick="Parse">Parse</MudButton>
+                  </MudStack>
+                  <br />
+                  <MudText>Next 10 occurrences:</MudText>
+                  <MudTable Items="@Occurences"
+                            FixedHeader="true"
+                            HorizontalScrollbar="true"
+                            Height="250px"
+                            Striped="true"
+                            Dense="true"
+                            Hover="true">
+                     <HeaderContent>
+                        <MudTh>Trigger time</MudTh>
+                     </HeaderContent>
+                     <RowTemplate>
+                        <MudTd DataLabel="Occurence">@context</MudTd>
+                     </RowTemplate>
+                  </MudTable>
+               </MudFocusTrap>
+               <br />
+            </MudCardContent>
+         </MudItem>
+      </MudGrid>
+   </DialogContent>
+   <DialogActions>
+      <MudButton Class="MudButtonText"
+                 OnClick="Cancel">
+         Cancel
+      </MudButton>
+      <MudButton Class="MudButtonText"
+                 Color="Color.Success"
+                 OnClick="Save">
+         Save
+      </MudButton>
+   </DialogActions>
+</MudDialog>

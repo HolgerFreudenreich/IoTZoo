@@ -38,7 +38,7 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
         ProjectCrudService = projectsCrudService;
     }
 
-    public async Task Execute(IJobExecutionContext context)
+    public async ValueTask Execute(IJobExecutionContext context, CancellationToken cancellationToken = default)
     {
         try
         {

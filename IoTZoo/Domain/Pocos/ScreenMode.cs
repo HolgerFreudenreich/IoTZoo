@@ -16,7 +16,7 @@ public enum ScreenMode
 {
    None = 0,
    MqttExplorer = 1,
-   HueLights = 2,
+   HueComponents = 2,
    Projects = 3,
    PublishTopic = 6,
    Rules = 7,
@@ -27,6 +27,7 @@ public enum ScreenMode
    KnownMicrocontrollers = 13,
    KnownTopics = 14,
    TestPage = 15,
+   Dashboards = 16,
 
    Boxes = 50,
    Components = 51,
@@ -43,5 +44,6 @@ public enum ScreenMode
    CoreConcept = 202,
    HowDoRulesWork = 203,
    InstructionsKnownTopics = 204,
-   ThingsToConnect = 205,
-}
+       ThingsToConnect = 205,
+       InstructionsDashboard = 206,
+   }

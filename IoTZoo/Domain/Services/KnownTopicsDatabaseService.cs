@@ -122,8 +122,8 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
     {
         try
         {
-            string sql = $"delete from {this.FullQualifiedTableName} where topic = @Topic;";
-            int rowsProcessed = await Db.ExecuteAsync(sql, new { Topic = knownTopic.Topic });
+            string sql = $"delete from {this.FullQualifiedTableName} where known_topic_id = @KnownTopicId;";
+            int rowsProcessed = await Db.ExecuteAsync(sql, new { knownTopic.KnownTopicId });
         }
         catch (Exception ex)
         {
@@ -172,7 +172,22 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
         return result.AsList();
     }
 
-    public async Task<List<KnownTopic>> GetKnownTopicsByProjectName(string? projectName, List<MessageDirection>? messageDirections)
+    public async Task<KnownTopic?> GetKnownTopicById(int knownTopicId)
+    {
+        KnownTopic? result = null;
+        try
+        {
+            result = await Db.QuerySingleOrDefaultAsync<KnownTopic>($"select {FieldListSelect} from {FullQualifiedTableName} where known_topic_id = @knownTopicId;", new { knownTopicId });
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
+            throw;
+        }
+        return result;
+    }
+
+    public async Task<List<KnownTopic>> GetKnownTopicsByProjectName(string? projectName, List<MessageDirection>? messageDirections, int? limit = null)
     {
         if (string.IsNullOrEmpty(projectName))
         {
@@ -194,9 +209,14 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
                 sql += ") ";
             }
 
-            sql += "order by topic;";
+            sql += "order by topic";
+            if (limit.HasValue)
+            {
+                sql += " limit @Limit";
+            }
+            sql += ";";
             result = await Db.QueryAsync<KnownTopic>(sql,
-                                                     new { ProjectName = projectName });
+                                                     new { ProjectName = projectName, Limit = limit });
         }
         catch (Exception exception)
         {

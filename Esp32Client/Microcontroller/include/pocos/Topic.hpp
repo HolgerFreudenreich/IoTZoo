@@ -12,7 +12,9 @@
 #ifndef __TOPIC_HPP__
 #define __TOPIC_HPP__
 
+#include "Defines.hpp"
 #include <WString.h>
+#include "DebugHelper.hpp"
 
 namespace IotZoo
 {
@@ -33,7 +35,7 @@ namespace IotZoo
          Description = description;
          Direction = static_cast<int>(messageDirection);
          Persist = persist;
-         Serial.println("Topic created. TopicName: " + TopicName + ", Description: " + Description + ", Direction: " + String(Direction) + ", Persist: " + String(Persist));  
+         debug("Topic created. TopicName: " + TopicName + ", Description: " + Description + ", Direction: " + String(Direction) + ", Persist: " + String(Persist));  
       }
 
       String TopicName;

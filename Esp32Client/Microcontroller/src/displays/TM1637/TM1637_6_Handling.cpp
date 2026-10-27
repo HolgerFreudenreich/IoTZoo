@@ -22,16 +22,23 @@ namespace IotZoo
     void TM1637_6_Handling::onMqttConnectionEstablished(Settings* const settings, MqttClient* mqttClient, const String& baseTopic)
     {
         Serial.println("TM1637_6_Handling::onMqttConnectionEstablished");
-        if (callbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
-
         this->mqttClient = mqttClient;
-        this->settings = settings;
+
         if (nullptr != mqttClient)
         {
+            // EspMQTTClient keeps its local list, so remove old entries first to avoid wrong callback assignment.
+            if (callbacksAreRegistered)
+            {
+                for (auto& display : displays1637)
+                {
+                    String prefix = baseTopic + "/tm1637_6/" + String(display.getDeviceIndex());
+                    mqttClient->unsubscribe(prefix + "/number");
+                    mqttClient->unsubscribe(prefix + "/text");
+                    mqttClient->unsubscribe(prefix + "/level");
+                    mqttClient->unsubscribe(prefix + "/temperature");
+                }
+            }
+
             for (auto& display : displays1637)
             {
                 // Can be integer and doube value.

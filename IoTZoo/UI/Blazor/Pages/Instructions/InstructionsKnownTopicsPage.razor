@@ -2,14 +2,16 @@
 
 @inherits InstructionsKnownTopicsPageBase
 
-<MudText>The rule engine subscribes to all topics. All received messages from all topics are displayed in the Mqtt Message Explorer.</MudText>
+<MudText>The rule engine subscribes to all topics. Every received message is shown in the <MudLink Href="MessageExplorer">MQTT Message Explorer</MudLink>.</MudText>
 <br />
-<MudText>However, only known topics are relevant for the system.</MudText>
+<MudText>However, only known topics are relevant for the system. A <MudLink Href="KnownTopics">known topic</MudLink> is one the system knows about and works with.</MudText>
 <br />
-<MudText>The system remembers the last payload from every known topic, so that it can be called up later again with the function Read("&lt;TopicName&gt").</MudText>
+<MudText>The system stores the last payload of every known topic. You can read it later with the function Read("&lt;TopicName&gt;").</MudText>
 <br />
-<MudText>When a microcontroller equipped with the IotZoo firmware boots up, the supported topics are automatically set up according to the devices supported by the commented-out #defines.</MudText>
+<MudText>Optionally, you can pass a default value as second parameter: Read("&lt;TopicName&gt;", "&lt;DefaultValue&gt;") or Read("&lt;TopicName&gt;", &lt;DefaultValue&gt;). If the topic is not found, the default value is returned.</MudText>
 <br />
-<MudLink Href="Thingstoconnect">Reference of the build in known topics</MudLink>
+<MudText>When a <MudLink Href="KnownMicrocontrollers">microcontroller</MudLink> with the IOTZOO firmware boots up, it sets up its supported topics automatically. The topics depend on the devices enabled by the #define lines in the firmware (lines that are commented out are disabled).</MudText>
+<br />
+<MudLink Href="Thingstoconnect">Reference of the built-in known topics</MudLink>
 
 

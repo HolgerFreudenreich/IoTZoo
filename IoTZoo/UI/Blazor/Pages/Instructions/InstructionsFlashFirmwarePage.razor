@@ -10,33 +10,32 @@
 <br />
 <MudText>2. Install <MudLink OnClick="@(() => OpenBrowserTab("https://platformio.org/"))">Platform IO</MudLink></MudText>
 <br />
-<MudText>2b. Optional Install WOKWI for VS Code if you want to simulate the ESP32 microcontroller (because you do not have a real one yet). <MudLink Href="https://docs.wokwi.com/vscode/getting-started">WOKWI</MudLink></MudText>
+<MudText>3. Optional: Install WOKWI for VS Code if you want to simulate an ESP32 microcontroller and do not have a real one yet. <MudLink Href="https://docs.wokwi.com/vscode/getting-started">WOKWI</MudLink></MudText>
 <br />
-<MudText>3. Open the solution in Visual Studio Code with PlatformIO</MudText>
+<MudText>4. Open the solution in Visual Studio Code with PlatformIO</MudText>
 <br />
 <MudImage Src="./Projects/Images/platformioopenproject.png" Width="600" Class="rounded-lg"> </MudImage>
 <br />
 <br />
-<MudText>Navigate to the folder where platformio.ini is located and click button 'Open "Microcontroller"'.</MudText>
+<MudText>Navigate to the folder that contains platformio.ini and click the button 'Open "Microcontroller"'.</MudText>
 <br />
 <MudImage Src="./Projects/Images/platformioopenproject2.png" Width="600" Class="rounded-lg"></MudImage>
 <br />
 <br />
-<MudText>3. Open defines.cpp</MudText>
+<MudText>5. Open defines.cpp</MudText>
 <br />
 <MudImage Src="./Projects/Images/openmaincpp.png" Width="900" Class="rounded-lg"></MudImage>
-<MudText>Comment in all #defines for the devices you want to connect to your microcontroller.</MudText>
+<MudText>Uncomment the #define lines for all devices you want to connect to your microcontroller.</MudText>
 <br />
-<MudText>4. Open WifiSettings.hpp to Enter your WIFI settings</MudText>
-<MudImage Src="./Projects/Images/usersettings.png" Width="900" Class="rounded-lg"></MudImage>
+<MudText>6. Open ConnectionSettings.hpp and enter your WiFi settings.</MudText>
 <br />
-<MudText>5. Connect the microcontroller to USB or skip this step if you use WOKWI.</MudText>
+<MudText>7. Connect the microcontroller via USB, or skip this step if you use WOKWI.</MudText>
 <br />
-<MudText>6. Compile and upload to microcontroller.</MudText>
+<MudText>8. Compile and upload the firmware to the microcontroller.</MudText>
 <br />
 <MudImage Src="./Projects/Images/upload.png" Width="600" Class="rounded-lg"> </MudImage>
 <br />
 <br />
-<MudText>7. Optional: If you want to <b>simulate the microcontroller</b> press F1 into VS Code and choose Wokwi: Start Simulator</MudText>
+<MudText>9. Optional: To <b>simulate the microcontroller</b>, press F1 in VS Code and choose Wokwi: Start Simulator.</MudText>
 <MudImage Src="./Projects/Images/startsimulator.png" Width="900" Class="rounded-lg"> </MudImage>
-<MudText>Edit <MudLink OnClick="@(() => OpenBrowserTab("https://docs.wokwi.com/diagram-format/"))" >diagram.json</MudLink>. This file defines the components that will be used for the simulation, their properties, and the connections between the components.</MudText>
+<MudText>Edit <MudLink OnClick="@(() => OpenBrowserTab("https://docs.wokwi.com/diagram-format/"))" >diagram.json</MudLink>. This file defines the simulated components, their properties, and how they are connected.</MudText>

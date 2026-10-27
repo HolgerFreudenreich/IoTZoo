@@ -1,4 +1,5 @@
 #include "./InternalMqtt/InternalMqtt.h"
+#include "Defines.hpp"
 
 #ifdef USE_INTERNAL_MQTT
 
@@ -169,12 +170,22 @@ void InternalMqttBroker::loop()
 
 InternalMqttError InternalMqttBroker::subscribe(const InternalTopic& topic, uint8_t qos)
 {
-    debug("MqttBroker::subscribe");
-    if (remoteBroker && remoteBroker->connected())
+    debug("InternalMqttBroker::subscribe");
+
+    if (remoteBroker != nullptr)
     {
-        return remoteBroker->subscribe(topic, qos);
+        if (remoteBroker->connected())
+        {
+            return remoteBroker->subscribe(topic, qos);
+        }
+        else
+        {
+            debug("Cannot subscribe to remote broker, not connected");
+            return MqttNowhereToSend;
+        }
     }
-    return MqttNowhereToSend;
+    // For local subscriptions, always return Ok since topics are stored locally
+    return MqttOk;
 }
 
 InternalMqttError InternalMqttBroker::publish(const InternalMqttClient* source, const InternalTopic& topic, MqttMessage& msg) const
@@ -251,10 +262,9 @@ void InternalMqttClient::clientAlive(uint32_t more_seconds)
 
 void InternalMqttClient::loop()
 {
-    debug("InternalMqttClient::loop");
     if (keep_alive && (millis() >= alive))
     {
-        if (localBroker)
+        if (nullptr != localBroker)
         {
             debug("timeout client");
             close();
@@ -322,17 +332,19 @@ void InternalMqttClient::resubscribe()
 
 InternalMqttError InternalMqttClient::subscribe(InternalTopic topic, uint8_t qos)
 {
-    debug("Subscribing to internal topic " << String(topic.c_str()));
+    debug("Subscribing to internal topic " + String(topic.c_str()));
     InternalMqttError ret = MqttOk;
 
     subscriptions.insert(topic);
 
     if (localBroker == nullptr) // remote broker
     {
+        debug("Subscribing to remote topic " + String(topic.c_str()));
         return sendTopic(topic, MqttMessage::Type::Subscribe, qos);
     }
     else
     {
+        debug("Subscribing to local topic " + String(topic.c_str()));
         return localBroker->subscribe(topic, qos);
     }
     return ret;
@@ -369,17 +381,17 @@ InternalMqttError InternalMqttClient::sendTopic(const InternalTopic& topic, Mqtt
     return msg.sendTo(this);
 }
 
-void InternalMqttClient::processMessage(MqttMessage* mesg)
+void InternalMqttClient::processMessage(MqttMessage* mqttMessage)
 {
 #if USE_DEBUG_MESSAGES
-    mesg->hexdump("Incoming");
+    mqttMessage->hexdump("Incoming");
 #endif
-    auto        header = mesg->getVHeader();
+    auto        header = mqttMessage->getVHeader();
     const char* payload;
     uint16_t    len;
-    bool        bclose = true;
+    bool        doClose = true;
 
-    switch (mesg->type())
+    switch (mqttMessage->type())
     {
     case MqttMessage::Type::Connect:
         if (mqtt_connected())
@@ -402,35 +414,35 @@ void InternalMqttClient::processMessage(MqttMessage* mesg)
         }
 
         // ClientId
-        mesg->getString(payload, len);
+        mqttMessage->getString(payload, len);
         clientId = string(payload, len);
         payload += len;
 
         if (mqtt_flags & FlagWill) // Will topic
         {
-            mesg->getString(payload, len); // Will Topic
+            mqttMessage->getString(payload, len); // Will Topic
             payload += len;
 
-            mesg->getString(payload, len); // Will Message
+            mqttMessage->getString(payload, len); // Will Message
             payload += len;
         }
         // FIXME forgetting credential is allowed (security hole)
         if (mqtt_flags & FlagUserName)
         {
-            mesg->getString(payload, len);
+            mqttMessage->getString(payload, len);
 
             payload += len;
         }
         if (mqtt_flags & FlagPassword)
         {
-            mesg->getString(payload, len);
+            mqttMessage->getString(payload, len);
 
             payload += len;
         }
 
         debug("Client " << clientId << " connected : keep alive=" << keep_alive << '.' << endl);
 
-        bclose = false;
+        doClose = false;
         setFlag(CltFlagConnected);
         {
             MqttMessage msg(MqttMessage::Type::ConnAck);
@@ -442,7 +454,7 @@ void InternalMqttClient::processMessage(MqttMessage* mesg)
 
     case MqttMessage::Type::ConnAck:
         setFlag(CltFlagConnected);
-        bclose = false;
+        doClose = false;
         resubscribe();
         break;
 
@@ -451,12 +463,12 @@ void InternalMqttClient::processMessage(MqttMessage* mesg)
         if (not mqtt_connected())
             break;
         // Ignore acks
-        bclose = false;
+        doClose = false;
         break;
 
     case MqttMessage::Type::PingResp:
         // TODO: no PingResp is suspicious (server dead)
-        bclose = false;
+        doClose = false;
         break;
 
     case MqttMessage::Type::PingReq:
@@ -467,7 +479,7 @@ void InternalMqttClient::processMessage(MqttMessage* mesg)
             uint16_t pingreq = MqttMessage::Type::PingResp;
             debug("Ping response to client");
             tcpClient->write((const char*)(&pingreq), 2);
-            bclose = false;
+            doClose = false;
         }
         else
         {
@@ -484,15 +496,15 @@ void InternalMqttClient::processMessage(MqttMessage* mesg)
 
         debug("un/subscribe loop");
         string qoss;
-        while (payload < mesg->end())
+        while (payload < mqttMessage->end())
         {
-            mesg->getString(payload, len); // Topic
+            mqttMessage->getString(payload, len); // Topic
             debug("  topic (" << string(payload, len) << ')');
             // subscribe(Topic(payload, len));
             InternalTopic topic(payload, len);
 
             payload += len;
-            if (mesg->type() == MqttMessage::Type::Subscribe)
+            if (mqttMessage->type() == MqttMessage::Type::Subscribe)
             {
                 uint8_t qos = *payload++;
                 if (qos != 0)
@@ -512,9 +524,9 @@ void InternalMqttClient::processMessage(MqttMessage* mesg)
             }
         }
         debug("end loop");
-        bclose = false;
+        doClose = false;
 
-        MqttMessage ack(mesg->type() == MqttMessage::Type::Subscribe ? MqttMessage::Type::SubAck : MqttMessage::Type::UnSuback);
+        MqttMessage ack(mqttMessage->type() == MqttMessage::Type::Subscribe ? MqttMessage::Type::SubAck : MqttMessage::Type::UnSuback);
         ack.add(header[0]);
         ack.add(header[1]);
         ack.add(qoss.c_str(), qoss.size(), false);
@@ -525,7 +537,7 @@ void InternalMqttClient::processMessage(MqttMessage* mesg)
     case MqttMessage::Type::UnSuback:
         if (not mqtt_connected())
             break;
-        bclose = false;
+        doClose = false;
         break;
 
     case MqttMessage::Type::Publish:
@@ -534,9 +546,9 @@ void InternalMqttClient::processMessage(MqttMessage* mesg)
 #endif
         if (mqtt_connected() or tcpClient == nullptr)
         {
-            uint8_t qos = mesg->flags();
+            uint8_t qos = mqttMessage->flags();
             payload     = header;
-            mesg->getString(payload, len);
+            mqttMessage->getString(payload, len);
             InternalTopic published(payload, len);
             payload += len;
 #if USE_DEBUG_MESSAGES
@@ -545,7 +557,7 @@ void InternalMqttClient::processMessage(MqttMessage* mesg)
             // << '(' << string(payload, len).c_str() << ')'  << " msglen=" << mesg->length() << endl;
             if (qos)
                 payload += 2; // ignore packet identifier if any
-            len = mesg->end() - payload;
+            len = mqttMessage->end() - payload;
             // TODO reset DUP
             // TODO reset RETAIN
 
@@ -566,9 +578,9 @@ void InternalMqttClient::processMessage(MqttMessage* mesg)
             else if (localBroker) // from outside to inside
             {
                 debug("publishing to local_broker");
-                localBroker->publish(this, published, *mesg);
+                localBroker->publish(this, published, *mqttMessage);
             }
-            bclose = false;
+            doClose = false;
         }
         break;
 
@@ -578,18 +590,18 @@ void InternalMqttClient::processMessage(MqttMessage* mesg)
             break;
         resetFlag(CltFlagConnected);
         close(false);
-        bclose = false;
+        doClose = false;
         break;
 
     default:
-        bclose = true;
+        doClose = true;
         break;
     };
-    if (bclose)
+    if (doClose)
     {
 #if USE_DEBUG_MESSAGES
-        debug("*************** Error msg 0x" << _HEX(mesg->type()));
-        mesg->hexdump("------- ERROR -------");
+        debug("*************** Error msg 0x" << _HEX(mqttMessage->type()));
+        mqttMessage->hexdump("------- ERROR -------");
         dump();
 
 #endif
@@ -712,10 +724,12 @@ InternalMqttError InternalMqttClient::publishIfSubscribed(const InternalTopic& t
     {
         if (tcpClient)
         {
+            debug("Forwarding message for topic: " << topic.c_str() << " to external broker");
             retval = msg.sendTo(this);
         }
         else
         {
+            debug("Processing message for topic: " << topic.c_str());
             processMessage(&msg);
         }
     }
@@ -725,9 +739,15 @@ InternalMqttError InternalMqttClient::publishIfSubscribed(const InternalTopic& t
 bool InternalMqttClient::isSubscribedTo(const InternalTopic& topic) const
 {
     for (const auto& subscription : subscriptions)
+    {
+        debug("Checking subscription: " << subscription.c_str() << " against topic: " << topic.c_str());
         if (subscription.matches(topic))
+        {
+            debug("Found subscription for topic: " << topic.c_str());
             return true;
-
+        }
+    }
+    debug("No subscription found for topic: " << topic.c_str());
     return false;
 }
 
@@ -810,7 +830,7 @@ void MqttMessage::add(const char* p, size_t len, bool addLength)
 
 void MqttMessage::encodeLength()
 {
-    debug("encodingLength");
+    debug("encodeLength");
     if (state != Complete)
     {
         int length = buffer.size() - 3; // 3 = 1 byte for header + 2 bytes for pre-reserved length field.

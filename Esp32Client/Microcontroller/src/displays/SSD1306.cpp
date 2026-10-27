@@ -46,11 +46,6 @@ namespace IotZoo
     void OledSsd1306Display::onMqttConnectionEstablished()
     {
         Serial.println("OledSsd1306Display::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
         for (int line = 0; line < 6; line++)
         {
             String topicLine = getBaseTopic() + "/oled/" + String(getDeviceIndex()) + "/line/" + String(line) + "/text";

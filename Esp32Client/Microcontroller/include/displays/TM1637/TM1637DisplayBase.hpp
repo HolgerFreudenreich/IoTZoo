@@ -62,6 +62,10 @@ namespace IotZoo
             topics.emplace_back(baseTopic + "/tm1637_" + displayType + "/" + String(deviceIndex) + "/level",
                                 "Use TM1637 " + displayType + " digits LCD display with index " + String(deviceIndex) + " to indicate a level between 0 and 100.",
                                 MessageDirection::IotZooClientOutbound);
+                                
+            topics.emplace_back(baseTopic + "/tm1637_" + displayType + "/" + String(deviceIndex) + "/temperature",
+                                "Use TM1637 " + displayType + " digits LCD display with index " + String(deviceIndex) + " to indicate a temperature.",
+                                MessageDirection::IotZooClientOutbound);                                
 
             return topics;
         }
@@ -175,7 +179,7 @@ namespace IotZoo
         }
 
       protected:
-        String serverDownText = "----";
+        String serverDownText = "- - -";
     };
 
 } // namespace IotZoo

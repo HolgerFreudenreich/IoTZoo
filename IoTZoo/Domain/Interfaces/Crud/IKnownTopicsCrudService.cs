@@ -28,11 +28,13 @@ public interface IKnownTopicsCrudService
 
    public Task Delete(KnownTopic knownTopic);
 
-   public Task<List<KnownTopic>> GetKnownTopicsByProjectName(string projectName, List<MessageDirection>? messageDirections);
+   public Task<List<KnownTopic>> GetKnownTopicsByProjectName(string projectName, List<MessageDirection>? messageDirections, int? limit = null);
 
    public Task<KnownTopic?> GetKnownTopicByTopicName(string projectName, string topic);
 
    public Task<List<KnownTopic>> GetKnownTopics();
+
+   public Task<KnownTopic?> GetKnownTopicById(int knownTopicId);
 
    Task<KnownTopic?> LoadByTopicName(string topic);
 

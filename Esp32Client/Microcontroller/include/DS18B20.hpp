@@ -22,7 +22,7 @@
 
 namespace IotZoo
 {
-    class DS18B20 : DeviceBase
+    class DS18B20 : public DeviceBase
     {
       protected:
         OneWire*           oneWire                  = nullptr;
@@ -48,7 +48,7 @@ namespace IotZoo
         /// @param topics
         void addMqttTopicsToRegister(std::vector<Topic>* const topics) const;
 
-        void loop();
+        virtual void loop() override;
 
         std::vector<float> requestTemperatures();
 
@@ -73,6 +73,10 @@ namespace IotZoo
         {
             lastPublishedTemperatureMillis = lastPublishedMillis;
         }
+
+        virtual bool setPayloadPropertyOfTopicLink(TopicLink& topicLink) override;
+
+        virtual void publishInternalMqtt() override;
     };
 } // namespace IotZoo
 #endif // __DS18B20_HPP__

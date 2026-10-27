@@ -15,10 +15,11 @@
 
 #ifdef USE_DEBUG_MESSAGES
 #include <TinyConsole.h>
+#include <TinyStreaming.h>
 
 struct DebugHelper
 {
-    static const int debugLevel = 2; // 0: no debug messages, 1: only important messages, 2: all messages
+    static const int debugLevel = USE_DEBUG_MESSAGES; // 0: no debug messages, 1: only important messages, 2: all messages
 }; 
 
 #define debug(what)                                                                                                                                  \

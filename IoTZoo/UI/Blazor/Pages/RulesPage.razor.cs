@@ -240,7 +240,16 @@ public class RulesPageBase : PageBase
 
     protected override async Task LoadData()
     {
-        Rules = await this.RulesService.GetRulesByProject(SelectedProject);
+        IsBusy = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            Rules = await this.RulesService.GetRulesByProject(SelectedProject);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
         await InvokeAsync(StateHasChanged);
     }
 }

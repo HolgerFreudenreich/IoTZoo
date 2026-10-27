@@ -51,11 +51,6 @@ namespace IotZoo
     void Max7219::onMqttConnectionEstablished()
     {
         Serial.println("Max7219::onMqttConnectionEstablished");
-        if (mqttCallbacksAreRegistered)
-        {
-            Serial.println("Reconnection -> nothing to do.");
-            return;
-        }
 
         mqttClient->subscribe(getBaseTopic() + "/max7219/" + String(deviceIndex) + "/setPoint",
                               [&](const String& json)

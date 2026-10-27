@@ -9,6 +9,7 @@
 // Firmware for ESP8266 and ESP32 Microcontrollers
 // --------------------------------------------------------------------------------------------------------------------
 #include "Defines.hpp"
+#include "DebugHelper.hpp"
 
 #ifdef USE_MQTT
 #include "MqttClient.hpp"
@@ -38,7 +39,7 @@ namespace IotZoo
     MqttClient::MqttClient(const char* mqttClientName, const char* wifiSsid, const char* wifiPassword, const char* mqttServerIp,
                            const char* mqttUsername, const char* mqttPassword, const short mqttServerPort, int bufferSize)
     {
-        Serial.println("Constructor MqttClient mqttServerIp: " + String(mqttServerIp) + ":" + String(mqttServerPort));
+        debug("Constructor MqttClient mqttServerIp: " + String(mqttServerIp) + ":" + String(mqttServerPort));
         mqttClient = new EspMQTTClient(wifiSsid,       // SSID
                                        wifiPassword,   // PWD SSID
                                        mqttServerIp,   // MQTT Broker server ip
@@ -49,7 +50,7 @@ namespace IotZoo
                                        mqttServerPort);
 
         mqttClient->setMaxPacketSize(bufferSize); // default is only 128 bytes! When exeeding the message will not be published!
-        mqttClient->enableDebuggingMessages(true);
+        mqttClient->enableDebuggingMessages(USE_DEBUG_MESSAGES > 0);
         // The reconnection should be established after 100 ms.
         mqttClient->setMqttReconnectionAttemptDelay(100);
 
@@ -63,7 +64,7 @@ namespace IotZoo
 
     MqttClient::~MqttClient()
     {
-        Serial.println("Destructor MqttClient");
+        debug("Destructor MqttClient");
     }
 
     void MqttClient::enableLastWillMessage(const String& topic, const String& message,
@@ -74,8 +75,8 @@ namespace IotZoo
 
     bool MqttClient::publish(const String& topic, const String& payload, bool retain)
     {
-        Serial.println("─┐");
-        Serial.println(">>> Publishing topic:\r\n" + topic + "\r\n\r\npayload ↣ " + payload + "\r\n" +
+        debug("─┐");
+        debug(">>> Publishing topic:\r\n" + topic + "\r\n\r\npayload ↣ " + payload + "\r\n" +
                      "\r\nMqttBrokerIp: " + this->mqttClient->getMqttServerIp());
         if (!mqttClient->isConnected())
         {
@@ -91,13 +92,13 @@ namespace IotZoo
     /// @return
     bool MqttClient::subscribe(const String& topic, MessageReceivedCallback messageReceivedCallback, uint8_t qos)
     {
-        Serial.println("Subscribing to topic: " + topic + ", qos: " + String(qos));
+        debug("Subscribing to topic: " + topic + ", qos: " + String(qos));
         return printSuccess(mqttClient->subscribe(topic, messageReceivedCallback, qos));
     }
 
     bool MqttClient::subscribe(const String& topic, MessageReceivedCallbackWithTopic messageReceivedCallback, uint8_t qos)
     {
-        Serial.println("Subscribing to topic: " + topic + ", qos: " + String(qos));
+        debug("Subscribing to topic: " + topic + ", qos: " + String(qos));
         return printSuccess(mqttClient->subscribe(topic, messageReceivedCallback, qos));
     }
 
@@ -119,29 +120,27 @@ namespace IotZoo
 
     void MqttClient::removeRetainedMessageFromBroker(const String& topic)
     {
-        Serial.println("*** Removing topic " + topic);
+        debug("*** Removing topic " + topic);
         publish(topic, "", true);
     }
 
     /// Main loop
     void MqttClient::loop()
-    {
-        Serial.println("MqttClient::loop");
+    {        
         mqttClient->loop();
     }
 
     bool MqttClient::printSuccess(bool ok)
-    {
-        Serial.println("");
+    {        
         if (ok)
         {
-            Serial.println(" -> OK " + String(millis()));
+            debug(" -> OK " + String(millis()));
         }
         else
         {
-            Serial.println(" -> NOK " + String(millis()));
+            debug(" -> NOK " + String(millis()));
         }
-        Serial.println("─┘");
+        debug("─┘");
         return ok;
     }
 } // namespace IotZoo

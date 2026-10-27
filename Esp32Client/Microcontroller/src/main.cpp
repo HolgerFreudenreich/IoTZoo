@@ -59,6 +59,7 @@ IotZoo::WS2818* ws2812 = nullptr;
 #endif
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
+#include "BLEHeartRateReceiver.hpp"
 #include "BLEHeartRateSensor.hpp"
 IotZoo::HeartRateSensor* heartRateSensor = nullptr;
 void                     connectToHeartRateSensor(int advertisingTimeout = 30);
@@ -79,7 +80,7 @@ IotZoo::Rd03D* rd03d = nullptr;
 IotZoo::Buzzer* buzzer = nullptr;
 #endif
 
-#ifdef ARDUINO_ESP32_DEV
+#if defined(ARDUINO_ESP32_DEV) || defined(ARDUINO_ARCH_ESP32)
 #include "Settings.hpp"
 using namespace IotZoo;
 Settings* settings = nullptr;
@@ -93,13 +94,6 @@ std::vector<TrafficLight> trafficLightLeds{};
 #ifdef USE_REMOTE_GPIOS
 #include "RemoteGpio.hpp"
 std::vector<RemoteGpio> remoteGpios{};
-#endif
-
-#ifdef USE_HB0014
-const int     digitalPinInfraredLed   = 34;
-int           digitalValueInfrared    = 0; // digital readings
-int           digitalValueOldInfrared = 0;
-unsigned long lastMillisInfrared      = millis();
 #endif
 
 #ifdef USE_OLED_SSD1306
@@ -166,7 +160,7 @@ enum class DayMode
 // --------------------------------------------------------------------------------------------------------------------
 // Global variables
 // --------------------------------------------------------------------------------------------------------------------
-String firmwareVersion = "0.2.5";
+String firmwareVersion = "0.2.8";
 
 bool          doRestart         = false;
 unsigned long aliveCounter      = 0;
@@ -177,7 +171,9 @@ unsigned long lastServerAliveMillis = millis();
 long          loopCounter           = 0;
 long          loopDurationMs        = 0;
 
+#ifndef LED_BUILTIN
 static const uint8_t LED_BUILTIN = 2;
+#endif
 
 DayMode dayMode = DayMode::Unknown;
 
@@ -190,6 +186,9 @@ using namespace IotZoo;
 String macAddress;
 
 bool topicsRegistered = false;
+
+void taskInitHeartRateSensor(void* pvParameters);
+void heartRateSensorLoop(void* pvParameters);
 
 /// @brief Restarts the microcontroller.
 void restart()
@@ -204,6 +203,7 @@ String getMacAddress()
 {
     // It would be even possible to set the MAC address!
     macAddress = WiFi.macAddress();
+     macAddress.toLowerCase();
     debug("MAC: " << macAddress);
     return macAddress;
 }
@@ -248,7 +248,7 @@ IotZoo::TM1637_4_Handling* tm1637_4Handling;
 
 #ifdef USE_TM1637_6
 #include "./displays/TM1637/TM1637_6_Handling.hpp"
-IotZoo::TM1637_6_Handling tm1637_6Handling;
+IotZoo::TM1637_6_Handling* tm1637_6Handling;
 #endif // USE_TM1637_6
 
 #ifdef USE_MAX7219
@@ -312,7 +312,7 @@ bool deserializeStaticJsonAndPublishError(JsonDocument& jsonDocument, const Stri
     return true;
 }
 
-#endif
+#endif // USE_MQTT
 
 void onReceivedConnectedDevicesConfiguration(const String& json)
 {
@@ -356,7 +356,7 @@ bool onReceivedMicrocontrollerConfiguration(const String& json)
 }
 
 #ifdef USE_HW040
-IotZoo::HW040Handling hw040Handling;
+IotZoo::HW040Handling* hw040Handling = nullptr;
 #endif
 
 #if defined(USE_MQTT)
@@ -401,7 +401,7 @@ String serializeMicrocontroller()
     return json;
 }
 
-void AddMicrocontrollerNestedJsonObject(JsonDocument* jsonDocument)
+void addMicrocontrollerNestedJsonObject(JsonDocument* jsonDocument)
 {
     JsonObject jsonObjectMicrocontroller         = jsonDocument->createNestedObject("Microcontroller");
     jsonObjectMicrocontroller["MacAddress"]      = WiFi.getHostname();
@@ -411,7 +411,7 @@ void AddMicrocontrollerNestedJsonObject(JsonDocument* jsonDocument)
     jsonObjectMicrocontroller["BoardType"]       = identifyBoard();
 }
 
-void AddAliveNestedJsonObject(JsonDocument* jsonDocument)
+void addAliveNestedJsonObject(JsonDocument* jsonDocument)
 {
     JsonObject jsonObjectAlive            = jsonDocument->createNestedObject("Alive");
     jsonObjectAlive["AliveCounter"]       = aliveCounter;
@@ -422,7 +422,7 @@ void AddAliveNestedJsonObject(JsonDocument* jsonDocument)
     jsonObjectAlive["AliveAckLedEnabled"] = settings->getAliveAckLedMode();
 }
 
-void AddSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
+void addSupportedDevicesNestedJsonObject(JsonDocument* jsonDocument)
 {
     JsonObject jsonObjectSupportedDevices = jsonDocument->createNestedObject("SupportedDevices");
 #ifdef USE_HW040
@@ -639,18 +639,18 @@ void publishErrorMessage(const String& errorMessage)
 /// @return Json for alive message
 String createAliveJson()
 {
-    StaticJsonDocument<4096> jsonDocument; // on stack
-    // DynamicJsonDocument jsonDocument(4096); // on heap
+    //StaticJsonDocument<4096> jsonDocument; // on stack
+    DynamicJsonDocument jsonDocument(4096); // on heap
 
-    AddMicrocontrollerNestedJsonObject(&jsonDocument);
-    AddAliveNestedJsonObject(&jsonDocument);
-    AddSupportedDevicesNestedJsonObject(&jsonDocument);
+    addMicrocontrollerNestedJsonObject(&jsonDocument);
+    addAliveNestedJsonObject(&jsonDocument);
+    addSupportedDevicesNestedJsonObject(&jsonDocument);
 
     String json;
     serializeJson(jsonDocument, json);
     return json;
 }
-#endif
+#endif // USE_MQTT
 
 // ------------------------------------------------------------------------------------------------
 // Periodically send an alive message.
@@ -776,7 +776,10 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 #endif
 
 #ifdef USE_HW040
-    hw040Handling.onMqttConnectionEstablished(mqttClient, getBaseTopic());
+    if (nullptr != hw040Handling)
+    {
+        hw040Handling->onMqttConnectionEstablished(mqttClient, getBaseTopic());
+    }
 #endif
 
 #ifdef USE_STEPPER_MOTOR
@@ -836,14 +839,14 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     if (nullptr != tm1637_4Handling)
     {
         tm1637_4Handling->onMqttConnectionEstablished(mqttClient, getBaseTopic());
-#ifdef USE_INTERNAL_MQTT
-        tm1637_4Handling->subscribeToInternalMqttTopics(); // independent of external MQTT broker.
-#endif
     }
 #endif
 
 #ifdef USE_TM1637_6
-    tm1637_6Handling.onMqttConnectionEstablished(settings, mqttClient, getBaseTopic());
+    if (nullptr != tm1637_6Handling)
+    {
+        tm1637_6Handling->onMqttConnectionEstablished(settings, mqttClient, getBaseTopic());
+    }
 #endif
 
 #ifdef USE_LED_AND_KEY
@@ -988,9 +991,9 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 }
 #endif // USE_MQTT
 
-/**
- * @brief Loads the configuration for the connected devices and instantiates them.
- */
+// The configuration is stored in the flash memory of the microcontroller.
+// The configuration is loaded via the IotZooClient and stored in the flash memory.
+// After loading the configuration, the devices are instantiated and configured according to the configuration.
 void makeInstanceConfiguredDevices()
 {
     Serial.println("Loading device configurations and instantiate devices...");
@@ -1033,7 +1036,7 @@ void makeInstanceConfiguredDevices()
                     triggeringTopic.toLowerCase();
                     String targetTopic = topicLinkVariant["TargetTopic"].as<String>();
                     targetTopic.trim();
-                    targetTopic.toLowerCase();
+                    //targetTopic.toLowerCase();
 
                     String targetPayload = topicLinkVariant["TargetPayload"].as<String>();
                     // Example: { "Operator": ">", "Value": "130"}
@@ -1070,10 +1073,9 @@ void makeInstanceConfiguredDevices()
 
                     ky025 = new KY025(deviceIndex, settings, mqttClient, getBaseTopic(), intervalMs, dataPin);
 #ifdef USE_INTERNAL_MQTT
-
                     ky025->setTopicLinks(*topicLinks);
                     ky025->setInternalMqttClient(globalInternalMqttClient);
-#endif
+#endif // USE_INTERNAL_MQTT
                     Serial.println("Reed contact KY-025 initialized.");
                 }
 #endif // USE_BUTTON
@@ -1397,6 +1399,10 @@ void makeInstanceConfiguredDevices()
                     // Add 1 DS18B20 temperature sensors manager which can support 1..64 DS18B20 temperature sensors.
                     ds18B20SensorManager = new DS18B20(deviceIndex, settings, mqttClient, getBaseTopic(), datPin, resolution, transmissionInterval);
 
+#ifdef USE_INTERNAL_MQTT
+                    ds18B20SensorManager->setTopicLinks(*topicLinks);
+                    ds18B20SensorManager->setInternalMqttClient(globalInternalMqttClient);
+#endif // USE_INTERNAL_MQTT
                     Serial.println("DS18B20 sensors configuration loaded! Dat Pin is " + String(datPin) + ", Resolution: " + String(resolution) +
                                    ", Transmission interval ms: " + String(transmissionInterval));
                 }
@@ -1445,7 +1451,7 @@ void makeInstanceConfiguredDevices()
                     Serial.println("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
                 }
 #ifdef USE_WS2818_PIXEL_MATRIX
-                else if (deviceType == "PixelMatrix")
+                if (deviceType == "PixelMatrix")
                 {
                     Serial.println("Configuration of NEO pixel matrix...");
                     int  dioPin                = arrPins[0]["MicrocontrollerGpoPin"];
@@ -1490,6 +1496,7 @@ void makeInstanceConfiguredDevices()
 
                     bool   flipDisplay = false;
                     String serverDownText;
+                    bool   enableServerDownText = false;
                     for (JsonVariant property : arrProperties)
                     {
                         String propertyName  = property["Name"];
@@ -1505,18 +1512,24 @@ void makeInstanceConfiguredDevices()
                             propertyValue.toLowerCase();
                             serverDownText = propertyValue;
                         }
+                        else if (propertyName == "enableServerDownText")
+                        {
+                            propertyValue.toLowerCase();
+                            serverDownText       = propertyValue;
+                            enableServerDownText = propertyValue == "true";
+                        }
                     }
-                    tm1637_4Handling = new TM1637_4_Handling();
-                    if (nullptr != tm1637_4Handling)
+                    if (nullptr == tm1637_4Handling)
                     {
-#ifdef USE_INTERNAL_MQTT
-                        tm1637_4Handling->makeInstanceInternalMqttClient(internalBroker);
-#endif
-                        DeviceBase& device = tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
-
-                        Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
-                                       ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay));
+                        tm1637_4Handling = new TM1637_4_Handling();
+                        TM1637_Handling::setInternalCallback(globalInternalMqttClient);
                     }
+
+                    DeviceBase& device = tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+                    device.setEnableServerDownText(enableServerDownText);
+                    Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
+                                   ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay) +
+                                   ", enableServerDownText: " + String(enableServerDownText));
                 }
 #endif // USE_TM1637_4
 
@@ -1524,12 +1537,18 @@ void makeInstanceConfiguredDevices()
                 if (deviceType == "TM1637_6")
                 {
                     Serial.println("TM1637_6 display");
+                    if (nullptr == tm1637_6Handling)
+                    {
+                        tm1637_6Handling = new TM1637_6_Handling();
+                        TM1637_Handling::setInternalCallback(globalInternalMqttClient);
+                    }
 
                     int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
                     int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
 
                     bool   flipDisplay = false;
                     String serverDownText;
+                    bool   enableServerDownText = false;
                     for (JsonVariant property : arrProperties)
                     {
                         String propertyName  = property["Name"];
@@ -1545,11 +1564,19 @@ void makeInstanceConfiguredDevices()
                             propertyValue.toLowerCase();
                             serverDownText = propertyValue;
                         }
+                        else if (propertyName == "enableServerDownText")
+                        {
+                            propertyValue.toLowerCase();
+                            serverDownText       = propertyValue;
+                            enableServerDownText = propertyValue == "true";
+                        }
                     }
 
-                    tm1637_6Handling.addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+                    DeviceBase& device = tm1637_6Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+                    device.setEnableServerDownText(enableServerDownText);
 
-                    Serial.println("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin));
+                    Serial.println("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin) +
+                                   "enableServerDownText: " + String(enableServerDownText));
                 }
 #endif // USE_TM1637_6
 
@@ -1663,12 +1690,22 @@ void makeInstanceConfiguredDevices()
                         }
                     }
 
-                    hw040Handling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), boundaryMinValue, boundaryMaxValue, circleValues,
-                                            acceleration, encoderSteps, clkPin, dtPin, swPin, -1);
+                    hw040Handling = new IotZoo::HW040Handling();
+
+                    DeviceBase& device =
+                        hw040Handling->addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), boundaryMinValue, boundaryMaxValue, circleValues,
+                                                 acceleration, encoderSteps, clkPin, dtPin, swPin, -1);
+                    device.setInternalMqttClient(globalInternalMqttClient);
+                    device.setTopicLinks(*topicLinks);
+
                     Serial.println("HW-040 rotary encoder initialized! CLK Pin is " + String(clkPin) + ", DT Pin is " + String(dtPin) +
                                    ", MS Pin is " + String(swPin) + ", boundaryMinValue is " + String(boundaryMinValue) + ", boundaryMaxValue is " +
                                    String(boundaryMaxValue) + ", acceleration is " + String(acceleration) + ", circleValues is " +
                                    String(circleValues) + ", encoderSteps is " + String(encoderSteps));
+                }
+                if (nullptr != hw040Handling)
+                {
+                    HW040Handling::setInternalCallback(globalInternalMqttClient);
                 }
 #endif // USE_HW040
 
@@ -1691,13 +1728,17 @@ void makeInstanceConfiguredDevices()
                     heartRateSensor->setTopicLinks(*topicLinks);
                     heartRateSensor->setInternalMqttClient(globalInternalMqttClient);
 #endif
-                    connectToHeartRateSensor(advertisingTimeoutSeconds);
+                    debug("Heart rate sensor configuration loaded! Advertising timeout seconds: " + String(advertisingTimeoutSeconds));
+
+                    xTaskCreate(taskInitHeartRateSensor, "TaskInitHeartRateSensor", 4096, (void*)(intptr_t)advertisingTimeoutSeconds, 1, NULL);
+
+                    debug("Heart rate sensor task created.");
                 }
 #endif // USE_BLE_HEART_RATE_SENSOR
             }
         }
     }
-}
+} // end of setup()
 
 #if defined(USE_REST_SERVER)
 #if defined(USE_MQTT)
@@ -1776,7 +1817,7 @@ void handlePostDeviceConfig()
     webServer.send(200, "application/json", "{}");
 }
 
-/// @brief Blazor app sends microcontroller config.
+// @brief Blazor app sends microcontroller config.
 void handlePostMicrocontrollerConfig()
 {
     debug("Received microcontroller config (POST).");
@@ -1819,7 +1860,7 @@ void handlePostMicrocontrollerConfig()
     doRestart = true;
 }
 
-#endif
+#endif // USE_REST_SERVER
 
 void connectToWiFi()
 {
@@ -1850,6 +1891,7 @@ void notifyCallbackHeartRate(NimBLERemoteCharacteristic* pBLERemoteCharacteristi
 
 #ifdef USE_INTERNAL_MQTT
     {
+        debug("Notify callback heart rate. data[1]: " + String(data[1]));
         InternalMqttClient* internalMqttClient = heartRateSensor->getInternalMqttClient();
         if (nullptr != internalMqttClient)
         {
@@ -1876,9 +1918,15 @@ void notifyCallbackHeartRate(NimBLERemoteCharacteristic* pBLERemoteCharacteristi
 
 void connectToHeartRateSensor(int advertisingTimeout)
 {
-    String topic = getBaseTopic() + "/pulse/0/scan_started";
+    debug("Connecting to heart rate sensor. Timeout: " << advertisingTimeout << " s");
 
-    mqttClient->publish(topic, "BLE scan started to find advertising heart rate sensor. Timeout is set to " + String(advertisingTimeout) + " s.");
+#ifdef USE_MQTT
+    if (nullptr != mqttClient)
+    {
+        String topic = getBaseTopic() + "/pulse/0/scan_started";
+        mqttClient->publish(topic, "BLE scan started to find advertising heart rate sensor. Timeout is set to " + String(advertisingTimeout) + " s.");
+    }
+#endif
 
     if (nullptr != heartRateSensor)
     {
@@ -1914,7 +1962,7 @@ void setup()
         sleep(1000);
     }
 
-#endif
+#endif // ERASE_FLASH
 
 #if defined(USE_REST_SERVER)
     connectToWiFi();
@@ -1945,11 +1993,14 @@ void setup()
     {
         tm1637_4Handling->setup();
     }
-#endif
+#endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
-    tm1637_6Handling.setup();
-#endif
+    if (nullptr != tm1637_6Handling)
+    {
+        tm1637_6Handling->setup();
+    }
+#endif // USE_TM1637_6
 
 #if defined(USE_MQTT)
     char* mqttClientName = new char[18]();
@@ -1970,37 +2021,51 @@ void setup()
     mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, nullptr, nullptr, 1883);
 
     Serial.println("BaseTopic: " + getBaseTopic());
-#endif
-    makeInstanceConfiguredDevices();
-    lastAliveTime = millis() - settings->getAliveIntervalMillis();
+#endif // USE_MQTT
 
-#ifdef USE_HB0014
-    pinMode(digitalPinInfraredLed, INPUT);
-#ifdef USE_OLED_SSD1306
-    if (nullptr != oled1306)
+    makeInstanceConfiguredDevices();
+
+#ifdef USE_TM1637_4
+    if (nullptr != tm1637_4Handling)
     {
-        oled1306->setTextLine(1, "?");
-        oled1306->setTextLine(2, "Watt");
+        tm1637_4Handling->subscribeToInternalMqttTopics(globalInternalMqttClient, getBaseTopic());
+    }
+    else
+    {
+        Serial.println("tm1637_4Handling is null");
+    }
+
+#endif // USE_TM1637_4
+
+#ifdef USE_TM1637_6
+    if (nullptr != tm1637_6Handling)
+    {
+        tm1637_6Handling->subscribeToInternalMqttTopics(globalInternalMqttClient, getBaseTopic());
     }
 #endif
-#endif
-}
+    lastAliveTime = millis() - settings->getAliveIntervalMillis();
+
+
+#ifdef USE_BLE_HEART_RATE_SENSOR
+    xTaskCreate(heartRateSensorLoop, "HeartRateSensorLoop", 4096, nullptr, 1, nullptr);
+#endif // USE_BLE_HEART_RATE_SENSOR
+
+} // setup
 
 #ifdef USE_MQTT
-
 void publishViaMqtt(const String& topicName, const String& payload)
 {
     Serial.println(topicName);
     Serial.println(payload);
     mqttClient->publish(topicName, payload);
 }
-#endif
+#endif // USE_MQTT
 
 /// @brief Register all from this microcontroller supported topics at the IOTZOO client.
 void registerTopics()
 {
 #ifdef USE_MQTT
-    Serial.println("Register Known Topics at the IOTZOO client.");
+    debug("Register Known Topics at the IOTZOO client.");
     if (!mqttClient->isConnected())
     {
         return;
@@ -2099,40 +2164,46 @@ void registerTopics()
     {
         oled1306->addMqttTopicsToRegister(&topics);
     }
-#endif
+#endif // USE_OLED_SSD1306
 
 #ifdef USE_TM1637_4
     if (nullptr != tm1637_4Handling)
     {
         tm1637_4Handling->addMqttTopicsToRegister(&topics);
     }
-#endif
+#endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
-    tm1637_6Handling.addMqttTopicsToRegister(&topics);
-#endif
+    if (nullptr != tm1637_6Handling)
+    {
+        tm1637_6Handling->addMqttTopicsToRegister(&topics);
+    }
+#endif // USE_TM1637_6
 
 #ifdef USE_HT1621
     if (nullptr != ht1621)
     {
         ht1621->addMqttTopicsToRegister(&topics);
     }
-#endif
+#endif // USE_HT1621
 
 #ifdef USE_MAX7219
     if (nullptr != max7219)
     {
         max7219->addMqttTopicsToRegister(&topics);
     }
-#endif
+#endif // USE_MAX7219
 
 #ifdef USE_HW040
-    hw040Handling.addMqttTopicsToRegister(&topics);
-#endif
+    if (nullptr != hw040Handling)
+    {
+        hw040Handling->addMqttTopicsToRegister(&topics);
+    }
+#endif // USE_HW040
 
 #ifdef USE_HC_SR501
     motionDetectorsHrsc501Handling.addMqttTopicsToRegister(&topics);
-#endif
+#endif // USE_HC_SR501
 
 #ifdef USE_RD_03D
     if (nullptr != rd03d)
@@ -2146,11 +2217,11 @@ void registerTopics()
     {
         tm1638->addMqttTopicsToRegister(&topics);
     }
-#endif
+#endif // USE_LED_AND_KEY
 
 #ifdef USE_KEYPAD
     buttonMatrixHandling.addMqttTopicsToRegister(&topics);
-#endif
+#endif // USE_KEYPAD
 
 #ifdef USE_DS18B20
     if (nullptr != ds18B20SensorManager)
@@ -2195,7 +2266,7 @@ void registerTopics()
 /// @brief Called when the IotZoo Client has not responded to the alive message.
 void onIotZooClientUnavailable()
 {
-    Serial.println("*** IoT-Zoo client is unavailable! Please start it! ***");
+    debug("*** IoT-Zoo client is unavailable! Please start it! ***");
 
     String jsonMicrocontroller = serializeMicrocontroller();
 
@@ -2206,11 +2277,14 @@ void onIotZooClientUnavailable()
     {
         tm1637_4Handling->onIotZooClientUnavailable();
     }
-#endif
+#endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
-    tm1637_6Handling.onIotZooClientUnavailable();
-#endif
+    if (nullptr != tm1637_6Handling)
+    {
+        tm1637_6Handling->onIotZooClientUnavailable();
+    }
+#endif // USE_TM1637_6
 
 #ifdef USE_LED_AND_KEY
     if (nullptr != tm1638)
@@ -2261,11 +2335,15 @@ void loop()
         }
         else
         {
-            debug("🛜 ✅");
+            if (DebugHelper::debugLevel >= 3)
+            {
+                debug("🛜 ✅");
+            }
         }
 
 #ifdef USE_INTERNAL_MQTT
         internalBroker->loop();
+        globalInternalMqttClient->loop();
 #endif // USE_INTERNAL_MQTT
 
         lastLoopStartTime = millis();
@@ -2278,18 +2356,18 @@ void loop()
         }
 
 #if defined(USE_MQTT)
-        mqttClient->loop();
+    mqttClient->loop();
 #ifndef USE_INTERNAL_MQTT
         if (millis() - lastLoopStartTime > 10000)
         {
-            Serial.print("BROKEN MQTT");
+            debug("BROKEN MQTT");
             restart();
         }
 #endif
         if (!mqttClient->isConnected())
         {
             debug("⚠" << mqttClient->getConnectionEstablishedCount() << _EndLineCode::endl);
-            // delay(200);
+            delay(200);
         }
 
         if (!topicsRegistered)
@@ -2298,12 +2376,12 @@ void loop()
             String topic = getBaseTopic() + "/started";
             mqttClient->publish(topic, "STARTED");
         }
-#endif
+#endif // USE_MQTT
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
         if (nullptr != heartRateSensor)
         {
-            heartRateSensor->loop();
+            //   heartRateSensor->loop();
         }
 #endif // USE_BLE_HEART_RATE_SENSOR
 
@@ -2382,7 +2460,10 @@ void loop()
         // The preconditions are fulfilled (MQTT connected).
 
 #ifdef USE_HW040
-        hw040Handling.loop();
+        if (nullptr != hw040Handling)
+        {
+            hw040Handling->loop();
+        }
 #endif
 
 #ifdef USE_STEPPER_MOTOR
@@ -2398,41 +2479,6 @@ void loop()
             ds18B20SensorManager->loop();
         }
 #endif // USE_DS18B20
-
-#ifdef USE_HB0014
-        digitalValueInfrared = digitalRead(digitalPinInfraredLed);
-
-        if (digitalValueInfrared == HIGH && digitalValueOldInfrared == LOW)
-        {
-            long diff = millis() - lastMillisInfrared;
-#ifdef USE_OLED_SSD1306
-            if (nullptr != oled1306)
-            {
-                oled1306->setTextLine(3, String(diff) + " ms");
-            }
-#endif
-            if (diff > 30)
-            {
-                // Umrechnen in Watt
-
-                // 10000 Impulse entsprechen 1 KW/h.
-
-                // Hochrechnen auf 10000 Impulse = 1000 Watt pro Stunde
-                double watt = 360000.0 / diff;
-                Serial.println(String(watt) + " watt");
-#ifdef USE_OLED_SSD1306
-                if (nullptr != oled1306)
-                {
-                    oled1306->setTextLine(1, String(watt, 0));
-                }
-#endif
-                String topic = getBaseTopic() + "/power/0";
-                mqttClient->publish(topic, String(watt, 0));
-                lastMillisInfrared = millis();
-            }
-        }
-        digitalValueOldInfrared = digitalValueInfrared;
-#endif
 
 #ifdef USE_KEYPAD
         buttonMatrixHandling.loop();
@@ -2459,7 +2505,7 @@ void loop()
         }
         catch (const std::exception& e)
         {
-            Serial.println(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
+            debug(e.what()); // Exception handling does only work with build_flags -DPIO_FRAMEWORK_ARDUINO_ENABLE_EXCEPTIONS
         }
 #endif // USE_HC_SR501
 
@@ -2471,9 +2517,9 @@ void loop()
             lastServerAliveMillis = millis();
         }
 
-        if (loopDurationMs < 10)
+        if (loopDurationMs < 5)
         {
-            delay(10 - loopDurationMs);
+            delay(5 - loopDurationMs);
         }
         digitalWrite(LED_BUILTIN, LOW); // turn the LED off to indicate that the device is offline.
     }
@@ -2483,5 +2529,60 @@ void loop()
         delay(1000);
     }
 }
+
+#ifdef USE_BLE_HEART_RATE_SENSOR
+
+void taskInitHeartRateSensor(void* pvParameters)
+{
+    /*
+    if (nullptr == pvParameters)
+    {
+        debug("ERROR TaskInitHeartRateSensor: No advertising timeout provided!");
+        vTaskDelete(nullptr);
+        return;
+    }
+    int advertisingTimeout = (int)(intptr_t)pvParameters;
+*/
+    int advertisingTimeout = 120;
+    if (advertisingTimeout <= 0)
+    {
+        advertisingTimeout = 60;
+        debug("TaskInitHeartRateSensor: Invalid advertising timeout provided. Using default timeout: " + String(advertisingTimeout) + " s");
+    }
+
+    // Wait until all initializations are complete (short waiting period)
+    vTaskDelay(pdMS_TO_TICKS(2000)); // 2 seonds
+
+    // Null-Pointer Checks
+    if (nullptr == heartRateSensor)
+    {
+        debug("ERROR TaskInitHeartRateSensor: Heart rate sensor not initialized!");
+        vTaskDelete(nullptr);
+        return;
+    }
+
+    // Initialize  BLE Heart Rate Sensor
+    debug("TaskInitHeartRateSensor: Initiating BLE heart rate sensor connection (non-blocking)...");
+
+    connectToHeartRateSensor(advertisingTimeout); // Set a timeout for the connection to the heart rate sensor.
+
+    debug("TaskInitHeartRateSensor: Completed. BLE scan running asynchronously.");
+    vTaskDelete(nullptr); // Task beendet sich selbst
+}
+
+void heartRateSensorLoop(void* pvParameters)
+{
+    while (true)
+    {
+        if (nullptr != heartRateSensor)
+        {
+            heartRateSensor->loop();
+            debug("HeartRateSensorLoop: Heart rate sensor loop executed.");
+        }
+        vTaskDelay(pdMS_TO_TICKS(100)); // Short delay to reduce CPU usage.
+    }
+}
+
+#endif // USE_BLE_HEART_RATE_SENSOR
 
 // --- end of main.cpp

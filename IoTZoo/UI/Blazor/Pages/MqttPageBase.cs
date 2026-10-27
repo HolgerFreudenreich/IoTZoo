@@ -18,6 +18,8 @@ using System.Reflection;
 
 public class MqttPageBase : PageBase, IDisposable
 {
+   private bool isDisposed;
+
    protected long MessageCounter { get; set; }
 
    protected IMqttClient MqttClient { get; set; } = null!;
@@ -68,6 +70,10 @@ public class MqttPageBase : PageBase, IDisposable
          MqttClient.DisconnectedAsync += async e =>
          {
             await Task.Delay(TimeSpan.FromSeconds(1));
+            if (isDisposed)
+            {
+               return;
+            }
             try
             {
                await MqttClient.ConnectAsync(mqttClientOptions);
@@ -89,6 +95,16 @@ public class MqttPageBase : PageBase, IDisposable
 
    public virtual void Dispose()
    {
-      MqttClient?.Dispose();
+      isDisposed = true;
+      if (MqttClient == null)
+      {
+         return;
+      }
+
+      MqttClient.ApplicationMessageReceivedAsync -= Client_ApplicationMessageReceivedAsync;
+      MqttClient.ConnectedAsync -= Client_Connected;
+      MqttClient.DisconnectedAsync -= Client_Disconnected;
+
+      _ = MqttClient.DisconnectAsync().ContinueWith(_ => MqttClient.Dispose());
    }
 }

@@ -52,6 +52,17 @@
                                 Margin="Margin.Normal">
                   </MudTextField>
 
+                  <MudTextField @bind-Value="@KnownTopic.FriendlyName"
+                                MaxLength="200"
+                                Required="false"
+                                Immediate="true"
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Label"
+                                Label="Friendly name"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                  </MudTextField>
+
                   <MudTextField @bind-Value="@KnownTopic.Description"
                                 MaxLength="1000"
                                 Required="false"
@@ -63,7 +74,115 @@
                                 Margin="Margin.Normal"
                                 Lines="3">
                   </MudTextField>
+                  <MudSelect T="MessageDirection"
+                             @bind-Value="@KnownTopic.MessageDirection"
+                             Label="Message direction"
+                             Variant="Variant.Text"
+                             Margin="Margin.Normal"
+                             Adornment="Adornment.Start"
+                             AdornmentIcon="@Icons.Material.Filled.SwapHoriz">
+                     <MudSelectItem T="MessageDirection" Value="MessageDirection.Inbound">Inbound</MudSelectItem>
+                     <MudSelectItem T="MessageDirection" Value="MessageDirection.Outbound">Outbound</MudSelectItem>
+                     <MudSelectItem T="MessageDirection" Value="MessageDirection.Internal">Internal</MudSelectItem>
+                  </MudSelect>
                   <MudSwitch @bind-Value="@KnownTopic.KeepHistory" Label="Keep history" />
+                  <MultiSelectAutoComplete T="Dashboard"
+                                           Values="SelectedDashboards"
+                                           ValuesChanged="@(values => OnDashboardsChanged(values))"
+                                           SearchFunc="SearchDashboards"
+                                           GetNameFunc="@(dashboard => dashboard?.DashboardName)"
+                                           GetIDFunc="@(dashboard => dashboard.DashboardId)"
+                                           Label="Dashboards" />
+                  @foreach (var dashboard in SelectedDashboards)
+                  {
+                     var item = SelectedDashboardItems[dashboard.DashboardId];
+                     <MudText Typo="Typo.subtitle2" Class="mt-2">@dashboard.DashboardName</MudText>
+                     <MudNumericField T="int" Label="Height (px)" Value="item.GaugeSettings.Height"
+                                      ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Height = value))" />
+                     <MudSelect T="TopicDisplayType"
+                                Label="Display type"
+                                Value="item.DisplayType"
+                                ValueChanged="@(displayType => OnDisplayTypeChanged(dashboard.DashboardId, displayType))"
+                                Variant="Variant.Text"
+                                Margin="Margin.Normal">
+                        @foreach (var displayType in Enum.GetValues<TopicDisplayType>())
+                        {
+                           <MudSelectItem Value="@displayType">@displayType</MudSelectItem>
+                        }
+                     </MudSelect>
+                     @if (item.DisplayType == TopicDisplayType.Gauge)
+                     {
+                        <MudSelect T="GaugeType" Label="Gauge type" Value="item.GaugeSettings.GaugeType"
+                                   ValueChanged="@(gaugeType => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.GaugeType = gaugeType))"
+                                   Variant="Variant.Text" Margin="Margin.Normal">
+                           @foreach (var gaugeType in Enum.GetValues<GaugeType>())
+                           {
+                              <MudSelectItem Value="@gaugeType">@gaugeType</MudSelectItem>
+                           }
+                        </MudSelect>
+                        @if (item.GaugeSettings.GaugeType == GaugeType.Linear)
+                        {
+                           <MudSelect T="GaugeOrientation" Label="Orientation" Value="item.GaugeSettings.Orientation"
+                                      ValueChanged="@(orientation => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Orientation = orientation))"
+                                      Variant="Variant.Text" Margin="Margin.Normal">
+                              @foreach (var orientation in Enum.GetValues<GaugeOrientation>())
+                              {
+                                 <MudSelectItem Value="@orientation">@orientation</MudSelectItem>
+                              }
+                           </MudSelect>
+                        }
+                        @if (item.GaugeSettings.GaugeType == GaugeType.Arc)
+                        {
+                           <MudColorPicker Label="Arc color" Value="@(new MudBlazor.Utilities.MudColor(item.GaugeSettings.ArcColor))"
+                                           ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.ArcColor = value.ToString(MudBlazor.Utilities.MudColorOutputFormats.Hex)))"
+                                           Variant="Variant.Text" Margin="Margin.Normal" />
+                        }
+                        @if (item.GaugeSettings.GaugeType == GaugeType.Radial)
+                        {
+                           <MudStack Row="true">
+                              <MudNumericField T="double" Label="Start angle" Value="item.GaugeSettings.StartAngle"
+                                               ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.StartAngle = value))" />
+                              <MudNumericField T="double" Label="End angle" Value="item.GaugeSettings.EndAngle"
+                                               ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.EndAngle = value))" />
+                           </MudStack>
+                        }
+                        <MudCheckBox T="bool" Label="Show tick labels" Value="item.GaugeSettings.ShowTickLabels"
+                                                  ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.ShowTickLabels = value))" />
+                                     @if (item.GaugeSettings.GaugeType != GaugeType.Arc)
+                                     {
+                                        <MudText Typo="Typo.subtitle2">Ranges</MudText>
+                                        @for (var i = 0; i < item.GaugeSettings.Ranges.Count; i++)
+                                        {
+                                           var index = i;
+                                           var range = item.GaugeSettings.Ranges[i];
+                                           <MudStack Row="true" AlignItems="AlignItems.Center">
+                                              <MudNumericField T="double" Label="From" Value="range.From"
+                                                               ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Ranges[index].From = value))" />
+                                              <MudNumericField T="double" Label="To" Value="range.To"
+                                                               ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Ranges[index].To = value))" />
+                                              <MudColorPicker Label="Color" Value="@(new MudBlazor.Utilities.MudColor(range.Color))"
+                                                              ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Ranges[index].Color = value.ToString(MudBlazor.Utilities.MudColorOutputFormats.Hex)))"
+                                                              Variant="Variant.Text" Margin="Margin.Normal" />
+                                              <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                                                             OnClick="@(() => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Ranges.RemoveAt(index)))" />
+                                           </MudStack>
+                                        }
+                                        <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add"
+                                                   OnClick="@(() => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Ranges.Add(new GaugeRange())))">Add range</MudButton>
+                                     }
+                        <MudStack Row="true">
+                           <MudNumericField T="double" Label="Min" Value="item.GaugeSettings.Min"
+                                            ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Min = value))" />
+                           <MudNumericField T="double" Label="Max" Value="item.GaugeSettings.Max"
+                                            ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Max = value))" />
+                           <MudTextField T="string" Label="Label" Value="item.GaugeSettings.Label"
+                                         ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Label = value))" />
+                           <MudTextField T="string" Label="Unit" Value="item.GaugeSettings.Unit"
+                                                          ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Unit = value))" />
+                                         </MudStack>
+                     }
+                  }
+
                </MudFocusTrap>
                <br />
             </MudCardContent>

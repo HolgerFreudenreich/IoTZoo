@@ -36,6 +36,11 @@ public class KnownTopicsServiceMock : DataServiceBase, IKnownTopicsCrudService
       return Task.FromResult(knownTopics);
    }
 
+   public Task<KnownTopic?> GetKnownTopicById(int knownTopicId)
+   {
+      return Task.FromResult(knownTopics.FirstOrDefault(knownTopic => knownTopic.KnownTopicId == knownTopicId));
+   }
+
    public Task Delete(KnownTopic knownTopic)
    {
       return Task.FromResult(knownTopics.Remove(knownTopic));
@@ -72,7 +77,7 @@ public class KnownTopicsServiceMock : DataServiceBase, IKnownTopicsCrudService
       return Task.FromResult(result);
    }
 
-   public Task<List<KnownTopic>> GetKnownTopicsByProjectName(string? projectName, List<MessageDirection>? messageDirections)
+   public Task<List<KnownTopic>> GetKnownTopicsByProjectName(string? projectName, List<MessageDirection>? messageDirections, int? limit = null)
    {
       throw new NotImplementedException();
    }

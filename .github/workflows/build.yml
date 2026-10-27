@@ -19,10 +19,10 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 10.0.x
     - name: Restore dependencies
       run: dotnet restore ./IoTZoo/IotZoo.sln
     - name: Build
       run: dotnet build ./IoTZoo/IotZoo.sln
     - name: Test
-      run: dotnet test ./IoTZoo/IotZoo.sln --no-build --verbosity normal
+      run: dotnet test ./IoTZoo/Tests/UnitTests/UnitTests.csproj --no-build --verbosity normal

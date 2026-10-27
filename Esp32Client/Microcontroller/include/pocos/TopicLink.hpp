@@ -16,6 +16,14 @@ namespace IotZoo
         {
             Serial.println("Constructor TopicLink. TriggeringTopic: " + String(TriggeringTopic.c_str()) +
                            ", TargetTopic: " + String(TargetTopic.c_str()));
+            if (TriggeringTopic.length() == 0)
+            {
+                Serial.println("⚠️ Warning: TriggeringTopic is empty! This means that the TopicLink will not be triggered by any topic.");
+            }
+            if (TargetTopic.length() == 0)
+            {
+                Serial.println("⚠️Warning: TargetTopic is empty! This means that the received TriggeringTopic message will not be published to any topic.");
+            }
         }
 
         String TriggeringTopic; // Triggering Topic, e.g. "iotzoo/esp32/reed_contact/0/rpm"

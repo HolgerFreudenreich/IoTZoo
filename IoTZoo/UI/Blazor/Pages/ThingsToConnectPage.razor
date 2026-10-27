@@ -58,7 +58,7 @@
 </KnownTopicComponent>
 <br />
 <br />
-<MudText Typo="Typo.h6">Digital Humidity Temperatur Sensor</MudText>
+<MudText Typo="Typo.h6">Digital Humidity and Temperature Sensor</MudText>
 <br />
 <MudText>Measures Humidity and Temperature</MudText>
 <br />
@@ -76,7 +76,7 @@
 <br />
 <MudText Typo="Typo.h6">HC-SR 501 Motion Detector</MudText>
 <br />
-<MudText>Motion sensing range: Less than 120 degree within 7 meters.</MudText>
+<MudText>Motion sensing range: Less than 120 degrees within 7 meters.</MudText>
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
                      Topic="/motion_detector/<index>/triggered"
@@ -108,7 +108,7 @@
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
                      Topic="/rotary_encoder/<index>/value"
-                     Description="Value of Rotary encoder <index> changed."
+                     Description="Value of rotary encoder <index> changed."
                      ExamplePayload="58">
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
@@ -119,7 +119,7 @@
 
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
                      Topic="/rotary_encoder/<index>/button_pressed"
-                     Description="Button of rotary encoder <index> has been pressed. Example payload: Millis of the ESP32."
+                     Description="Button of rotary encoder <index> was pressed. Payload: milliseconds since the ESP32 started."
                      ExamplePayload="58411">
 </KnownTopicComponent>
 <br />
@@ -142,7 +142,7 @@
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
                      Topic="/button_matrix/<index>/toggle_button/<button_char>/hold"
-                     Description="Button <button_char> has been hold. Payload: Millis() of the ESP32."
+                     Description="Button <button_char> has been held. Payload: Millis() of the ESP32."
                      ExamplePayload="344231">
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
@@ -155,7 +155,7 @@
 <MudDivider />
 <br />
 <br />
-<MudText Typo="Typo.h6">TM1637 4 digit display</MudText>
+<MudText Typo="Typo.h6">TM1637 4-digit display</MudText>
 <br />
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
@@ -165,7 +165,7 @@
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic="/tm1637_4/<display index>"
-                     ExamplePayload="{'device_index': 0, 'number'': 7, 'leading_zero': false, 'display_length': 4, 'position': 0}">
+                     ExamplePayload="{'device_index': 0, 'number': 7, 'leading_zero': false, 'display_length': 4, 'position': 0}">
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic="/tm1637_4/<display index>/text"
@@ -177,7 +177,7 @@
 <MudDivider />
 <br />
 <br />
-<MudText Typo="Typo.h6">TM1637 6 digit display</MudText>
+<MudText Typo="Typo.h6">TM1637 6-digit display</MudText>
 <br />
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
@@ -187,7 +187,7 @@
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic="/tm1637_6/<display index>"
-                     ExamplePayload="{'device_index': 0, 'number'': 7, 'leading_zero': false, 'display_length': 6, 'position': 0}">
+                     ExamplePayload="{'device_index': 0, 'number': 7, 'leading_zero': false, 'display_length': 6, 'position': 0}">
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic="/tm1637_6/<display index>/text"
@@ -199,7 +199,7 @@
 <MudDivider />
 <br />
 <br />
-<MudText Typo="Typo.h6">SD1306 oled display</MudText>
+<MudText Typo="Typo.h6">SSD1306 OLED display</MudText>
 <br />
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
@@ -272,14 +272,14 @@
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic="/traffic_light/<index>"
-                     Description="Payload: Payload: To turn red led on (and green and yellow off): r, 2, red.">
+                     Description="Payload: To turn red led on (and green and yellow off): r, 2, red.">
 </KnownTopicComponent>
 <br />
 <br />
 <MudDivider />
 <br />
 <br />
-<MudText Typo="Typo.h6">NEO Pixel WS2818</MudText>
+<MudText Typo="Typo.h6">NEO Pixel WS2812</MudText>
 <br />
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
@@ -292,7 +292,7 @@
 <MudText>"brightness": 0 clears the entire display.</MudText>
 <br />
 <br />
-<MudText Typo="Typo.h6">MAX 7219 Dot Matrix</MudText>
+<MudText Typo="Typo.h6">MAX7219 dot matrix display</MudText>
 <br />
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
@@ -313,7 +313,7 @@
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic="/gpio/<index>"
-                     ExamplePayload="0, LOW, OFF or 1, HIGH, ON or TOGGLE for toggling state">
+                     ExamplePayload="0, LOW, OFF or 1, HIGH, ON or TOGGLE to toggle the state">
 </KnownTopicComponent>
 <br />
 <br />
@@ -384,7 +384,7 @@
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic="/audio_stream/<index>/sound_level_rms"
-                     Description="Value between 390 (quiet) and 32767 (extrem loud)"
+                     Description="Value between 390 (quiet) and 32767 (extremely loud)"
                      ExamplePayload="551">
 </KnownTopicComponent>
 <MudDivider />
@@ -398,7 +398,7 @@
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic="/uv/<index>"
-                     Description="Value between 0 (low) and 11 (extrem high)"
+                     Description="Value between 0 (low) and 11 (extremely high)"
                      ExamplePayload="2.3">
 </KnownTopicComponent>
 <MudDivider />
@@ -485,6 +485,13 @@
                      Payload="<LightId>"
                      ExamplePayload="9">
 </KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic="<Namespace>/<Project>/hue/light/toggle"
+                     Description="Toggle the light on or off."
+                     Payload="<LightId>"
+                     ExamplePayload="9">
+</KnownTopicComponent>
+
 <br />
 <br />
 <MudDivider />
@@ -495,8 +502,8 @@
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic="/alive_config"
-                     Description="How frequently should the live message be sent? Should the Alive LED light up?"
-                     ExamplePayload="{&quot; aliveIntervalMs&quot;: 30000, &quot;aliveAckLedMode&quot;: 2}">
+                     Description="How frequently should the alive message be sent? Should the Alive LED light up?"
+                     ExamplePayload="{&quot;aliveIntervalMs&quot;: 30000, &quot;aliveAckLedMode&quot;: 2}">
 </KnownTopicComponent>
 <br />
 <br />
@@ -612,7 +619,7 @@
 </KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
                      Topic=@($"/{TopicConstants.MINUTES_AFTER_SUNSET}")
-                     Description="Minutes until the last sunset."
+                     Description="Minutes after the last sunset."
                      ExamplePayload=@("105")>
 </KnownTopicComponent>
 <br />

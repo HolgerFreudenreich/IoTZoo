@@ -1,0 +1,43 @@
+@inherits DeleteFromTopicHistoryDialogBase
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Delete from topic history</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack>
+            <MudSelect T="string"
+                       Label="Topic"
+                       @bind-Value="SelectedTopic"
+                       Variant="Variant.Text"
+                       Clearable="true"
+                       HelperText="Empty means all topics">
+                @foreach (var topic in Topics)
+                {
+                    <MudSelectItem T="string" Value="@topic">@topic</MudSelectItem>
+                }
+            </MudSelect>
+            <MudDatePicker Label="From date"
+                           @bind-Date="FromDate"
+                           Editable="true" />
+            <MudTimePicker Label="From time"
+                           @bind-Time="FromTime" />
+            <MudDatePicker Label="To date"
+                           @bind-Date="ToDate"
+                           Editable="true" />
+            <MudTimePicker Label="To time"
+                           @bind-Time="ToTime" />
+            @if (!CanDelete)
+            {
+                <MudText Color="Color.Error" Typo="Typo.body2">The period is invalid: "From" must be before or equal to "To".</MudText>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Error"
+                   Disabled="!CanDelete"
+                   OnClick="Confirm">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
