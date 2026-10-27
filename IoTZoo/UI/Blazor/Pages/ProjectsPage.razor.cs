@@ -341,7 +341,6 @@ public class ProjectsPageBase : PageBase
             await MicrocontrollerDatabaseService.Save(microcontroller, false);
         }
 
-        List<string> skippedTopics = new();
         if (export.Dashboards != null)
         {
             int importedProjectId = importedProject.ProjectId;
@@ -378,7 +377,6 @@ public class ProjectsPageBase : PageBase
                     KnownTopic? knownTopic = await KnownTopicsService.GetKnownTopicByTopicName(projectName, itemExport.TopicName);
                     if (knownTopic == null)
                     {
-                        skippedTopics.Add(itemExport.TopicName);
                         continue;
                     }
 
@@ -392,11 +390,6 @@ public class ProjectsPageBase : PageBase
                     });
                 }
             }
-        }
-
-        if (skippedTopics.Count > 0)
-        {
-            Snackbar.Add($"Dashboard items skipped, unknown topics: {string.Join(", ", skippedTopics.Distinct())}", Severity.Warning);
         }
 
         Snackbar.Add($"The project '{projectName}' is imported!", Severity.Success);
