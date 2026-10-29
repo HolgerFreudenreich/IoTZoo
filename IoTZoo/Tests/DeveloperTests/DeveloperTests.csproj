@@ -8,11 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Database\**" />
+    <EmbeddedResource Remove="Database\**" />
+    <None Remove="Database\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="appsettings.json" />
-    <None Remove="Database\iotzoo.db" />
-    <None Remove="Database\Scripting.db" />
-    <None Remove="Database\settings.db" />
-    <None Remove="Database\TopicHistory.db" />
     <None Remove="FileHeader.txt" />
   </ItemGroup>
 
@@ -22,10 +24,13 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Include="Database\Scripting.db">
+    <Content Include="FileHeader.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="FileHeader.txt">
+    <Content Include="Database\.gitkeep">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Domain\DataModel\Sqlite\CreateDatabase*.txt" Link="Database\Scripts\%(Filename)%(Extension)">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
