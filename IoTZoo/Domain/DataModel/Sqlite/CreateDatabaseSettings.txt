@@ -1,5 +1,4 @@
-﻿
----------------------------------------------------------------------------------------------------
+﻿---------------------------------------------------------------------------------------------------
 --  table 001 settings.setting
 ---------------------------------------------------------------------------------------------------
 create table setting
@@ -24,7 +23,9 @@ insert into setting(category, setting_key, setting_value) values ('PhilipsHue', 
 
 insert into setting(category, setting_key, setting_value) values ('UiSettings', 'IsDarkMode', 'false');
 
+insert into setting(category, setting_key, setting_value) values ('Mail', 'MailReceiverConfigs', '');
 insert into setting(category, setting_key, setting_value) values ('MqttPublishTestMessage', 'MqttData', '');
+
 
 ---------------------------------------------------------------------------------------------------
 -- End settings

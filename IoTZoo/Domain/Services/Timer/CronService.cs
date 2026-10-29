@@ -86,11 +86,6 @@ public class CronService : ICronService
         {
             Logger.LogError(ex, $"{System.Reflection.MethodBase.GetCurrentMethod()} failed!");
         }
-        // Job to calculate the time until the next sunrise and sunset.
-
-        await InitCalcSunriseAndSunsetJob();
-
-        await scheduler.Start();
     }
 
     private async Task InitCalcSunriseAndSunsetJob()

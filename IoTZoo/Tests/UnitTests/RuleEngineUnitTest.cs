@@ -1282,14 +1282,14 @@ namespace UnitTests
         }
 
         /// <summary>
-        /// A saved rule with the expression 'Input' == 'pressed' matches the payload 'pressed'.
+        /// A saved rule with the expression 'input' == 'pressed' matches the payload 'pressed'.
         /// </summary>
         [Fact]
         public async Task ReactOnRuleTest()
         {
             Rule rule = new Rule
             {
-                Expression = $"'{FunctionNames.Input}' == 'pressed'",
+                Expression = $"{FunctionNames.Input} == 'pressed'",
                 SourceTopic = "esp32/B0:A7:32:28:3C:F8/rotary_encoder/0/button_pressed",
                 TargetTopic = "IOTZOO/HUE/LIGHT_ON"
             };
