@@ -22,13 +22,7 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Include="Database\iotzoo.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Database\Scripting.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Database\Settings.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="FileHeader.txt">
@@ -41,7 +35,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.14" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.14" />
     <PackageReference Include="Moq" Version="4.21.0" />
-    <PackageReference Include="Quartz" Version="4.6.0" />
+    <PackageReference Include="Quartz" Version="4.6.2" />
   </ItemGroup>
 
   <ItemGroup>

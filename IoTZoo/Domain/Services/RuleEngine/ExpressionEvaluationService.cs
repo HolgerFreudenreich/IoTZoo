@@ -275,7 +275,12 @@ namespace Domain.Services.RuleEngine
                     }
                     else
                     {
-                        expression = Regex.Replace(expression, $@"(?<![\w/']){FunctionNames.Input}(?![\w'/])", _ => payload ?? string.Empty, RegexOptions.IgnoreCase);
+                        string inputValue = payload ?? string.Empty;
+                        if (!double.TryParse(inputValue, NumberStyles.Float, CultureInfo.InvariantCulture, out _) && !inputValue.StartsWith('\'') && !inputValue.StartsWith('"'))
+                        {
+                            inputValue = $"'{inputValue}'";
+                        }
+                        expression = Regex.Replace(expression, $@"(?<![\w/']){FunctionNames.Input}(?![\w'/])", _ => inputValue, RegexOptions.IgnoreCase);
 
                         expression = await ExpressionParser.ResolveExpression(expression);
                     }

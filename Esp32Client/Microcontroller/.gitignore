@@ -3,3 +3,6 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# Local Wi-Fi/MQTT credentials
+/include/ConnectionSettings.hpp
