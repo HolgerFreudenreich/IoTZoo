@@ -41,7 +41,9 @@ internal class Program
       ConfigureServices(services);
 
       // create service provider
-      using var serviceProvider = services.BuildServiceProvider();
+      await using var serviceProvider = services.BuildServiceProvider();
+
+      serviceProvider.GetRequiredService<SqliteDatabaseInitializer>().Initialize();
 
       var dataTransferService = serviceProvider.GetService<IDataTransferService>();
       if (null != dataTransferService)
@@ -82,12 +84,15 @@ internal class Program
       services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
 
       // add app
+      services.AddSingleton<SqliteDatabaseInitializer>();
+
       services.AddSingleton<ISettingsCrudService, SettingsDatabaseService>();
 
       services.AddSingleton<IDataTransferService, DataTransferService>();
       services.AddSingleton<IRulesCrudService, RulesDatabaseService>();
 
       services.AddSingleton<IMicrocontrollerService, MicrocontrollerService>();
+      services.AddSingleton<IKnownMicrocontrollerCrudService>(sp => sp.GetRequiredService<IMicrocontrollerService>());
 
       services.AddSingleton<IKnownTopicsCrudService, KnownTopicsDatabaseService>();
 
@@ -113,8 +118,10 @@ internal class Program
       services.AddSingleton<CalculateNextSunriseAndSunsetJob>();
 
       services.AddSingleton<ICronService, CronService>();
+      services.AddSingleton<ICountDownFactory, CountDownFactory>();
 
       services.AddSingleton<ICronCrudService, CronDatabaseService>();
+      services.AddSingleton<INamespaceCrudService, NamespaceService>();
 
       services.AddSingleton<IProjectCrudService, ProjectDatabaseService>();
       //services.AddSingleton<ITopicHistoryCrudService, TopicHistoryDatabaseService>();
