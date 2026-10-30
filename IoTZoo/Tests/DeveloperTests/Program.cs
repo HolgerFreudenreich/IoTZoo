@@ -84,6 +84,7 @@ internal class Program
       services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
 
       // add app
+      services.AddSingleton<IDatabaseVersionService, DatabaseVersionService>();
       services.AddSingleton<SqliteDatabaseInitializer>();
 
       services.AddSingleton<ISettingsCrudService, SettingsDatabaseService>();

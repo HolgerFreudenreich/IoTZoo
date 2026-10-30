@@ -10,6 +10,7 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
+using Domain.Interfaces;
 using Domain.Pocos;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
@@ -18,67 +19,100 @@ using System.Text.RegularExpressions;
 
 namespace Domain.Services;
 
-public class SqliteDatabaseInitializer(IOptions<AppSettings> options, ILogger<SqliteDatabaseInitializer> logger)
+public class SqliteDatabaseInitializer(IOptions<AppSettings> options,
+                                       IDatabaseVersionService databaseVersionService,
+                                       ILogger<SqliteDatabaseInitializer> logger)
 {
-   private static readonly Regex LineCommentRegex = new(@"--[^\r\n]*", RegexOptions.Compiled);
+    private static readonly Regex LineCommentRegex = new(@"--[^\r\n]*", RegexOptions.Compiled);
 
-   private readonly AppSettings _appSettings = options.Value;
+    private readonly AppSettings _appSettings = options.Value;
 
-   public void Initialize()
-   {
-      if (_appSettings.ConfigurationDatabaseType != DatabaseType.Sqlite)
-      {
-         return;
-      }
+    public void Initialize()
+    {
+        if (_appSettings.ConfigurationDatabaseType != DatabaseType.Sqlite)
+        {
+            return;
+        }
 
-      InitializeDatabase(_appSettings.ConnectionStringSqlite, "CreateDatabaseIotZoo.txt");
-      InitializeDatabase(_appSettings.ConnectionStringSqliteDatabaseTopicHistory, "CreateDatabaseTopicHistory.txt");
-      InitializeDatabase(_appSettings.ConnectionStringSqliteDatabaseComponentManagement, "CreateDatabaseComponentManagement.txt");
-      InitializeDatabase(_appSettings.ConnectionStringSqliteDatabaseScripting, "CreateDatabaseScripting.txt");
-      InitializeDatabase(_appSettings.ConnectionStringSqliteDatabaseSettings, "CreateDatabaseSettings.txt");
-   }
+        InitializeDatabase(_appSettings.ConnectionStringSqlite, "CreateDatabaseIotZoo.txt");
+        InitializeDatabase(_appSettings.ConnectionStringSqliteDatabaseTopicHistory, "CreateDatabaseTopicHistory.txt");
+        InitializeDatabase(_appSettings.ConnectionStringSqliteDatabaseComponentManagement, "CreateDatabaseComponentManagement.txt");
+        InitializeDatabase(_appSettings.ConnectionStringSqliteDatabaseScripting, "CreateDatabaseScripting.txt");
+        InitializeDatabase(_appSettings.ConnectionStringSqliteDatabaseSettings, "CreateDatabaseSettings.txt");
+    }
 
-   public static string ToAbsoluteConnectionString(string connectionString)
-   {
-      SqliteConnectionStringBuilder builder = new(connectionString);
-      builder.DataSource = Path.GetFullPath(builder.DataSource, AppContext.BaseDirectory);
-      return builder.ConnectionString;
-   }
+    public static string ToAbsoluteConnectionString(string connectionString)
+    {
+        SqliteConnectionStringBuilder builder = new(connectionString);
+        builder.DataSource = Path.GetFullPath(builder.DataSource, AppContext.BaseDirectory);
+        return builder.ConnectionString;
+    }
 
-   private void InitializeDatabase(string connectionString, string scriptFileName)
-   {
-      string scriptPath = Path.Combine(AppContext.BaseDirectory, "Database", "Scripts", scriptFileName);
-      if (string.IsNullOrWhiteSpace(connectionString) || !File.Exists(scriptPath))
-      {
-         logger.LogWarning("Database initialization skipped, script or connection string missing: {Script}", scriptFileName);
-         return;
-      }
+    private void InitializeDatabase(string connectionString, string scriptFileName)
+    {
+        string scriptPath = Path.Combine(AppContext.BaseDirectory, "Database", "Scripts", scriptFileName);
+        if (string.IsNullOrWhiteSpace(connectionString) || !File.Exists(scriptPath))
+        {
+            logger.LogWarning("Database initialization skipped, script or connection string missing: {Script}", scriptFileName);
+            return;
+        }
 
-      string absoluteConnectionString = ToAbsoluteConnectionString(connectionString);
-      Directory.CreateDirectory(Path.GetDirectoryName(new SqliteConnectionStringBuilder(absoluteConnectionString).DataSource)!);
+        string absoluteConnectionString = ToAbsoluteConnectionString(connectionString);
+        Directory.CreateDirectory(Path.GetDirectoryName(new SqliteConnectionStringBuilder(absoluteConnectionString).DataSource)!);
 
-      using SqliteConnection connection = new(absoluteConnectionString);
-      connection.Open();
+        using SqliteConnection connection = new(absoluteConnectionString);
+        connection.Open();
 
-      using SqliteCommand existsCommand = connection.CreateCommand();
-      existsCommand.CommandText = "select count(*) from sqlite_master where type = 'table' and name not like 'sqlite_%';";
-      long tableCount = (long)(existsCommand.ExecuteScalar() ?? 0L);
-      if (tableCount > 0)
-      {
-         return;
-      }
+        using SqliteCommand existsCommand = connection.CreateCommand();
+        existsCommand.CommandText = "select count(*) from sqlite_master where type = 'table' and name not like 'sqlite_%';";
+        long tableCount = (long)(existsCommand.ExecuteScalar() ?? 0L);
+        if (tableCount == 0)
+        {
+            ExecuteScript(connection, scriptPath);
+            logger.LogInformation("Database initialized from {Script}", scriptFileName);
+        }
 
-      string script = LineCommentRegex.Replace(File.ReadAllText(scriptPath), string.Empty);
-      using SqliteTransaction transaction = connection.BeginTransaction();
-      foreach (string statement in script.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-      {
-         using SqliteCommand command = connection.CreateCommand();
-         command.Transaction = transaction;
-         command.CommandText = statement + ";";
-         command.ExecuteNonQuery();
-      }
-      transaction.Commit();
+        ApplyMigrations(connectionString, scriptFileName);
+    }
 
-      logger.LogInformation("Database initialized from {Script}", scriptFileName);
-   }
+    private void ApplyMigrations(string connectionString, string scriptFileName)
+    {
+        int? currentVersion = databaseVersionService.GetVersion(connectionString);
+        if (currentVersion is null)
+        {
+            logger.LogWarning("Database migrations skipped, db_version missing: {Script}", scriptFileName);
+            return;
+        }
+
+        IEnumerable<SqliteMigration> pendingMigrations = SqliteMigrationRegistry.Migrations
+           .Where(migration => migration.DatabaseScriptName == scriptFileName && migration.DatabaseVersionId > currentVersion)
+           .OrderBy(migration => migration.DatabaseVersionId);
+
+        foreach (SqliteMigration migration in pendingMigrations)
+        {
+            string migrationScriptPath = Path.Combine(AppContext.BaseDirectory, "Database", "Scripts", migration.MigrationScriptName);
+            using (SqliteConnection connection = new(ToAbsoluteConnectionString(connectionString)))
+            {
+                connection.Open();
+                ExecuteScript(connection, migrationScriptPath);
+            }
+
+            databaseVersionService.AddMigration(connectionString, migration.DatabaseVersionId, migration.MigrationScriptName);
+            logger.LogInformation("Database migrated to version {Version} with {Script}", migration.DatabaseVersionId, migration.MigrationScriptName);
+        }
+    }
+
+    private static void ExecuteScript(SqliteConnection connection, string scriptPath)
+    {
+        string script = LineCommentRegex.Replace(File.ReadAllText(scriptPath), string.Empty);
+        using SqliteTransaction transaction = connection.BeginTransaction();
+        foreach (string statement in script.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = statement + ";";
+            command.ExecuteNonQuery();
+        }
+        transaction.Commit();
+    }
 }
