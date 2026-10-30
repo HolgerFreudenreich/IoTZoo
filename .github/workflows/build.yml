@@ -25,4 +25,4 @@ jobs:
     - name: Build
       run: dotnet build ./IoTZoo/IotZoo.sln
     - name: Test
-      run: dotnet test ./IoTZoo/Tests/UnitTests/UnitTests.csproj --no-build --verbosity normal
+      run: dotnet test --project ./IoTZoo/Tests/UnitTests/UnitTests.csproj --no-build --verbosity normal
