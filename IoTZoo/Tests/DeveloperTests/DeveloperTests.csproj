@@ -33,6 +33,9 @@
     <Content Include="..\..\Domain\DataModel\Sqlite\CreateDatabase*.txt" Link="Database\Scripts\%(Filename)%(Extension)">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\..\Domain\DataModel\Sqlite\*_migration_to_version_*.sql" Link="Database\Scripts\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

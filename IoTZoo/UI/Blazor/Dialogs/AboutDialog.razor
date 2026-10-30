@@ -11,6 +11,11 @@
       <br />
       <MudText Align="Align.Center" Typo="Typo.body2" Style="color: #E81154;"><b>Version @Version</b></MudText>
       <br />
+      @foreach (var databaseVersion in DatabaseVersions)
+      {
+         <MudText Align="Align.Center" Typo="Typo.body2" Style="color: #E81154;">Database Version @databaseVersion.Key: @(databaseVersion.Value?.ToString() ?? "unknown")</MudText>
+      }
+      <br />
       <MudText Align="Align.Center" Typo="Typo.body2" Style="color: #E81154;"><b>© 2025 - @DateTime.Now.Year Holger Freudenreich under the MIT licence</b></MudText>
    </DialogContent>
    <DialogActions>

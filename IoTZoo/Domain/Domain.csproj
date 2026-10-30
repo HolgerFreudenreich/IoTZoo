@@ -47,8 +47,4 @@
     <ProjectReference Include="..\SunriseCalculator\SunriseAndSunset.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DataModel\Sqlite\Migrations\" />
-  </ItemGroup>
-
 </Project>

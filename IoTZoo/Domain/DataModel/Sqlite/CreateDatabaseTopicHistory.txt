@@ -1,4 +1,8 @@
 ﻿---------------------------------------------------------------------------------------------------
+-- creates TopicHistory.db
+---------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------
 --  table 001 th.topic_history
 ---------------------------------------------------------------------------------------------------
 create table topic_history
@@ -11,3 +15,33 @@ create table topic_history
 );
 
 create index index_topic_name on topic_history (project_name);
+
+
+---------------------------------------------------------------------------------------------------
+-- db_version
+---------------------------------------------------------------------------------------------------
+create table if not exists db_version
+(
+  -- primary key
+  db_version_id integer primary key,
+  version_number integer not null
+);
+
+---------------------------------------------------------------------------------------------------
+-- db_migration
+---------------------------------------------------------------------------------------------------
+
+create table if not exists db_migration
+(
+  -- primary key
+  db_migration_id integer primary key autoincrement,
+  -- if this version id is greater than the current db_version.version_number, than the migration script migration_script_name is executed.
+  db_version_id integer not null,
+  -- the name of the migration script. The script is executed only once. Convention: <db_name>_migration_to_version_<db_version_id>.sql
+  migration_script_name character varying(200) not null,
+  -- if the migration script was executed, than the migration_date is set to the current timestamp.
+  migration_date datetime not null default current_timestamp,
+  constraint uk_db_migration unique (migration_script_name)
+);
+
+insert into db_version (db_version_id, version_number) values (1, 1);

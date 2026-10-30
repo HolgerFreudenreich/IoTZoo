@@ -24,5 +24,5 @@ public class VersionController : ControllerBase
       return Version;
    }
 
-   public static string Version { get; set; } = "0.1.8";
+   public static string Version { get; set; } = "0.1.9";
 }

@@ -10,6 +10,7 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
+using Domain.Interfaces;
 using IotZoo.Controller;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -19,36 +20,42 @@ namespace IotZoo.Dialogs;
 
 public class AboutDialogBase : DialogBase
 {
-   [CascadingParameter]
-   protected IMudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter]
+    protected IMudDialogInstance MudDialog { get; set; } = null!;
 
-   [Inject]
-   protected NavigationManager NavigationManager
-   {
-      get;
-      set;
-   } = null!;
+    [Inject]
+    protected NavigationManager NavigationManager
+    {
+        get;
+        set;
+    } = null!;
 
-   protected string Version { get; set; } = null!;
+    [Inject]
+    protected IDatabaseVersionService DatabaseVersionService { get; set; } = null!;
 
-   public void OkBtnPress()
-   {
-      MudDialog.Close();
-   }
+    protected string Version { get; set; } = null!;
 
-   protected override async Task OnAfterRenderAsync(bool firstRender)
-   {
-      await base.OnAfterRenderAsync(firstRender);
-      if (firstRender)
-      {
-         Snackbar.Add("😜 Greetings to all makers!", Severity.Info);
-         Version = VersionController.Version;
+    protected IReadOnlyDictionary<string, int?> DatabaseVersions { get; set; } = new Dictionary<string, int?>();
 
-         if (string.IsNullOrEmpty(Version))
-         {
-            Version = "unknown";
-         }
-         await InvokeAsync(StateHasChanged);
-      }
-   }
+    public void OkBtnPress()
+    {
+        MudDialog.Close();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            Snackbar.Add("😜 Greetings to all makers!", Severity.Info);
+            Version = VersionController.Version;
+
+            if (string.IsNullOrEmpty(Version))
+            {
+                Version = "unknown";
+            }
+            DatabaseVersions = DatabaseVersionService.GetAllVersions();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 }
