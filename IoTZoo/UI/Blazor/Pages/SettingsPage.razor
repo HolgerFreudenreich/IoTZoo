@@ -152,9 +152,23 @@
    </MudFocusTrap>
    <br />
    <div style="position: relative; top: 13px;">
-      <MudButton Variant="Variant.Filled"
-                 Style="width:100px; height: 40px;"
-                 Color="Color.Success"
-                 OnClick="Save">Save</MudButton>
+      <MudStack Row="true">
+         <MudButton Variant="Variant.Filled"
+                    Style="width:100px; height: 40px;"
+                    Color="Color.Success"
+                    OnClick="Save">Save</MudButton>
+         <MudTooltip Text="Export to Clipboard">
+            <MudButton Variant="Variant.Outlined"
+                       Style="width:120px; height: 40px;"
+                       Color="Color.Primary"
+                       OnClick="ExportSettingsToClipboard">Export</MudButton>
+         </MudTooltip>
+         <MudTooltip Text="Import from Clipboard">
+            <MudButton Variant="Variant.Outlined"
+                       Style="width:120px; height: 40px;"
+                       Color="Color.Primary"
+                       OnClick="ImportSettingsFromClipboard">Import</MudButton>
+         </MudTooltip>
+      </MudStack>
    </div>
 </MudCardContent>

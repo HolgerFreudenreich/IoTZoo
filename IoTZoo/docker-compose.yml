@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   iotzoo:
     image: ${DOCKER_REGISTRY-}iotzoo
@@ -7,18 +5,33 @@ services:
     build:
       context: .
       dockerfile: UI/Blazor/Dockerfile
-
-
-  postgres:
-    image: postgres:14-alpine
-    restart: always
     ports:
-      - 5433:5432
+      - 8085:8080
+      - 1883:1883
     volumes:
-      - ~/apps/postgres:/var/lib/postgresql/data
-      # copy the sql script to create tables
-      - ../DataAccess/DataModel/Postgres.plsql:/docker-entrypoint-initdb.d/create_tables.sql
+      - iotzoo_databases:/app/Database/Data
     environment:
-      - POSTGRES_PASSWORD=<PasswordForPostgres>
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=IoTZoo
+      - AppSettings__ConnectionStringSqlite=Data Source=./Database/Data/iotzoo.db
+      - AppSettings__ConnectionStringSqliteDatabaseTopicHistory=Data Source=./Database/Data/TopicHistory.db
+      - AppSettings__ConnectionStringSqliteDatabaseComponentManagement=Data Source=./Database/Data/ComponentManagement.db
+      - AppSettings__ConnectionStringSqliteDatabaseScripting=Data Source=./Database/Data/Scripting.db
+      - AppSettings__ConnectionStringSqliteDatabaseSettings=Data Source=./Database/Data/Settings.db
+
+
+  # postgres:
+  #   image: postgres:14-alpine
+  #   restart: always
+  #   ports:
+  #     - 5433:5432
+  #   volumes:
+  #     - ~/apps/postgres:/var/lib/postgresql/data
+  #     # copy the sql script to create tables
+  #     - ../DataAccess/DataModel/Postgres.plsql:/docker-entrypoint-initdb.d/create_tables.sql
+  #   environment:
+  #     - POSTGRES_PASSWORD=<PasswordForPostgres>
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_DB=IoTZoo
+
+
+volumes:
+  iotzoo_databases:

@@ -54,7 +54,7 @@ public class CSharpScriptService : IScriptService
 
       if (!string.IsNullOrEmpty(inputData))
       {
-         sourceCode = baseCode + $"{Environment.NewLine}var input = {inputData};{Environment.NewLine}return {script.ScriptName}(input);";
+         sourceCode = baseCode + $"{Environment.NewLine}return {script.ScriptName}({inputData});";
       }
       else
       {

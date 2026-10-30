@@ -15,7 +15,7 @@ using Domain.Pocos;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Text.RegularExpressions;
+using System.Text;
 
 namespace Domain.Services;
 
@@ -23,8 +23,6 @@ public class SqliteDatabaseInitializer(IOptions<AppSettings> options,
                                        IDatabaseVersionService databaseVersionService,
                                        ILogger<SqliteDatabaseInitializer> logger)
 {
-    private static readonly Regex LineCommentRegex = new(@"--[^\r\n]*", RegexOptions.Compiled);
-
     private readonly AppSettings _appSettings = options.Value;
 
     public void Initialize()
@@ -104,15 +102,68 @@ public class SqliteDatabaseInitializer(IOptions<AppSettings> options,
 
     private static void ExecuteScript(SqliteConnection connection, string scriptPath)
     {
-        string script = LineCommentRegex.Replace(File.ReadAllText(scriptPath), string.Empty);
         using SqliteTransaction transaction = connection.BeginTransaction();
-        foreach (string statement in script.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (string statement in SplitStatements(File.ReadAllText(scriptPath)))
         {
+            string commandText = statement.Trim();
+            if (commandText.Length == 0)
+            {
+                continue;
+            }
+
             using SqliteCommand command = connection.CreateCommand();
             command.Transaction = transaction;
-            command.CommandText = statement + ";";
+            command.CommandText = commandText;
             command.ExecuteNonQuery();
         }
         transaction.Commit();
+    }
+
+    private static IEnumerable<string> SplitStatements(string script)
+    {
+        StringBuilder statement = new();
+        bool inString = false;
+        for (int i = 0; i < script.Length; i++)
+        {
+            char c = script[i];
+            if (inString)
+            {
+                statement.Append(c);
+                if (c == '\'')
+                {
+                    if (i + 1 < script.Length && script[i + 1] == '\'')
+                    {
+                        statement.Append(script[++i]);
+                    }
+                    else
+                    {
+                        inString = false;
+                    }
+                }
+            }
+            else if (c == '\'')
+            {
+                inString = true;
+                statement.Append(c);
+            }
+            else if (c == '-' && i + 1 < script.Length && script[i + 1] == '-')
+            {
+                while (i + 1 < script.Length && script[i + 1] != '\n' && script[i + 1] != '\r')
+                {
+                    i++;
+                }
+            }
+            else if (c == ';')
+            {
+                yield return statement.ToString();
+                statement.Clear();
+            }
+            else
+            {
+                statement.Append(c);
+            }
+        }
+
+        yield return statement.ToString();
     }
 }

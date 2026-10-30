@@ -18,26 +18,24 @@ processor architecture.
 The disadvantage is that this takes a little longer, about 10 minutes on a pi 3 but only 2 minutes on a pi 5.
 
 **
-stop existing container, remove existing container, remove image
+stop existing containers and remove them (the volume with the databases is kept)
 **
 
-docker stop $(docker ps -a -q);
-docker rm $(docker ps -a -q);
-docker rmi $(docker images -a -q);
+docker compose down --rmi local
 
 **
-build image and run container
+build image and start containers
 **
 
-docker build --force-rm  -f ./UI/Blazor/Dockerfile -t iotzoo .;
-docker save iotzoo -o iotzoo.tar;
-docker load -i iotzoo.tar;
-docker run -e TZ=Europe/Berlin -p 8085:8080 -p 1883:1883 -d --restart  always iotzoo:latest;
+docker compose up -d --build
+
+docker compose ps
 
 
 http://raspberrypi:8085/
 
+Note: The SQLite databases are stored in the named Docker volume "iotzoo_databases" (mounted at /app/Database/Data), not in the container or the copied source folder. Copying a newer version to the Raspberry Pi and rebuilding with "docker compose up -d --build" keeps the databases. They are only deleted by "docker compose down -v" or "docker volume rm". Back up the volume before removing it.
 
 
 -------------------------------------------------------------------------------
-using docker compose, if you want to use a postgres database instead of Sqlite.
+the compose file also contains a postgres service (currently commented out). Uncomment it in docker-compose.yml if you want to use a postgres database instead of Sqlite.

@@ -21,6 +21,7 @@ public static class SqliteMigrationRegistry
     // Example: new("CreateDatabaseIotZoo.txt", 2, "IotZoo_migration_to_version_2.sql"),
     public static IReadOnlyList<SqliteMigration> Migrations { get; } =
     [
-        new("CreateDatabaseSettings.txt", 2, "settings_migration_to_version_2.sql")
+        new("CreateDatabaseSettings.txt", 2, "settings_migration_to_version_2.sql"),
+        new("CreateDatabaseScripting.txt", 2, "scripting_migration_to_version_2.sql")
     ];
 }
