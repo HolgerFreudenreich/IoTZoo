@@ -7,7 +7,7 @@
    <TitleContent>
       <MudText Typo="Typo.h6">
          <EditorIcon IsNewRecord="@IsNewRecord"></EditorIcon>
-         @DialogTitle
+         @(string.IsNullOrEmpty(Title) ? DialogTitle : Title)
       </MudText>
    </TitleContent>
    <DialogContent>

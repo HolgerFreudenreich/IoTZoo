@@ -99,8 +99,14 @@ public class SettingsDatabaseService : DataServiceBase, ISettingsCrudService
       {
          throw new Exception($"{setting.SettingKey} is not a valid type!");
       }
-      return JsonSerializer.Deserialize(setting.SettingValue, type);
-   }
+         return JsonSerializer.Deserialize(setting.SettingValue, type);
+      }
+
+      public async Task<List<Setting>> GetAllSettings()
+      {
+         var settings = await Db.QueryAsync<Setting>($"select {FieldListSelect} from {FullQualifiedTableName} order by category, setting_key;");
+         return settings.ToList();
+      }
 
    public async Task<int> Update(SettingCategory category,
                                  SettingKey key,

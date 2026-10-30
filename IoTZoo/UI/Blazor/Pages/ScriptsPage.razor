@@ -12,9 +12,21 @@
               StartIcon="@Icons.Material.Filled.Add"
               Variant="Variant.Filled"
               Color="Color.Primary">
-      Add C# Script
-   </MudButton>
-   <MudSpacer></MudSpacer>
+         Add C# Script
+      </MudButton>
+      <MudTooltip Color="Color.Tertiary">
+         <ChildContent>
+            <MudIconButton Icon="@Icons.Material.Filled.ContentPaste"
+                           aria-label="Import from Clipboard"
+                           Color="Color.Secondary"
+                           OnClick="ImportScriptFromClipboard">
+            </MudIconButton>
+         </ChildContent>
+         <TooltipContent>
+            <MudText Typo="Typo.h6">Import from Clipboard</MudText>
+         </TooltipContent>
+      </MudTooltip>
+      <MudSpacer></MudSpacer>
    <MudLink Href="https://dotnetfiddle.net/">You can use <b>dotnetfiddle</b><br />to write your script (Projecttype Script).</MudLink>
    <MudSpacer></MudSpacer>
    <MudTooltip Color="Color.Tertiary">
@@ -64,7 +76,7 @@
    <RowTemplate>
       <MudTd DataLabel="Id">@context.ScriptId</MudTd>
       <MudTd DataLabel="">
-         <div style="width: 140px;">
+         <div style="width: 240px;">
             <MudTooltip Color="Color.Tertiary">
                <ChildContent>
                   <MudFab @onclick="@(() => EditScript(@context))"
@@ -95,17 +107,46 @@
 
             <MudTooltip Color="Color.Tertiary">
                <ChildContent>
-                  <MudFab @onclick="@(() => CloneScript(@context))"
+                  <MudFab @onclick="@(() => ExecuteScript(@context))"
                           Style="Margin: 1px;"
-                          Color="Color.Primary"
-                          StartIcon="@Icons.Material.Filled.CopyAll"
+                          Color="Color.Success"
+                          StartIcon="@Icons.Material.Filled.PlayArrow"
                           Size="Size.Small"
                           IconSize="Size.Small" />
                </ChildContent>
                <TooltipContent>
-                  <MudText Typo="Typo.h6">Clone</MudText>
+                  <MudText Typo="Typo.h6">Execute</MudText>
                </TooltipContent>
             </MudTooltip>
+
+            <MudTooltip Color="Color.Tertiary">
+               <ChildContent>
+                        <MudFab @onclick="@(() => CloneScript(@context))"
+                                Style="Margin: 1px;"
+                                Color="Color.Primary"
+                                StartIcon="@Icons.Material.Filled.CopyAll"
+                                Size="Size.Small"
+                                IconSize="Size.Small" />
+                     </ChildContent>
+                     <TooltipContent>
+                        <MudText Typo="Typo.h6">Clone</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+
+                  <MudTooltip Color="Color.Tertiary">
+                     <ChildContent>
+                        <MudFab @onclick="@(() => ExportScriptToClipboard(@context))"
+                                Style="Margin: 1px;"
+                                Color="Color.Secondary"
+                                StartIcon="@Icons.Material.Filled.ContentCopy"
+                                Size="Size.Small"
+                                IconSize="Size.Small" />
+                     </ChildContent>
+                     <TooltipContent>
+                        <MudText Typo="Typo.h6">Export to Clipboard</MudText>
+                     </TooltipContent>
+                  </MudTooltip>
+
          </div>
       </MudTd>
       @*       <MudTd DataLabel="Language">@context.ScriptLanguageId</MudTd> *@

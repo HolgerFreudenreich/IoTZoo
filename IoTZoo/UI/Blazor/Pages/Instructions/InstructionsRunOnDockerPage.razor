@@ -26,10 +26,10 @@
 <br />
 <MudText Typo="Typo.h5">Step 2 Copy the source code to the Raspberry Pi</MudText>
 <br />
-<MudText>If the iotzoo container is already running, stop and delete it.</MudText>
+<MudText>If the iotzoo stack is already running, stop and delete it (the volume with the databases is kept).</MudText>
 <MudStack Row="true">
-   <MudText>docker stop iotzoo 2>/dev/null; docker rm iotzoo 2>/dev/null; docker rmi iotzoo:latest 2>/dev/null;</MudText>
-   <MudFab @onclick="@(() => CopyToClipboard("docker stop iotzoo 2>/dev/null; docker rm iotzoo 2>/dev/null; docker rmi iotzoo:latest 2>/dev/null;"))"
+   <MudText>docker compose down --rmi local</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("docker compose down --rmi local"))"
            Color="Color.Primary"
            StartIcon="@Icons.Material.Filled.ContentCopy"
            Size="Size.Small"
@@ -40,7 +40,7 @@
 <MudText>A convinient method is to do this with WinSCP.</MudText>
 <br />
 <br />
-<MudText Typo="Typo.h5">Step 3 Build the docker image</MudText>
+<MudText Typo="Typo.h5">Step 3 Build and start the container</MudText>
 <br />
 <br />
 <MudStack Row="true">
@@ -52,11 +52,11 @@
            IconSize="Size.Small" />
 </MudStack>
 <br />
-<MudText>Switch to the folder where the .sln file is located (folder /Server). Enter the following commands in this folder one after the other:</MudText>
+<MudText>Switch to the folder where the docker-compose.yml file is located (folder /Server). Enter the following command in this folder:</MudText>
 <br />
 <MudStack Row="true">
-   <MudText>docker build -f ./UI/Blazor/Dockerfile -t iotzoo .;</MudText>
-   <MudFab @onclick="@(() => CopyToClipboard("docker build -f ./UI/Blazor/Dockerfile -t iotzoo .;"))"
+   <MudText>docker compose up -d --build</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("docker compose up -d --build"))"
            Color="Color.Primary"
            StartIcon="@Icons.Material.Filled.ContentCopy"
            Size="Size.Small"
@@ -64,48 +64,20 @@
 </MudStack>
 <br />
 <MudStack Row="true">
-   <MudText>docker save iotzoo -o iotzoo.tar;</MudText>
-   <MudFab @onclick="@(() => CopyToClipboard("docker save iotzoo -o iotzoo.tar;"))"
-           Color="Color.Primary"
-           StartIcon="@Icons.Material.Filled.ContentCopy"
-           Size="Size.Small"
-           IconSize="Size.Small" />
-</MudStack>
-<br />
-<MudStack Row="true">
-   <MudText>docker load -i iotzoo.tar;</MudText>
-   <MudFab @onclick="@(() => CopyToClipboard("docker load -i iotzoo.tar;"))"
-           Color="Color.Primary"
-           StartIcon="@Icons.Material.Filled.ContentCopy"
-           Size="Size.Small"
-           IconSize="Size.Small" />
-</MudStack>
-<br />
-<br />
-<MudText Typo="Typo.h5">Step 4 Run the docker image</MudText>
-<br />
-<MudStack Row="true">
-   <MudText>docker run -e TZ=Europe/Berlin -p 8085:8080 -p 1883:1883 -d --restart  always iotzoo:latest;</MudText>
-   <MudFab @onclick="@(() => CopyToClipboard("docker run -e TZ=Europe/Berlin -p 8085:8080 -p 1883:1883 -d --restart  always iotzoo:latest;"))"
-           Color="Color.Primary"
-           StartIcon="@Icons.Material.Filled.ContentCopy"
-           Size="Size.Small"
-           IconSize="Size.Small" />
-</MudStack>
-<br />
-<br>
-<MudStack Row="true">
-   <MudText>Click here if you want all commands from Step 3 and Step 4 summarized</MudText>
-   <MudFab @onclick="@(() => CopyToClipboard("docker build --force-rm -f ./UI/Blazor/Dockerfile -t iotzoo .; docker save iotzoo:latest -o iotzoo.tar; docker load -i iotzoo.tar; docker run -e TZ=Europe/Berlin -p 8085:8080 -p 1883:1883 -d --restart always --name iotzoo iotzoo:latest"))"
-           Color="Color.Success"
-           StartIcon="@Icons.Material.Filled.ContentCopy"
-           Size="Size.Large"
-           IconSize="Size.Large" />
+   <MudText>docker compose ps</MudText>
+   <MudFab @onclick="@(() => CopyToClipboard("docker compose ps"))"
+            Color="Color.Primary"
+            StartIcon="@Icons.Material.Filled.ContentCopy"
+            Size="Size.Small"
+            IconSize="Size.Small" />
 </MudStack>
 <br />
 <br />
 <MudStack Row="true">
-   <MudText Typo="Typo.h5">Step 5 Test in Browser</MudText>
+   <MudText Typo="Typo.h5">Step 4 Test in Browser</MudText>
 </MudStack>
 <br />
 <MudText>http://&lt;url_of_your_raspberrypi&gt;:8085</MudText>
+<br />
+<br />
+<MudText>Note: The SQLite databases are stored in the Docker volume "iotzoo_databases". They are not lost when a newer version is copied to the Raspberry Pi and started again with "docker compose up -d --build". They are only deleted by "docker compose down -v" or "docker volume rm".</MudText>

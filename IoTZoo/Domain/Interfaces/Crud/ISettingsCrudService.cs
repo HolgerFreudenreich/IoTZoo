@@ -37,6 +37,8 @@ namespace Domain.Interfaces.Crud
 
       public Task<object?> GetObject(SettingCategory category, SettingKey settingsKey);
 
+      public Task<List<Setting>> GetAllSettings();
+
       public Task<int> Update(SettingCategory category,
                               SettingKey key,
                               object value);

@@ -25,8 +25,17 @@ window.copyToClipboard = async (text) => {
       textarea.focus();
       textarea.select();
       document.execCommand("copy");
-      document.body.removeChild(textarea);
+             document.body.removeChild(textarea);
 
-      return true;
-   }
-}
+             return true;
+          }
+      }
+
+      window.readClipboardText = async () => {
+
+         if (navigator.clipboard && window.isSecureContext) {
+            return await navigator.clipboard.readText();
+         }
+
+         return window.prompt("Bitte den Inhalt einfügen (Strg+V) und mit OK bestätigen:", "");
+      }
