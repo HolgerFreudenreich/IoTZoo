@@ -61,7 +61,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="Pages\ExpampleProjects\ExampleProjectsPage03.razor">
+    <Content Update="Pages\ExampleProjects\ExampleProjectsPage03.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
     <Content Update="Pages\ProjectsPage.razor">

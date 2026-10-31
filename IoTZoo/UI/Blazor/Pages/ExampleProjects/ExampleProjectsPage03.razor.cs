@@ -12,7 +12,7 @@
 
 using Domain.Pocos;
 
-namespace IotZoo.Pages.ExpampleProjects;
+namespace IotZoo.Pages.ExampleProjects;
 
 public class ExampleProjects03PageBase : PageBase
 {

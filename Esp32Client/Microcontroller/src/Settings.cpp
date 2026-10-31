@@ -141,8 +141,9 @@ namespace IotZoo
         {
             if (preferences.begin(NamespaceNameConfig, true))
             {
-                data = preferences.getString(key.c_str(),
-                                             fallbackValue); // fallback
+                // isKey avoids the "nvs_get_str len fail: NOT_FOUND" error log of getString.
+                data = preferences.isKey(key.c_str()) ? preferences.getString(key.c_str(), fallbackValue)
+                                                      : fallbackValue;
             }
             preferences.end();
             if (data == "null")

@@ -27,7 +27,7 @@ namespace IotZoo
 #define USE_INTERNAL_MQTT
 
 #ifdef USE_INTERNAL_MQTT
-#define USE_DEBUG_MESSAGES 0
+#define USE_DEBUG_MESSAGES 2
 #endif // USE_INTERNAL_MQTT
 
     // --------------------------------------------------------------------------------------------------------------------
@@ -39,12 +39,12 @@ namespace IotZoo
     // #define USE_GPS
     // #define USE_SWITCH // permanently off or on
 
-    // #define USE_KEYPAD      // 4 x 4 Button Matrix | Default Pins: R1: 26, R2: 25, R3: 33, R4: 32, C1: 27, C2: 14, C3: 12, C4: 13
+     //#define USE_KEYPAD      // 4 x 4 Button Matrix | Default Pins: R1: 26, R2: 25, R3: 33, R4: 32, C1: 27, C2: 14, C3: 12, C4: 13
     //#define USE_LED_AND_KEY // 1 x 8 Button Row combined with 2 TM1638 4 digits displays | Default Pins: STB: 14, CLK: 27, DIO: 26
     // #define USE_WS2818      // NeoPixel | Default Pins: DIN: 22
-    // #ifdef USE_WS2818
-    // #define USE_WS2818_PIXEL_MATRIX
-    // #endif
+     //#ifdef USE_WS2818
+     //#define USE_WS2818_PIXEL_MATRIX
+//     #endif
 
     // #define USE_AUDIO_STREAMER // INMP441 microphone Default Pins: I2S_WS: 22, I2S_SCK: 15, I2S_SD: 35
 
@@ -56,12 +56,12 @@ namespace IotZoo
 
 //#define USE_KY025 // Reed Contact, Default Pin: 19
 
-#define USE_HW040 // Rotary Encoder, Default Pins: CLK: 32, DT: 21, MS: 33
+//#define USE_HW040 // Rotary Encoder, Default Pins: CLK: 32, DT: 21, MS: 33
 
 // DISPLAYS
 // #define USE_OLED_SSD1306 // OLED, Default Pins: SDA: 21, SCL: 22
- //#define USE_LCD_160X     // 16 x 2, 16 x 4 LCD DISPLAY with I2C HW-061, Default Pins: SDA: 21, SCL: 22
-#define USE_TM1637_4 // 4 digits display. You can connect up to 10 items. Default Pins (Item 0): CLK: 27, DIO: 26
+#define USE_LCD_160X     // 16 x 2, 16 x 4 LCD DISPLAY with I2C HW-061, Default Pins: SDA: 21, SCL: 22
+//#define USE_TM1637_4 // 4 digits display. You can connect up to 10 items. Default Pins (Item 0): CLK: 27, DIO: 26
 //#define USE_TM1637_6             // 6 digits display. You can connect up to 10 items. Default Pins: CLK: 14, DIO: 27
     // #define USE_MAX7219 // 8x8 Led Dot Matrix, Default Poins: Data: 27, CLK: 25, CS: 26
     // #define USE_BUZZER
@@ -70,7 +70,7 @@ namespace IotZoo
 
 } // namespace IotZoo
 
- //#define ERASE_FLASH // Activate flash memory erasure on startup
+// #define ERASE_FLASH // Activate flash memory erasure on startup
 
 
 // --------------------------------------------------------------------------------------------------------------------

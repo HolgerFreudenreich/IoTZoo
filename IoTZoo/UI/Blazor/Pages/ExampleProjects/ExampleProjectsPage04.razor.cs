@@ -12,13 +12,13 @@
 
 using Domain.Pocos;
 
-namespace IotZoo.Pages.ExpampleProjects;
+namespace IotZoo.Pages.ExampleProjects;
 
-public class ExampleProjects02PageBase : PageBase
+public class ExampleProjects04PageBase : PageBase
 {
    protected override void OnInitialized()
    {
-      DataTransferService.CurrentScreen = ScreenMode.ExampleProject02;
+      DataTransferService.CurrentScreen = ScreenMode.ExampleProject04;
       base.OnInitialized();
    }
 }

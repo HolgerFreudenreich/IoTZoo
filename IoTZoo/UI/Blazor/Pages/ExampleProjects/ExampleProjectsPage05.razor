@@ -1,0 +1,45 @@
+@inherits ExampleProjects05PageBase
+
+@page "/ExampleProjects05"
+
+<MudText Typo="Typo.h3">Show the cheapest diesel price (Hanover City Centre, 10 km) on a I²C LCD display</MudText>
+<br />
+<MudImage Src="./Projects/0005/WiringOverview.svg" Width="900" Class="rounded-lg"></MudImage>
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 1 Prepare the Microcontroller</MudText>
+<br />
+<MudText>Use the shared PlatformIO project in the folder <b>Esp32Client/Microcontroller</b>.</MudText>
+<br />
+<MudText>In <b>include/Defines.hpp</b> the flag <b>USE_LCD_160X</b> is enabled. Build and flash the firmware as for the other examples.</MudText>
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 2 Configure Rules</MudText>
+<br />
+<MudText Typo="Typo.h6">Rule 1: Determine the cheapest diesel price</MudText>
+<br />
+<MudText>Navigate to "Rules" in IotZoo</MudText>
+<MudText>Click button "ADD RULE"</MudText>
+<MudText>Source Topic: <b>timer/every_15_minutes</b></MudText>
+<MudText>Target Topic: <b>cheapest_diesel_as_json_string</b></MudText>
+<MudText>Target Payload: <b>::GetCheapestDieselAsJsonString("PLACE YOUR API KEY HERE", 52.37, 9.94, 10)</b></MudText>
+<br />
+<MudText>Replace "PLACE YOUR API KEY HERE" with your API key from <MudLink Href="https://creativecommons.tankerkoenig.de/" Target="_blank">https://creativecommons.tankerkoenig.de/</MudLink>.</MudText>
+<br />
+<MudText Typo="Typo.h6">Rule 2: Show the price on the LCD</MudText>
+<br />
+<MudText>Navigate to "Rules" in IotZoo</MudText>
+<MudText>Click button "ADD RULE"</MudText>
+<MudText>Source Topic: <b>cheapest_diesel_as_json_string</b></MudText>
+<MudText>Target Topic: <b>esp32/08:d1:f9:e0:f2:04/lcd160x/0</b> (replace the MAC with your ESP32)</MudText>
+<MudText>Target Payload: <b>[{"text":"Read('iotzoo/picea/cheapest_diesel_as_json_string')['Name']","x":0,"y":0},{"text":"Read('iotzoo/picea/cheapest_diesel_as_json_string')['Price']","x":0,"y":1}, {"text": "€", "x": 6, "y": 1}]</b>(replace the project and MAC)</MudText>
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 3 Wiring</MudText>
+<br />
+<MudText>Connect the 16x2 LCD with I2C adapter (HW-061, address 0x27) to the ESP32 default pins SDA 21 and SCL 22.</MudText>
+<br />
+<br />
+<MudText Typo="Typo.h5">Step 4 Result</MudText>
+<br />
+<MudText>The first display line shows the cheapest open diesel price in the 10 km radius. The value refreshes every 15 minutes.</MudText>

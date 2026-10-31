@@ -96,10 +96,64 @@ string GetCheapestDiesel(string apiKey, double latitude, double longitude, doubl
     return "no open station with diesel price nearby";
   }
   return string.Format(CultureInfo.InvariantCulture,
-                       "{0} {1}: {2:F3} EUR/l",
-                       station.Brand,
+                       "{0} {1:F3} EUR/l",
                        station.Name,
                        station.Price);
+}',0);
+
+
+---------------------------------------------------------------------------------------------------
+-- Diesel price script is based on the Tankerkoenig API. The API key can be obtained for free at
+-- https://creativecommons.tankerkoenig.de/
+---------------------------------------------------------------------------------------------------
+INSERT INTO "script" (script_name, description, source_code, script_language_id) VALUES ('GetCheapestDieselAsJsonString',
+'Gets the cheapest open diesel station within the given radius in km from Tankerkoenig. Parameters: apiKey, latitude, longitude, radius.',
+'using System;
+using System.Globalization;
+using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
+
+public class DieselStationsResponse
+{
+  public bool ok { get; set; }
+  public DieselStation[] stations { get; set; }
+}
+
+public class DieselStation
+{
+  public string Name { get; set; }
+  public string Brand { get; set; }
+  public double? Price { get; set; }
+  public bool IsOpen { get; set; }
+}
+
+string GetCheapestDieselAsJsonString(string apiKey, double latitude, double longitude, double radiusKm)
+{
+  string url = string.Format(CultureInfo.InvariantCulture,
+                             "https://creativecommons.tankerkoenig.de/json/list.php?lat={0}&lng={1}&rad={2}&sort=price&type=diesel&apikey={3}",
+                             latitude,
+                             longitude,
+                             radiusKm,
+                             apiKey);
+
+  using var httpClient = new HttpClient();
+  string responseMessageContent = httpClient.GetStringAsync(url).Result;
+
+  var options = new JsonSerializerOptions
+  {
+    PropertyNameCaseInsensitive = true
+  };
+
+  var data = JsonSerializer.Deserialize<DieselStationsResponse>(responseMessageContent, options);
+  if (null == data || !data.ok || null == data.stations)
+  {
+    return "no diesel data";
+  }
+
+  var station = data.stations.Where(s => s.Price.HasValue).OrderBy(s => s.Price).FirstOrDefault();
+
+  return JsonSerializer.Serialize(station, options);
 }',0);
 
 update db_version set version_number = 2;

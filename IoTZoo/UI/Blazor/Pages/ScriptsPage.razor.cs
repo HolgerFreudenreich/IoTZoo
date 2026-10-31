@@ -127,7 +127,7 @@ public class ScriptsPageBase : PageBase
         try
         {
             string json = JsonSerializer.Serialize(script);
-            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", json);
+            await JSRuntime.InvokeVoidAsync("copyToClipboard", json);
             Snackbar.Add($"{script.ScriptName} exported to clipboard.", Severity.Success);
         }
         catch (Exception exception)

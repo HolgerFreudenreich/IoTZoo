@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" font-family="Arial, Helvetica, sans-serif">
+  <rect width="900" height="420" fill="#ffffff"/>
+  <text x="450" y="36" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">Wiring: ESP32 to 16x2 LCD (I2C, HW-061)</text>
+
+  <!-- ESP32 -->
+  <rect x="60" y="80" width="330" height="300" rx="12" fill="#e8f1fb" stroke="#1f5fa8" stroke-width="3"/>
+  <text x="225" y="115" text-anchor="middle" font-size="20" font-weight="bold" fill="#1f5fa8">ESP32</text>
+  <rect x="330" y="140" width="40" height="200" fill="#ffffff" stroke="#1f5fa8" stroke-width="2"/>
+
+  <text x="300" y="170" text-anchor="end" font-size="15" fill="#333">3V3 / VIN</text>
+  <circle cx="370" cy="170" r="5" fill="#c62828"/>
+  <text x="300" y="220" text-anchor="end" font-size="15" fill="#333">GND</text>
+  <circle cx="370" cy="220" r="5" fill="#222"/>
+  <text x="300" y="270" text-anchor="end" font-size="15" fill="#333">GPIO 21 (SDA)</text>
+  <circle cx="370" cy="270" r="5" fill="#2e7d32"/>
+  <text x="300" y="320" text-anchor="end" font-size="15" fill="#333">GPIO 22 (SCL)</text>
+  <circle cx="370" cy="320" r="5" fill="#f9a825"/>
+
+  <!-- LCD -->
+  <rect x="560" y="80" width="280" height="300" rx="12" fill="#fdf6e3" stroke="#8d6e00" stroke-width="3"/>
+  <text x="700" y="115" text-anchor="middle" font-size="20" font-weight="bold" fill="#8d6e00">16x2 LCD + I2C</text>
+  <rect x="600" y="140" width="200" height="60" rx="6" fill="#9ccc65" stroke="#33691e" stroke-width="2"/>
+  <text x="700" y="177" text-anchor="middle" font-size="16" fill="#1b2e0f">IoT Zoo</text>
+  <text x="580" y="240" font-size="15" fill="#333">VCC</text>
+  <circle cx="560" cy="234" r="5" fill="#c62828"/>
+  <text x="580" y="290" font-size="15" fill="#333">GND</text>
+  <circle cx="560" cy="284" r="5" fill="#222"/>
+  <text x="580" y="340" font-size="15" fill="#333">SDA</text>
+  <circle cx="560" cy="334" r="5" fill="#2e7d32"/>
+  <text x="580" y="370" font-size="15" fill="#333">SCL</text>
+  <circle cx="560" cy="364" r="5" fill="#f9a825"/>
+
+  <!-- Connections -->
+  <line x1="370" y1="170" x2="560" y2="234" stroke="#c62828" stroke-width="3"/>
+  <line x1="370" y1="220" x2="560" y2="284" stroke="#222" stroke-width="3"/>
+  <line x1="370" y1="270" x2="560" y2="334" stroke="#2e7d32" stroke-width="3"/>
+  <line x1="370" y1="320" x2="560" y2="364" stroke="#f9a825" stroke-width="3"/>
+</svg>

@@ -300,7 +300,7 @@ public class SettingsPageBase : PageBase
         {
             List<Setting> settings = await SettingsService.GetAllSettings();
             string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
-            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", json);
+            await JSRuntime.InvokeVoidAsync("copyToClipboard", json);
             Snackbar.Add($"{settings.Count} settings exported to clipboard.", MudBlazor.Severity.Success);
         }
         catch (Exception exception)
