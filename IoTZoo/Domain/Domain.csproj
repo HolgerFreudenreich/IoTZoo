@@ -28,7 +28,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.14" />
     <PackageReference Include="MQTTnet" Version="5.2.0.1603" />
     <PackageReference Include="MQTTnet.AspNetCore" Version="5.2.0.1603" />
-    <PackageReference Include="MudBlazor" Version="9.11.0" />
+    <PackageReference Include="MudBlazor" Version="9.12.0" />
     <PackageReference Include="NAudio" Version="3.3.0" />
     <PackageReference Include="Npgsql" Version="10.0.3" />
     <PackageReference Include="Quartz" Version="4.6.2" />
