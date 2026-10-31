@@ -203,7 +203,7 @@ String getMacAddress()
 {
     // It would be even possible to set the MAC address!
     macAddress = WiFi.macAddress();
-     macAddress.toLowerCase();
+    macAddress.toLowerCase();
     debug("MAC: " << macAddress);
     return macAddress;
 }
@@ -316,8 +316,8 @@ bool deserializeStaticJsonAndPublishError(JsonDocument& jsonDocument, const Stri
 
 void onReceivedConnectedDevicesConfiguration(const String& json)
 {
-    Serial.println("*** onReceivedConfiguration ***");
-    Serial.println(json);
+    debug("*** onReceivedConfiguration ***");
+    debug(json);
     settings->saveDeviceConfigurations(json);
 }
 
@@ -325,8 +325,8 @@ bool onReceivedMicrocontrollerConfiguration(const String& json)
 {
     try
     {
-        Serial.println("*** onReceivedMicrocontrollerConfiguration (via MQTT): " + json);
-        Serial.println(json);
+        debug("*** onReceivedMicrocontrollerConfiguration (via MQTT): " + json);
+        debug(json);
         if (json.length() == 0)
         {
             return false;
@@ -344,13 +344,13 @@ bool onReceivedMicrocontrollerConfiguration(const String& json)
         bool   ok2           = settings->setMqttBrokerIp(ipMqttBroker);
         if (ok0 && ok1 && ok2)
         {
-            Serial.println("Successful saved settings");
+            debug("Successful saved settings");
             return true;
         }
     }
     catch (const std::exception& e)
     {
-        Serial.println(e.what());
+        debug(e.what());
     }
     return false;
 }
@@ -371,7 +371,7 @@ String serializeTopic(const Topic& topic)
     doc["MessageDirection"] = topic.Direction; // From the perspective of the IotZooClient.
     String jsonTopic;
     size_t size = serializeJson(doc, jsonTopic);
-    // Serial.println("Serialized topic " + jsonTopic + " size: " + String(size) + " bytes.");
+    // debug("Serialized topic " + jsonTopic + " size: " + String(size) + " bytes.");
     return jsonTopic;
 }
 
@@ -397,7 +397,7 @@ String serializeMicrocontroller()
     doc["MicrocontrollerType"] = identifyBoard();
     String json;
     size_t size = serializeJson(doc, json);
-    // Serial.println("Serialized topic " + json + " size: " + String(size) + " bytes.");
+    // debug("Serialized topic " + json + " size: " + String(size) + " bytes.");
     return json;
 }
 
@@ -557,7 +557,7 @@ void pushTopicToIotZooClient(const Topic& topic)
 
 void pushTopicsToIotZooClient(std::vector<Topic>& topics)
 {
-    Serial.println("*** register_microcontroller:");
+    debug("*** register_microcontroller:");
     String topicRegisterMicrocontroller = getBaseTopic() + "/register_microcontroller";
 
     String jsonMicrocontroller = serializeMicrocontroller();
@@ -568,7 +568,7 @@ void pushTopicsToIotZooClient(std::vector<Topic>& topics)
     if (size > 64) // We are limited to 16 kb. This is the set buffer size of the MQTT client. If this size is exceeded,
                    // the message will not be delivered.
     {
-        Serial.println("sorry, to much data. We are limited to 16 kb.");
+        debug("sorry, to much data. We are limited to 16 kb.");
         size = 64;
     }
 
@@ -590,11 +590,11 @@ void pushTopicsToIotZooClient(std::vector<Topic>& topics)
     }
     jsonMicrocontroller += "] }";
 
-    Serial.println(jsonMicrocontroller);
+    debug(jsonMicrocontroller);
     if (mqttClient->publish(topicRegisterMicrocontroller, jsonMicrocontroller,
                             false)) // retain should be false
     {
-        Serial.println("Known Topics successfully sent to the IOTZOO client.");
+        debug("Known Topics successfully sent to the IOTZOO client.");
     }
     else
     {
@@ -603,7 +603,7 @@ void pushTopicsToIotZooClient(std::vector<Topic>& topics)
 
     if (topics.size() > 64)
     {
-        Serial.println("Forwarding the remaining topics");
+        debug("Forwarding the remaining topics");
         for (int index = 64; index < topics.size(); index++)
         {
             auto topic = topics.begin();
@@ -620,12 +620,12 @@ void publishDeviceConfigurations()
     {
         String topicDevices        = getBaseTopic() + "/device_config";
         String deviceConfiguration = settings->loadDeviceConfigurations();
-        Serial.println("publishing device configuration: " + deviceConfiguration);
+        debug("publishing device configuration: " + deviceConfiguration);
         mqttClient->publish(topicDevices, deviceConfiguration);
     }
     catch (const std::exception& e)
     {
-        Serial.println(e.what());
+        debug(e.what());
     }
 }
 
@@ -639,7 +639,7 @@ void publishErrorMessage(const String& errorMessage)
 /// @return Json for alive message
 String createAliveJson()
 {
-    //StaticJsonDocument<4096> jsonDocument; // on stack
+    // StaticJsonDocument<4096> jsonDocument; // on stack
     DynamicJsonDocument jsonDocument(4096); // on heap
 
     addMicrocontrollerNestedJsonObject(&jsonDocument);
@@ -659,7 +659,7 @@ String createAliveJson()
 #if defined(USE_MQTT)
 void publishAliveMessage()
 {
-    Serial.println("publishAliveMessage");
+    debug("publishAliveMessage");
 
     aliveCounter++;
     String topicAlive = getBaseTopic() + "/alive";
@@ -673,7 +673,7 @@ void publishAliveMessage()
 /// @param rawData
 void onAliveAck(const String& rawData)
 {
-    Serial.println("Received alive_ack: " + rawData + ", millis: " + String(millis()));
+    debug("Received alive_ack: " + rawData + ", millis: " + String(millis()));
 
     lastServerAliveMillis = millis();
     if (rawData.length() > 0)
@@ -701,7 +701,7 @@ void onAliveAck(const String& rawData)
 
 void onStatusRequested(const String& status)
 {
-    Serial.println("*** Status requested: " + status);
+    debug("*** Status requested: " + status);
     if (status == "device_config")
     {
         publishDeviceConfigurations();
@@ -728,7 +728,7 @@ void onLoadAndPublishConfigurationByKey(const String& key)
 
     try
     {
-        Serial.println("Loading configuration with key '" + key + "'");
+        debug("Loading configuration with key '" + key + "'");
 
         String value = settings->loadConfiguration(key);
         String json  = "{ \"key\": \"" + key + "\", \"data\": \"" + value + "\" }";
@@ -749,7 +749,7 @@ void onLoadAndPublishConfigurationByKey(const String& key)
 #ifdef USE_MQTT
 void onConnectionEstablished() // do not rename! This method name is forced in EspMQTTClient.h. I do not like this.
 {
-    Serial.println("onMqttConnectionEstablished! baseTopic: " + getBaseTopic());
+    debug("onMqttConnectionEstablished! baseTopic: " + getBaseTopic());
 
     String topicDeviceStatus = getBaseTopic() + "/status";
     mqttClient->subscribe(topicDeviceStatus, onStatusRequested);
@@ -771,7 +771,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     }
     else
     {
-        Serial.println("ws2812 is nullptr!");
+        debug("ws2812 is nullptr!");
     }
 #endif
 
@@ -898,16 +898,16 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     mqttClient->subscribe(getNamespaceAndProjectNameForTopic() + "is_day_mode",
                           [&](const String& payload)
                           {
-                              Serial.println("is_day_mode: " + payload);
+                              debug("is_day_mode: " + payload);
                               if (payload == "True" || payload == "1")
                               {
                                   dayMode = DayMode::Day;
-                                  Serial.println("The sun has risen. We have have daylight.");
+                                  debug("The sun has risen. We have have daylight.");
                               }
                               else
                               {
                                   dayMode = DayMode::Night;
-                                  Serial.println("The sun has set. We have no daylight.");
+                                  debug("The sun has set. We have no daylight.");
                               }
                           });
 
@@ -927,10 +927,10 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
                               short         aliveAckLedMode = jsonDocument["aliveAckLedMode"];
 
                               settings->setAliveIntervalMillis(aliveIntervalMs);
-                              Serial.println("aliveIntervalMs: " + String(settings->getAliveIntervalMillis()));
+                              debug("aliveIntervalMs: " + String(settings->getAliveIntervalMillis()));
 
                               settings->setAliveLedMode(aliveAckLedMode);
-                              Serial.println("aliveAckLedEnabled " + String(settings->getAliveAckLedMode()));
+                              debug("aliveAckLedEnabled " + String(settings->getAliveAckLedMode()));
                           });
 
     // Save the device configurations.
@@ -938,7 +938,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
     mqttClient->subscribe(topicSetDeviceConfiguration,
                           [&](const String& payload)
                           {
-                              Serial.println("Received device configurations -> Save it.");
+                              debug("Received device configurations -> Save it.");
                               onReceivedConnectedDevicesConfiguration(payload);
                               restart();
                           });
@@ -949,7 +949,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
                           {
                               try
                               {
-                                  Serial.print("Received configuration data -> Save it. ");
+                                  debug("Received configuration data -> Save it. ");
 
                                   StaticJsonDocument<4096> jsonDocument;
                                   if (!deserializeStaticJsonAndPublishError(jsonDocument, json))
@@ -959,7 +959,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 
                                   String key  = jsonDocument["key"].as<String>();
                                   String data = jsonDocument["data"].as<String>();
-                                  Serial.println("key:" + key + ", date: " + data);
+                                  debug("key:" + key + ", date: " + data);
                                   settings->saveConfigurationData(key, data);
                               }
                               catch (const std::exception& e)
@@ -978,8 +978,7 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
                           {
                               if (payload.length())
                               {
-                                  Serial.println("Received topic + " + topicSetMicrocontrollerConfiguration +
-                                                 " -> save the microcontroller configuration.");
+                                  debug("Received topic " + topicSetMicrocontrollerConfiguration + " -> save the microcontroller configuration.");
                                   if (onReceivedMicrocontrollerConfiguration(payload))
                                   {
                                       // Remove retained message from the server
@@ -996,16 +995,16 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 // After loading the configuration, the devices are instantiated and configured according to the configuration.
 void makeInstanceConfiguredDevices()
 {
-    Serial.println("Loading device configurations and instantiate devices...");
+    debug("Loading device configurations and instantiate devices...");
 
     String jsonDeviceConfigurations = settings->loadDeviceConfigurations();
     if (0 == jsonDeviceConfigurations.length())
     {
-        Serial.println("Not yet configured!");
+        debug("Not yet configured!");
     }
     else // if (jsonDeviceConfigurations.length() > 0)
     {
-        Serial.println("Config: " + jsonDeviceConfigurations);
+        debug("Config: " + jsonDeviceConfigurations);
         DynamicJsonDocument jsonDocument(4096);
 
         if (!deserializeStaticJsonAndPublishError(jsonDocument, jsonDeviceConfigurations))
@@ -1021,7 +1020,7 @@ void makeInstanceConfiguredDevices()
             int    deviceIndex = value["DeviceIndex"];
             bool   isEnabled   = value["IsEnabled"];
 
-            Serial.println("DeviceType: '" + deviceType + "', DeviceIndex: " + String(deviceIndex) + "', IsEnabled: " + String(isEnabled));
+            debug("DeviceType: '" + deviceType + "', DeviceIndex: " + String(deviceIndex) + "', IsEnabled: " + String(isEnabled));
 
             if (isEnabled)
             {
@@ -1036,7 +1035,7 @@ void makeInstanceConfiguredDevices()
                     triggeringTopic.toLowerCase();
                     String targetTopic = topicLinkVariant["TargetTopic"].as<String>();
                     targetTopic.trim();
-                    //targetTopic.toLowerCase();
+                    // targetTopic.toLowerCase();
 
                     String targetPayload = topicLinkVariant["TargetPayload"].as<String>();
                     // Example: { "Operator": ">", "Value": "130"}
@@ -1051,7 +1050,7 @@ void makeInstanceConfiguredDevices()
 
                     buttonHandling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), buttonPin);
 
-                    Serial.println("Button initialized.");
+                    debug("Button initialized.");
                 }
 #endif // USE_BUTTON
 
@@ -1076,7 +1075,7 @@ void makeInstanceConfiguredDevices()
                     ky025->setTopicLinks(*topicLinks);
                     ky025->setInternalMqttClient(globalInternalMqttClient);
 #endif // USE_INTERNAL_MQTT
-                    Serial.println("Reed contact KY-025 initialized.");
+                    debug("Reed contact KY-025 initialized.");
                 }
 #endif // USE_BUTTON
 
@@ -1119,14 +1118,14 @@ void makeInstanceConfiguredDevices()
                     audioStreamer =
                         new IotZoo::AudioStreamer(deviceIndex, settings, mqttClient, getBaseTopic(), features, minRms, pinSd, pinWs, pinSck);
 
-                    Serial.println("AudioStreamer initialized.");
+                    debug("AudioStreamer initialized.");
                 }
 #endif // USE_AUDIO_STREAMER
 
 #ifdef USE_GPS
                 if (deviceType == "GPS")
                 {
-                    Serial.println("GPS is in the configuration.");
+                    debug("GPS is in the configuration.");
                     int pinRx = arrPins[0]["MicrocontrollerGpoPin"];
                     int pinTx = arrPins[1]["MicrocontrollerGpoPin"];
 
@@ -1142,7 +1141,7 @@ void makeInstanceConfiguredDevices()
 
                     buzzer = new IotZoo::Buzzer(deviceIndex, settings, mqttClient, getBaseTopic(), buzzerPin, ledPin);
 
-                    Serial.println("Buzzer initialized.");
+                    debug("Buzzer initialized.");
                 }
 #endif // USE_BUZZER
 
@@ -1157,7 +1156,7 @@ void makeInstanceConfiguredDevices()
                     ht1621 = new IotZoo::HT1621(deviceIndex, settings, mqttClient, getBaseTopic(), csPin, wsPin, dataPin, backlightPin);
                     if (nullptr != ht1621)
                     {
-                        Serial.println("HT1621 6 digit LED Display initialized.");
+                        debug("HT1621 6 digit LED Display initialized.");
                     }
                 }
 #endif // USE_HT1621
@@ -1183,7 +1182,7 @@ void makeInstanceConfiguredDevices()
                     max7219 = new IotZoo::Max7219(deviceIndex, settings, mqttClient, getBaseTopic(), numberOfDevices, dataPin, clkPin, csPin);
                     if (nullptr != max7219)
                     {
-                        Serial.println("Max7219 8x8 LED Matrix initialized.");
+                        debug("Max7219 8x8 LED Matrix initialized.");
                     }
                 }
 #endif // USE_MAX7219
@@ -1193,7 +1192,7 @@ void makeInstanceConfiguredDevices()
                 {
                     int switchPin = arrPins[0]["MicrocontrollerGpoPin"];
                     switches.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), switchPin);
-                    Serial.println("Switch initialized.");
+                    debug("Switch initialized.");
                 }
 #endif // USE_SWITCH
 
@@ -1215,7 +1214,7 @@ void makeInstanceConfiguredDevices()
 
                     buttonMatrixHandling.AddDevice(buttonMatrix);
 
-                    Serial.println("Buttonmatrix initialized.");
+                    debug("Buttonmatrix initialized.");
                 }
 #endif // USE_KEYPAD
 
@@ -1236,8 +1235,7 @@ void makeInstanceConfiguredDevices()
 
                     if (analogPin != 32 && analogPin != 33 && analogPin != 34 && analogPin != 35 && analogPin != 36 && analogPin != 39)
                     {
-                        Serial.println("Warning: analogPin " + String(analogPin) +
-                                       " is not an ADC pin (34, 35, 36, 39 are valid ADC pins on ESP32)!");
+                        debug("Warning: analogPin " + String(analogPin) + " is not an ADC pin (34, 35, 36, 39 are valid ADC pins on ESP32)!");
                         mqttClient->publish(getBaseTopic() + "/error/" + String(deviceIndex),
                                             "Warning: pinAdc is not an ADC pin (32, 33 34, 35, 36, 39 are valid ADC pins on ESP32)!");
                         continue;
@@ -1245,7 +1243,7 @@ void makeInstanceConfiguredDevices()
                     else
                     {
                         analogInputPins.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), analogPin, intervalMs);
-                        Serial.println("Analog Input Pin initialized on pin " + String(analogPin) + ".");
+                        debug("Analog Input Pin initialized on pin " + String(analogPin) + ".");
                     }
                 }
 #endif // USE_ANALOG_INPUT_PIN
@@ -1260,7 +1258,7 @@ void makeInstanceConfiguredDevices()
 
                     stepperMotor = new StepperMotor(deviceIndex, settings, mqttClient, getBaseTopic(), pin1, pin2, pin3, pin4);
 
-                    Serial.println("28BY48 Stepper initialized.");
+                    debug("28BY48 Stepper initialized.");
                 }
 #endif // USE_STEPPER_MOTOR
 
@@ -1302,8 +1300,8 @@ void makeInstanceConfiguredDevices()
 
                     rd03d = new Rd03D(deviceIndex, settings, mqttClient, getBaseTopic(), pinRx, pinTx, timeoutMillis, maxDistanceMillimeters,
                                       multiTargetMode);
-                    Serial.print("Rd-03d configuration added! pinRx: " + String(pinRx) + ", pinTx: " + String(pinTx));
-                    Serial.println(", TimeOutMillis: " + String(timeoutMillis) + ", MaxDistanceMillimeters: " + String(maxDistanceMillimeters));
+                    debug("Rd-03d configuration added! pinRx: " + String(pinRx) + ", pinTx: " + String(pinTx));
+                    debug(", TimeOutMillis: " + String(timeoutMillis) + ", MaxDistanceMillimeters: " + String(maxDistanceMillimeters));
                 }
 #endif // USE_RD_03D
 
@@ -1311,7 +1309,7 @@ void makeInstanceConfiguredDevices()
                 // Add USE_LCD_160X display.
                 if (deviceType == "LCD160x")
                 {
-                    Serial.println("Initializing LCD160x display.");
+                    debug("Initializing LCD160x display.");
                     uint8_t columns    = 20;
                     uint8_t rows       = 4;
                     uint8_t i2cAddress = 0x27;
@@ -1326,11 +1324,11 @@ void makeInstanceConfiguredDevices()
                         }
                         else if (propertyName == "Rows")
                         {
-                            columns = std::stoi(propertyValue.c_str());
+                            rows = std::stoi(propertyValue.c_str());
                         }
                         else if (propertyName == "I2CAddress")
                         {
-                            i2cAddress = std::stoi(propertyValue.c_str());
+                            i2cAddress = std::stoi(propertyValue.c_str(), nullptr, 0);
                         }
                     }
 
@@ -1338,7 +1336,7 @@ void makeInstanceConfiguredDevices()
                                                 i2cAddress, // set the LCD address to 0x27
                                                 columns, rows);
 
-                    Serial.println("LCD160x configuration added! I2C-Address: " + String(i2cAddress));
+                    debug("LCD160x configuration added! I2C-Address: " + String(i2cAddress));
                 }
 #endif // USE_LCD_160X
 
@@ -1347,13 +1345,13 @@ void makeInstanceConfiguredDevices()
                 // SDA must be connected to pin 21 and SCL to pin 22.
                 if (deviceType == "OLED_SSD1306")
                 {
-                    Serial.println("Initializing OLED_SSD1306 display.");
+                    debug("Initializing OLED_SSD1306 display.");
                     // u_int8_t sclPin = arrPins[0]["MicrocontrollerGpoPin"];
                     // u_int8_t sdaPin = arrPins[1]["MicrocontrollerGpoPin"];
                     u_int8_t i2cAddress = 0x3C;
 
                     oled1306 = new OledSsd1306Display(deviceIndex, settings, mqttClient, getBaseTopic(), i2cAddress);
-                    Serial.println("Oled display SSD1306 initialized! I2C-Address: " + String(i2cAddress));
+                    debug("Oled display SSD1306 initialized! I2C-Address: " + String(i2cAddress));
                 }
 #endif // USE_OLED_SSD1306
 
@@ -1403,8 +1401,8 @@ void makeInstanceConfiguredDevices()
                     ds18B20SensorManager->setTopicLinks(*topicLinks);
                     ds18B20SensorManager->setInternalMqttClient(globalInternalMqttClient);
 #endif // USE_INTERNAL_MQTT
-                    Serial.println("DS18B20 sensors configuration loaded! Dat Pin is " + String(datPin) + ", Resolution: " + String(resolution) +
-                                   ", Transmission interval ms: " + String(transmissionInterval));
+                    debug("DS18B20 sensors configuration loaded! Dat Pin is " + String(datPin) + ", Resolution: " + String(resolution) +
+                          ", Transmission interval ms: " + String(transmissionInterval));
                 }
 #endif // USE_DS18B20
 
@@ -1434,7 +1432,7 @@ void makeInstanceConfiguredDevices()
 #ifdef USE_WS2818
                 if (deviceType == "NEO")
                 {
-                    Serial.println("Configuration of NEO pixels...");
+                    debug("Configuration of NEO pixels...");
                     int dioPin       = arrPins[0]["MicrocontrollerGpoPin"];
                     int numberOfLeds = 256;
 
@@ -1448,12 +1446,12 @@ void makeInstanceConfiguredDevices()
                         }
                     }
                     ws2812 = new WS2818(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLeds);
-                    Serial.println("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
+                    debug("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
                 }
 #ifdef USE_WS2818_PIXEL_MATRIX
                 if (deviceType == "PixelMatrix")
                 {
-                    Serial.println("Configuration of NEO pixel matrix...");
+                    debug("Configuration of NEO pixel matrix...");
                     int  dioPin                = arrPins[0]["MicrocontrollerGpoPin"];
                     uint numberOfLedsPerColumn = 8;
                     uint numberOfLedsPerRow    = 8;
@@ -1479,9 +1477,9 @@ void makeInstanceConfiguredDevices()
                     }
                     ws2812 = new PixelMatrix(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLedsPerColumn, numberOfLedsPerRow,
                                              (PixelMatrixExtensions)extensions);
-                    Serial.println("Neo pixel matrix configuration loaded! DIO Pin is " + String(dioPin) +
-                                   ", numberOfLedsPerColumn: " + String(numberOfLedsPerColumn) +
-                                   ", numberOfLedsPerRow: " + String(numberOfLedsPerRow) + ", Extensions: " + String(extensions));
+                    debug("Neo pixel matrix configuration loaded! DIO Pin is " + String(dioPin) +
+                          ", numberOfLedsPerColumn: " + String(numberOfLedsPerColumn) + ", numberOfLedsPerRow: " + String(numberOfLedsPerRow) +
+                          ", Extensions: " + String(extensions));
                 }
 #endif // USE_WS2818_PIXEL_MATRIX
 #endif // USE_WS2818
@@ -1489,7 +1487,7 @@ void makeInstanceConfiguredDevices()
 #ifdef USE_TM1637_4
                 if (deviceType == "TM1637_4")
                 {
-                    Serial.println("TM1637_4 display");
+                    debug("TM1637_4 display");
 
                     int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
                     int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
@@ -1527,16 +1525,16 @@ void makeInstanceConfiguredDevices()
 
                     DeviceBase& device = tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
                     device.setEnableServerDownText(enableServerDownText);
-                    Serial.println("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
-                                   ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay) +
-                                   ", enableServerDownText: " + String(enableServerDownText));
+                    debug("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
+                          ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay) +
+                          ", enableServerDownText: " + String(enableServerDownText));
                 }
 #endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
                 if (deviceType == "TM1637_6")
                 {
-                    Serial.println("TM1637_6 display");
+                    debug("TM1637_6 display");
                     if (nullptr == tm1637_6Handling)
                     {
                         tm1637_6Handling = new TM1637_6_Handling();
@@ -1575,15 +1573,15 @@ void makeInstanceConfiguredDevices()
                     DeviceBase& device = tm1637_6Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
                     device.setEnableServerDownText(enableServerDownText);
 
-                    Serial.println("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin) +
-                                   "enableServerDownText: " + String(enableServerDownText));
+                    debug("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin) +
+                          "enableServerDownText: " + String(enableServerDownText));
                 }
 #endif // USE_TM1637_6
 
 #ifdef USE_LED_AND_KEY
                 if (deviceType == "TM1638")
                 {
-                    Serial.println("TM1638_8 display");
+                    debug("TM1638_8 display");
 
                     int strobePin = arrPins[0]["MicrocontrollerGpoPin"];
                     int clkPin    = arrPins[1]["MicrocontrollerGpoPin"];
@@ -1591,26 +1589,26 @@ void makeInstanceConfiguredDevices()
 
                     tm1638 = new TM1638(deviceIndex, settings, mqttClient, getBaseTopic(), strobePin, clkPin, dioPin);
 
-                    Serial.println("TM1638 display initialized! Strobe Pin is " + String(strobePin) + ", CLK Pin is " + String(clkPin) +
-                                   ", DIO Pin is " + String(dioPin));
+                    debug("TM1638 display initialized! Strobe Pin is " + String(strobePin) + ", CLK Pin is " + String(clkPin) + ", DIO Pin is " +
+                          String(dioPin));
                 }
 #endif // USE_LED_AND_KEY
 
 #ifdef USE_REMOTE_GPIOS
                 if (deviceType == "Remote GPIO")
                 {
-                    Serial.println("Remote GPIO");
+                    debug("Remote GPIO");
 
                     int gpioPin = arrPins[0]["MicrocontrollerGpoPin"];
                     remoteGpios.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), gpioPin);
-                    Serial.println("Remote GPIO PIN configuration loaded! Pin is " + String(gpioPin) + ". Size remoteGpios: " + remoteGpios.size());
+                    debug("Remote GPIO PIN configuration loaded! Pin is " + String(gpioPin) + ". Size remoteGpios: " + remoteGpios.size());
                 }
 #endif // USE_REMOTE_GPIOS
 
 #ifdef USE_TRAFFIC_LIGHT_LEDS
                 if (deviceType == "LEDS Traffic Light")
                 {
-                    Serial.println("LEDS Traffic Light");
+                    debug("LEDS Traffic Light");
 
                     int gpioLedRed    = -1;
                     int gpioLedYellow = -1;
@@ -1620,22 +1618,22 @@ void makeInstanceConfiguredDevices()
                     {
                         String propertyName  = property["PinName"];
                         String propertyValue = property["MicrocontrollerGpoPin"];
-                        Serial.println("propertyName: " + propertyName + ", propertyValue: " + propertyValue);
+                        debug("propertyName: " + propertyName + ", propertyValue: " + propertyValue);
 
                         if (propertyName == "R")
                         {
                             gpioLedRed = std::stoi(propertyValue.c_str());
-                            Serial.println("Red Gpio: " + gpioLedRed);
+                            debug("Red Gpio: " + gpioLedRed);
                         }
                         else if (propertyName == "Y")
                         {
                             gpioLedYellow = std::stoi(propertyValue.c_str());
-                            Serial.println("Yellow Gpio: " + gpioLedYellow);
+                            debug("Yellow Gpio: " + gpioLedYellow);
                         }
                         else if (propertyName == "G")
                         {
                             gpioLedGreen = std::stoi(propertyValue.c_str());
-                            Serial.println("Green Gpio: " + gpioLedGreen);
+                            debug("Green Gpio: " + gpioLedGreen);
                         }
                     }
 
@@ -1649,7 +1647,7 @@ void makeInstanceConfiguredDevices()
 #ifdef USE_HW040
                 if (deviceType == "HW-040")
                 {
-                    Serial.println("HW-040 rotary encoder");
+                    debug("HW-040 rotary encoder");
                     int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
                     int dtPin  = arrPins[1]["MicrocontrollerGpoPin"];
                     int swPin  = arrPins[2]["MicrocontrollerGpoPin"];
@@ -1698,10 +1696,10 @@ void makeInstanceConfiguredDevices()
                     device.setInternalMqttClient(globalInternalMqttClient);
                     device.setTopicLinks(*topicLinks);
 
-                    Serial.println("HW-040 rotary encoder initialized! CLK Pin is " + String(clkPin) + ", DT Pin is " + String(dtPin) +
-                                   ", MS Pin is " + String(swPin) + ", boundaryMinValue is " + String(boundaryMinValue) + ", boundaryMaxValue is " +
-                                   String(boundaryMaxValue) + ", acceleration is " + String(acceleration) + ", circleValues is " +
-                                   String(circleValues) + ", encoderSteps is " + String(encoderSteps));
+                    debug("HW-040 rotary encoder initialized! CLK Pin is " + String(clkPin) + ", DT Pin is " + String(dtPin) + ", MS Pin is " +
+                          String(swPin) + ", boundaryMinValue is " + String(boundaryMinValue) + ", boundaryMaxValue is " + String(boundaryMaxValue) +
+                          ", acceleration is " + String(acceleration) + ", circleValues is " + String(circleValues) + ", encoderSteps is " +
+                          String(encoderSteps));
                 }
                 if (nullptr != hw040Handling)
                 {
@@ -1769,7 +1767,7 @@ void handleGetGpioState(int index)
     auto remoteGpio = remoteGpios.begin();
     std::advance(remoteGpio, index);
     int data = remoteGpio->readDigitalValue();
-    Serial.println("GPIO Pin " + String(remoteGpio->getGpioPin()) + " is in state " + String(data));
+    debug("GPIO Pin " + String(remoteGpio->getGpioPin()) + " is in state " + String(data));
     webServer.send(200, "text/plain", String(data));
 #endif
 }
@@ -1808,11 +1806,11 @@ void handlePostDeviceConfig()
     if (webServer.hasArg("plain") == false)
     {
         // handle error here
-        Serial.println("rest problem");
+        debug("rest problem");
     }
     String body = webServer.arg("plain");
     settings->saveDeviceConfigurations(body);
-    Serial.println(body);
+    debug(body);
     // Respond to the client
     webServer.send(200, "application/json", "{}");
 }
@@ -1825,10 +1823,10 @@ void handlePostMicrocontrollerConfig()
     if (webServer.hasArg("plain") == false)
     {
         // handle error here
-        Serial.println("rest problem");
+        debug("rest problem");
     }
     String body = webServer.arg("plain");
-    Serial.println(body);
+    debug(body);
     // JSON data buffer
     DynamicJsonDocument jsonDocument(1024); // on heap
     if (!deserializeStaticJsonAndPublishError(jsonDocument, body))
@@ -1870,9 +1868,8 @@ void connectToWiFi()
 
     WiFi.setAutoReconnect(true);
 
-    Serial.print("Connected. IP: ");
-    Serial.println(WiFi.localIP());
-    Serial.println("AutoReconnect: " + String(WiFi.getAutoReconnect()));
+    debug("Connected. IP: " + String(WiFi.localIP()));
+    debug("AutoReconnect: " + String(WiFi.getAutoReconnect()));
 }
 #endif
 
@@ -1886,7 +1883,7 @@ void notifyCallbackHeartRate(NimBLERemoteCharacteristic* pBLERemoteCharacteristi
 {
     if (data[1] > 0)
     {
-        Serial.println("Pulse: " + String(data[1]));
+        debug("Pulse: " + String(data[1]));
     }
 
 #ifdef USE_INTERNAL_MQTT
@@ -1952,7 +1949,7 @@ void setup()
     // helps if the config is destroyed ...
     nvs_flash_erase(); // erase the NVS partition and...
     nvs_flash_init();  // initialize the NVS partition.
-    Serial.println("Flash is now empty.");
+    debug("Flash is now empty.");
 #endif
     settings = new Settings();
 
@@ -2011,7 +2008,7 @@ void setup()
     }
 
     String strMqttBrokerIp = settings->getMqttBrokerIp(MqttBrokerIpFallback);
-    Serial.println("MQTT Broker Ip: " + strMqttBrokerIp);
+    debug("MQTT Broker Ip: " + strMqttBrokerIp);
     char* mqttBrokerIp = new char[18]();
     for (int i = 0; i < 17; i++)
     {
@@ -2020,7 +2017,7 @@ void setup()
 
     mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, nullptr, nullptr, 1883);
 
-    Serial.println("BaseTopic: " + getBaseTopic());
+    debug("BaseTopic: " + getBaseTopic());
 #endif // USE_MQTT
 
     makeInstanceConfiguredDevices();
@@ -2032,7 +2029,7 @@ void setup()
     }
     else
     {
-        Serial.println("tm1637_4Handling is null");
+        debug("tm1637_4Handling is null");
     }
 
 #endif // USE_TM1637_4
@@ -2045,7 +2042,6 @@ void setup()
 #endif
     lastAliveTime = millis() - settings->getAliveIntervalMillis();
 
-
 #ifdef USE_BLE_HEART_RATE_SENSOR
     xTaskCreate(heartRateSensorLoop, "HeartRateSensorLoop", 4096, nullptr, 1, nullptr);
 #endif // USE_BLE_HEART_RATE_SENSOR
@@ -2055,8 +2051,8 @@ void setup()
 #ifdef USE_MQTT
 void publishViaMqtt(const String& topicName, const String& payload)
 {
-    Serial.println(topicName);
-    Serial.println(payload);
+    debug(topicName);
+    debug(payload);
     mqttClient->publish(topicName, payload);
 }
 #endif // USE_MQTT
@@ -2356,7 +2352,7 @@ void loop()
         }
 
 #if defined(USE_MQTT)
-    mqttClient->loop();
+        mqttClient->loop();
 #ifndef USE_INTERNAL_MQTT
         if (millis() - lastLoopStartTime > 10000)
         {

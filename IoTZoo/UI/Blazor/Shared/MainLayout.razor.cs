@@ -19,147 +19,150 @@ using MudBlazor;
 
 namespace IotZoo.Shared
 {
-   public partial class MainLayout : LayoutComponentBase
-   {
-      [Inject]
-      IDataTransferService DataTransferService
-      {
-         get;
-         set;
-      } = null!;
+    public partial class MainLayout : LayoutComponentBase
+    {
+        [Inject]
+        IDataTransferService DataTransferService
+        {
+            get;
+            set;
+        } = null!;
 
-      [Inject]
-      protected IDialogService DialogService
-      {
-         get;
-         set;
-      } = null!;
+        [Inject]
+        protected IDialogService DialogService
+        {
+            get;
+            set;
+        } = null!;
 
-      bool drawerOpen = true;
+        bool drawerOpen = true;
 
-      string Title { get; set; } = "IoT Zoo";
+        string Title { get; set; } = "IoT Zoo";
 
-      protected MudThemeProvider mudThemeProvider = null!;
+        protected MudThemeProvider mudThemeProvider = null!;
 
-      void DrawerToggle()
-      {
-         drawerOpen = !drawerOpen;
-      }
+        void DrawerToggle()
+        {
+            drawerOpen = !drawerOpen;
+        }
 
-      string GetTitle()
-      {
-         Title = "IoT Zoo";
-         switch (DataTransferService.CurrentScreen)
-         {
-            case ScreenMode.MqttExplorer:
-               Title = "MQTT Message Explorer";
-               break;
-            case ScreenMode.Settings:
-               Title = "Settings";
-               break;
-            case ScreenMode.KnownMicrocontrollers:
-               Title = "Known Microcontrollers";
-               break;
-            case ScreenMode.KnownTopics:
-               Title = "Known Topics";
-               break;
-            case ScreenMode.TopicsHistory:
-               Title = "Topics History";
-               break;
-            case ScreenMode.Rules:
-               Title = "Rules";
-               break;
-            case ScreenMode.PublishTopic:
-               Title = "Publish Topic";
-               break;
-            case ScreenMode.SetLocation:
-               Title = "Set Location";
-               break;
-            case ScreenMode.HueComponents:
-               Title = "Philips Hue Components";
-               break;
-            case ScreenMode.Projects:
-               Title = "Projects";
-               break;
-            case ScreenMode.Dashboards:
-               Title = "Dashboards";
-               break;
-            case ScreenMode.Components:
-               Title = "Components";
-               break;
-            case ScreenMode.Boxes:
-               Title = "Boxes";
-               break;
-            case ScreenMode.StorageAllocation:
-               Title = "Storage Allocation (What is in which Box?)";
-               break;
-            case ScreenMode.CoreConcept:
-               Title = "Core Concept";
-               break;
-            case ScreenMode.HowDoRulesWork:
-               Title = "How do Rules work";
-               break;
-            case ScreenMode.HowToFlashFirmware:
-               Title = "How to flash the IoTZoo Firmware to the Microcontroller?";
-               break;
-            case ScreenMode.InstructionsRunOnDocker:
-               Title = "Run IoT Zoo on Docker";
-               break;
-            case ScreenMode.ExampleProject01:
-               Title = "Example Project 1: Time on a TM1637 4 digits display";
-               break;
-            case ScreenMode.ExampleProject02:
-               Title = "Example Project 2: Temperature on a TM1637 6 digits display";
-               break;
-            case ScreenMode.ExampleProject03:
-               Title = "Example Project 3: Heart rate on a TM1637 4 digits display";
-               break;
-            case ScreenMode.ExampleProject04:
-               Title = "Example Project 4: Control a Philips HUE lamp with a rotary encoder";
-               break;
-            case ScreenMode.InstructionsKnownTopics:
-               Title = "What is a Topic?";
-               break;
-            case ScreenMode.InstructionsDashboard:
-                            Title = "How do Dashboards work?";
-                            break;
-                         case ScreenMode.Scripts:
-               Title = "Scripts";
-               break;
-            case ScreenMode.ThingsToConnect:
-               Title = "Things to connect";
-               break;
-            case ScreenMode.TestPage:
-               Title = "Test Page";
-               break;
-         }
+        string GetTitle()
+        {
+            Title = "IoT Zoo";
+            switch (DataTransferService.CurrentScreen)
+            {
+                case ScreenMode.MqttExplorer:
+                    Title = "MQTT Message Explorer";
+                    break;
+                case ScreenMode.Settings:
+                    Title = "Settings";
+                    break;
+                case ScreenMode.KnownMicrocontrollers:
+                    Title = "Known Microcontrollers";
+                    break;
+                case ScreenMode.KnownTopics:
+                    Title = "Known Topics";
+                    break;
+                case ScreenMode.TopicsHistory:
+                    Title = "Topics History";
+                    break;
+                case ScreenMode.Rules:
+                    Title = "Rules";
+                    break;
+                case ScreenMode.PublishTopic:
+                    Title = "Publish Topic";
+                    break;
+                case ScreenMode.SetLocation:
+                    Title = "Set Location";
+                    break;
+                case ScreenMode.HueComponents:
+                    Title = "Philips Hue Components";
+                    break;
+                case ScreenMode.Projects:
+                    Title = "Projects";
+                    break;
+                case ScreenMode.Dashboards:
+                    Title = "Dashboards";
+                    break;
+                case ScreenMode.Components:
+                    Title = "Components";
+                    break;
+                case ScreenMode.Boxes:
+                    Title = "Boxes";
+                    break;
+                case ScreenMode.StorageAllocation:
+                    Title = "Storage Allocation (What is in which Box?)";
+                    break;
+                case ScreenMode.CoreConcept:
+                    Title = "Core Concept";
+                    break;
+                case ScreenMode.HowDoRulesWork:
+                    Title = "How do Rules work";
+                    break;
+                case ScreenMode.HowToFlashFirmware:
+                    Title = "How to flash the IoTZoo Firmware to the Microcontroller?";
+                    break;
+                case ScreenMode.InstructionsRunOnDocker:
+                    Title = "Run IoT Zoo on Docker";
+                    break;
+                case ScreenMode.ExampleProject01:
+                    Title = "Example Project 1: Time on a TM1637 4 digits display";
+                    break;
+                case ScreenMode.ExampleProject02:
+                    Title = "Example Project 2: Temperature on a TM1637 6 digits display";
+                    break;
+                case ScreenMode.ExampleProject03:
+                    Title = "Example Project 3: Heart rate on a TM1637 4 digits display";
+                    break;
+                case ScreenMode.ExampleProject04:
+                    Title = "Example Project 4: Control a Philips HUE lamp with a rotary encoder";
+                    break;
+                case ScreenMode.ExampleProject05:
+                    Title = "Example Project 5: Cheapest diesel price on a I2C LCD display";
+                    break;
+                case ScreenMode.InstructionsKnownTopics:
+                    Title = "What is a Topic?";
+                    break;
+                case ScreenMode.InstructionsDashboard:
+                    Title = "How do Dashboards work?";
+                    break;
+                case ScreenMode.Scripts:
+                    Title = "Scripts";
+                    break;
+                case ScreenMode.ThingsToConnect:
+                    Title = "Things to connect";
+                    break;
+                case ScreenMode.TestPage:
+                    Title = "Test Page";
+                    break;
+            }
 
-         return Title;
-      }
+            return Title;
+        }
 
-      async void Refresh()
-      {
-         Title = GetTitle();
-         await InvokeAsync(StateHasChanged);
-      }
+        async void Refresh()
+        {
+            Title = GetTitle();
+            await InvokeAsync(StateHasChanged);
+        }
 
-      protected override Task OnInitializedAsync()
-      {
-         AppStatus.OnChange -= Refresh;
-         AppStatus.OnChange += Refresh;
-         return base.OnInitializedAsync();
-      }
+        protected override Task OnInitializedAsync()
+        {
+            AppStatus.OnChange -= Refresh;
+            AppStatus.OnChange += Refresh;
+            return base.OnInitializedAsync();
+        }
 
-      protected async Task AboutBtnPress()
-      {
-         var dialog = await this.DialogService.ShowAsync<AboutDialog>("About");
+        protected async Task AboutBtnPress()
+        {
+            var dialog = await this.DialogService.ShowAsync<AboutDialog>("About");
 
-         DialogResult? result = await dialog.Result;
-      }
+            DialogResult? result = await dialog.Result;
+        }
 
-      public void Dispose()
-      {
-         AppStatus.OnChange -= Refresh;
-      }
-   }
+        public void Dispose()
+        {
+            AppStatus.OnChange -= Refresh;
+        }
+    }
 }

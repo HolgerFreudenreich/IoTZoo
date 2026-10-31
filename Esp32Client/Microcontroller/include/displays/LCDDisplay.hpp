@@ -19,6 +19,7 @@
 
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
+#include <vector>
 
 namespace IotZoo
 {
@@ -51,17 +52,23 @@ namespace IotZoo
 
         size_t write(uint8_t data) override;
 
-        void setLcd160xBacklight(const String& rawData);
+        void setBacklightStatus(const String& rawData);
 
-        // {"text": "IoT Zoo", "clear": true, "x":1, "y": 0}
+        // Accepts a single object or an array of objects with text, clear, x and y properties.
         void setLcd160xData(const String& json);
 
         void subscribeSetLcd160xData();
 
         void subscribeSetBacklight();
+        void subscribeClear();
 
       protected:
         LiquidCrystal_I2C* lcd = nullptr;
+        u_int8_t cols;
+        u_int8_t rows;
+        std::vector<String> lastText;
+
+        void updateLcd(uint8_t column, uint8_t row, const String& text);
     };
 } // namespace IotZoo
 

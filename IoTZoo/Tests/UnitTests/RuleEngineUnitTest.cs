@@ -352,7 +352,7 @@ namespace UnitTests
         [Fact]
         public async Task Test()
         {
-            string expression = "'input' like ('[Vorne]%')";
+            string expression = $"'{FunctionNames.Input}'" + " like ('[Vorne]%')";
             string payload = "[Vorne] has detected a person at 2025/10/31 20:09:14";
             var expressionEvaluationResult =
             await ExpressionEvaluationService.EvaluateExpressionAsync(expression, payload);
@@ -986,6 +986,81 @@ namespace UnitTests
         }
 
         /// <summary>
+        /// ReadFromMemory returns a stored JSON object, and the ['Name'] lookup returns the top-level property value.
+        /// </summary>
+        [Fact]
+        public async Task JsonPathObjectPropertyTest()
+        {
+            DataTransferService.ReceivedTopicsQueue.Clear();
+            DataTransferService.ReceivedTopicsQueue.Enqueue(new TopicEntry
+            { Topic = "cheapest_diesel_as_json_string", Payload = """{"Name":"Classic Station","Brand":"CLASSIC","Price":2.399,"IsOpen":true}""" });
+
+            Rule rule = new Rule
+            {
+                SourceTopic = "IOTZOO/TEST",
+                TargetTopic = "esp32/E4:65:B8:79:27:E0/doesnotmatter",
+                TargetPayload = $"{FunctionNames.ReadFromMemory}('cheapest_diesel_as_json_string')['Name']"
+            };
+
+            var targetPayload = await PrepareTargetPayload.Execute(rule, new TopicEntry());
+
+            Assert.NotNull(targetPayload);
+            Assert.Equal("Classic Station", targetPayload);
+        }
+
+        /// <summary>
+        /// ReadFromMemory with a topic path returns a stored JSON object, and the ['Name'] and ['Price'] lookups return the top-level property values.
+        /// </summary>
+        [Fact]
+        public async Task JsonPathObjectPropertyWithTopicPathTest()
+        {
+            DataTransferService.ReceivedTopicsQueue.Clear();
+            DataTransferService.ReceivedTopicsQueue.Enqueue(new TopicEntry
+            { Topic = "iotzoo/picea/cheapest_diesel_as_json_string", Payload = """{"Name":"Classic Helstorf","Brand":"CLASSIC","Price":2.399,"IsOpen":true}""" });
+
+            Rule ruleName = new Rule
+            {
+                SourceTopic = "IOTZOO/TEST",
+                TargetTopic = "esp32/E4:65:B8:79:27:E0/doesnotmatter",
+                TargetPayload = $"{FunctionNames.ReadFromMemory}('iotzoo/picea/cheapest_diesel_as_json_string')['Name']"
+            };
+            var targetPayloadName = await PrepareTargetPayload.Execute(ruleName, new TopicEntry());
+
+            Rule rulePrice = new Rule
+            {
+                SourceTopic = "IOTZOO/TEST",
+                TargetTopic = "esp32/E4:65:B8:79:27:E0/doesnotmatter",
+                TargetPayload = $"{FunctionNames.ReadFromMemory}('iotzoo/picea/cheapest_diesel_as_json_string')['Price']"
+            };
+            var targetPayloadPrice = await PrepareTargetPayload.Execute(rulePrice, new TopicEntry());
+
+            Assert.Equal("Classic Helstorf", targetPayloadName);
+            Assert.Equal("2.399", targetPayloadPrice);
+        }
+
+        /// <summary>
+        /// A JSON array target payload containing several ReadFromMemory lookups keeps its surrounding JSON and resolves every lookup.
+        /// </summary>
+        [Fact]
+        public async Task JsonArrayPayloadWithMultipleJsonPathLookupsTest()
+        {
+            DataTransferService.ReceivedTopicsQueue.Clear();
+            DataTransferService.ReceivedTopicsQueue.Enqueue(new TopicEntry
+            { Topic = "iotzoo/picea/cheapest_diesel_as_json_string", Payload = """{"Name":"Classic Helstorf","Brand":"CLASSIC","Price":2.399,"IsOpen":true}""" });
+
+            Rule rule = new Rule
+            {
+                SourceTopic = "IOTZOO/TEST",
+                TargetTopic = "esp32/08:d1:f9:e0:f2:04/lcd160x/0",
+                TargetPayload = """[{"text":"Read('iotzoo/picea/cheapest_diesel_as_json_string')['Name']","x":0,"y":0},{"text":"Read('iotzoo/picea/cheapest_diesel_as_json_string')['Price']","x":0,"y":1}]"""
+            };
+
+            var targetPayload = await PrepareTargetPayload.Execute(rule, new TopicEntry());
+
+            Assert.Equal("""[{"text":"Classic Helstorf","x":0,"y":0},{"text":"2.399","x":0,"y":1}]""", targetPayload);
+        }
+
+        /// <summary>
         /// A rule with a JSON array target payload for a stepper motor produces a non-null payload.
         /// </summary>
         [Fact]
@@ -1282,14 +1357,14 @@ namespace UnitTests
         }
 
         /// <summary>
-        /// A saved rule with the expression 'Input' == 'pressed' matches the payload 'pressed'.
+        /// A saved rule with the expression 'input' == 'pressed' matches the payload 'pressed'.
         /// </summary>
         [Fact]
         public async Task ReactOnRuleTest()
         {
             Rule rule = new Rule
             {
-                Expression = $"'{FunctionNames.Input}' == 'pressed'",
+                Expression = $"{FunctionNames.Input} == 'pressed'",
                 SourceTopic = "esp32/B0:A7:32:28:3C:F8/rotary_encoder/0/button_pressed",
                 TargetTopic = "IOTZOO/HUE/LIGHT_ON"
             };

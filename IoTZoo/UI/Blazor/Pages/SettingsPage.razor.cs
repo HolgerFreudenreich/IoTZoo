@@ -15,6 +15,7 @@ using Domain.Interfaces.Crud;
 using Domain.Interfaces.MQTT;
 using Domain.Pocos;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
@@ -46,6 +47,13 @@ public class SettingsPageBase : PageBase
 
     [Inject]
     protected INamespaceCrudService NamespaceService
+    {
+        get;
+        set;
+    } = null!;
+
+    [Inject]
+    protected IJSRuntime JSRuntime
     {
         get;
         set;
@@ -284,6 +292,59 @@ public class SettingsPageBase : PageBase
     {
         MailReceiverConfigs.Remove(config);
         await InvokeAsync(StateHasChanged);
+    }
+
+    protected async Task ExportSettingsToClipboard()
+    {
+        try
+        {
+            List<Setting> settings = await SettingsService.GetAllSettings();
+            string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+            await JSRuntime.InvokeVoidAsync("copyToClipboard", json);
+            Snackbar.Add($"{settings.Count} settings exported to clipboard.", MudBlazor.Severity.Success);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Export failed: {exception.GetBaseException().Message}", MudBlazor.Severity.Error);
+        }
+    }
+
+    protected async Task ImportSettingsFromClipboard()
+    {
+        try
+        {
+            string? json = await JSRuntime.InvokeAsync<string?>("readClipboardText");
+            List<Setting>? settings = string.IsNullOrWhiteSpace(json)
+                ? null
+                : JsonSerializer.Deserialize<List<Setting>>(json);
+            if (settings == null || settings.Count == 0)
+            {
+                Snackbar.Add("Clipboard does not contain valid settings.", MudBlazor.Severity.Warning);
+                return;
+            }
+
+            int imported = 0;
+            foreach (Setting setting in settings)
+            {
+                var importedSetting = new Setting
+                {
+                    Category = setting.Category,
+                    SettingKey = setting.SettingKey,
+                    SettingValue = setting.SettingValue
+                };
+                if (await SettingsService.Update(importedSetting) == 0)
+                {
+                    await SettingsService.Insert(importedSetting);
+                }
+                imported++;
+            }
+
+            Snackbar.Add($"{imported} settings imported. Restart the application to apply all changes.", MudBlazor.Severity.Success);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Import failed: {exception.GetBaseException().Message}", MudBlazor.Severity.Error);
+        }
     }
 
     private bool Validate()

@@ -103,19 +103,19 @@ public class DataServiceBase(IOptions<AppSettings> options, ILogger<DataServiceB
       {
          if (schemaName == "th")
          {
-            ConnectionString = AppSettings.ConnectionStringSqliteDatabaseTopicHistory;
+            ConnectionString = SqliteDatabaseInitializer.ToAbsoluteConnectionString(AppSettings.ConnectionStringSqliteDatabaseTopicHistory);
          }
          else if (schemaName == "component")
          {
-            ConnectionString = AppSettings.ConnectionStringSqliteDatabaseComponentManagement;
+            ConnectionString = SqliteDatabaseInitializer.ToAbsoluteConnectionString(AppSettings.ConnectionStringSqliteDatabaseComponentManagement);
          }
          else if (schemaName == "script")
          {
-            ConnectionString = AppSettings.ConnectionStringSqliteDatabaseScripting;
+            ConnectionString = SqliteDatabaseInitializer.ToAbsoluteConnectionString(AppSettings.ConnectionStringSqliteDatabaseScripting);
          }
          else if (schemaName == "setting")
          {
-            ConnectionString = AppSettings.ConnectionStringSqliteDatabaseSettings;
+            ConnectionString = SqliteDatabaseInitializer.ToAbsoluteConnectionString(AppSettings.ConnectionStringSqliteDatabaseSettings);
          }
          else if (string.IsNullOrEmpty(schemaName))
          {
@@ -123,7 +123,7 @@ public class DataServiceBase(IOptions<AppSettings> options, ILogger<DataServiceB
          }
          else
          {
-            ConnectionString = AppSettings.ConnectionStringSqlite;
+            ConnectionString = SqliteDatabaseInitializer.ToAbsoluteConnectionString(AppSettings.ConnectionStringSqlite);
          }
       }
       else if (AppSettings?.ConfigurationDatabaseType == DatabaseType.Postgres)

@@ -38,6 +38,7 @@ public enum ScreenMode
    ExampleProject02 = 102,
    ExampleProject03 = 103,
    ExampleProject04 = 104,
+   ExampleProject05 = 105,
 
    HowToFlashFirmware = 200,
    InstructionsRunOnDocker = 201,

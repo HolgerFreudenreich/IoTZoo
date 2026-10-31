@@ -14,15 +14,17 @@
 #include "./displays/LCDDisplay.hpp"
 
 #include <ArduinoJson.h>
+#include <algorithm>
 
 namespace IotZoo
 {
     LcdDisplay::LcdDisplay(int deviceIndex, Settings* const settings, MqttClient* mqttClient, const String& baseTopic, u_int8_t address,
                            u_int8_t cols, u_int8_t rows)
-        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
+        : DeviceBase(deviceIndex, settings, mqttClient, baseTopic), cols(cols), rows(rows), lastText(static_cast<size_t>(cols) * rows)
     {
-        Serial.println("Constructor LcdDisplay");
+        debug("Constructor LcdDisplay");
         uint8_t heart[8] = {0x0, 0xa, 0x1f, 0x1f, 0xe, 0x4, 0x0};
+        uint8_t euro[8]  = {0x07, 0x08, 0x1e, 0x08, 0x1e, 0x08, 0x07, 0x00};
         /*
         uint8_t bell[8] = {0x4, 0xe, 0xe, 0xe, 0x1f, 0x0, 0x4};
         uint8_t note[8] = {0x2, 0x3, 0x2, 0xe, 0x1e, 0xc, 0x0};
@@ -37,6 +39,7 @@ namespace IotZoo
         lcd->backlight();
 
         lcd->createChar(0, heart);
+        lcd->createChar(1, euro);
         /*
         lcd->createChar(1, bell);
         lcd->createChar(2, note);
@@ -56,7 +59,7 @@ namespace IotZoo
 
     LcdDisplay::~LcdDisplay()
     {
-        Serial.println("Destructor LcdDisplay");
+        debug("Destructor LcdDisplay");
 
         delete lcd;
         lcd = nullptr;
@@ -75,6 +78,7 @@ namespace IotZoo
     void LcdDisplay::clear()
     {
         lcd->clear();
+        std::fill(lastText.begin(), lastText.end(), String());
     }
 
     void LcdDisplay::setCursor(uint8_t col, uint8_t row)
@@ -86,11 +90,17 @@ namespace IotZoo
     /// @param topics
     void LcdDisplay::addMqttTopicsToRegister(std::vector<Topic>* const topics) const
     {
-        topics->emplace_back(getBaseTopic() + "/lcd160x/" + getDeviceIndex(), "Payload: {'text': 'IoT Zoo', 'clear': true, 'x':1, 'y': 0}",
-                                     MessageDirection::IotZooClientOutbound);
+        topics->emplace_back(getBaseTopic() + "/lcd160x/" + getDeviceIndex(),
+                             "Payload: {\"text\": \"IoT Zoo\", \"clear\": true, \"x\": 1, \"y\": 0} or "
+                             "[{\"clear\": true}, {\"text\": \"Hello\", \"x\": 0, \"y\": 0}, "
+                             "{\"text\": \"World\", \"x\": 0, \"y\": 1}]",
+                             MessageDirection::IotZooClientOutbound);
 
-        topics->emplace_back(getBaseTopic() + "/lcd160x/ " + getDeviceIndex() + "/backlight", "Payload : 0 (off); 1 (on)",
-                                     MessageDirection::IotZooClientOutbound);
+        topics->emplace_back(getBaseTopic() + "/lcd160x/" + getDeviceIndex() + "/backlight", "Payload: 0 (off); 1 (on)",
+                             MessageDirection::IotZooClientOutbound);
+
+        topics->emplace_back(getBaseTopic() + "/lcd160x/" + getDeviceIndex() + "/clear", "Payload: none",
+                             MessageDirection::IotZooClientOutbound);                             
     }
 
     /// @brief The MQTT connection is established. Now subscribe to the topics. An existing MQTT connection is a prerequisite for a subscription.
@@ -98,16 +108,17 @@ namespace IotZoo
     /// @param baseTopic
     void LcdDisplay::onMqttConnectionEstablished()
     {
-        Serial.println("LcdDisplay::onMqttConnectionEstablished");
+        debug("LcdDisplay::onMqttConnectionEstablished");
         subscribeSetLcd160xData();
         subscribeSetBacklight();
+        subscribeClear();
 
         mqttCallbacksAreRegistered = true;
     }
 
     void LcdDisplay::onIotZooClientUnavailable()
     {
-        lcd->clear();
+        clear();
         lcd->print("*** OFFLINE! ***");
     }
 
@@ -116,7 +127,7 @@ namespace IotZoo
         return lcd->write(data);
     }
 
-    void LcdDisplay::setLcd160xBacklight(const String& rawData)
+    void LcdDisplay::setBacklightStatus(const String& rawData)
     {
         if (rawData == "1")
         {
@@ -128,67 +139,128 @@ namespace IotZoo
         }
     }
 
-    // {"text": "IoT Zoo", "clear": true, "x":1, "y": 0}
+    // Accepts a single object or an array of objects with text, clear, x and y properties.
     void LcdDisplay::setLcd160xData(const String& json)
     {
-        Serial.println("setLcd160xData: " + json);
+        debug("setLcd160xData: " + json);
 
-        String text;
-        bool   doClear = true;
-
-        u_int8_t x = 0;
-        u_int8_t y = 0;
-
-        if (json.startsWith("{"))
+        auto updateDisplay = [this](String text, bool doClear, u_int8_t x, u_int8_t y)
         {
-            StaticJsonDocument<256> jsonDocument; // on stack
+            text.replace("€", "\x01");
+            text.replace("Ä", "\xE1");
+            text.replace("Ö", "\xEF");
+            text.replace("Ü", "\xF5");
 
-            DeserializationError error = deserializeJson(jsonDocument, json);
-            if (error)
+            text.replace("Σ", "\xF6");
+            text.replace("π", "\xF7");
+
+            text.replace("→", "\x7E");
+            text.replace("←", "\x7F");
+
+            text.replace("∞", "\x73");
+
+            text.replace("ä", "\xE1");
+            text.replace("ö", "\xEF");
+            text.replace("ü", "\xF5");
+            text.replace("ß", "\xE2");
+            text.replace("°", "\xDF");
+            text.replace("µ", "\xE4");
+            text.replace("Ω", "\xF4");
+
+            debug(text);
+            if (doClear)
             {
-                Serial.print(F("deserializeJson() failed: "));
-                Serial.println(error.f_str());
+                clear();
+            }
+
+            updateLcd(x, y, text);
+        };
+
+        auto updateFromObject = [&updateDisplay](JsonObjectConst value)
+        {
+            if (!value.containsKey("text"))
+            {
+                if (value["clear"].as<bool>())
+                {
+                    updateDisplay("", true, 0, 0);
+                }
                 return;
             }
 
-            text    = jsonDocument["text"].as<String>();
-            doClear = jsonDocument["clear"].as<bool>();
-            x       = jsonDocument["x"].as<u_int8_t>();
-            y       = jsonDocument["y"].as<u_int8_t>();
+            updateDisplay(value["text"].as<String>(), value["clear"].as<bool>(), value["x"].as<u_int8_t>(), value["y"].as<u_int8_t>());
+        };
+
+        if (json.startsWith("{") || json.startsWith("["))
+        {
+            DynamicJsonDocument  jsonDocument(json.length() * 4 + 64);
+            DeserializationError error = deserializeJson(jsonDocument, json);
+            if (error)
+            {
+                publishError("deserializeJson() failed: " + String(error.c_str()));
+                return;
+            }
+
+            if (json.startsWith("["))
+            {
+                JsonArrayConst values = jsonDocument.as<JsonArrayConst>();
+                if (values.isNull())
+                {
+                    publishError("LCD data must be a JSON object or array of objects");
+                    return;
+                }
+
+                for (JsonVariantConst value : values)
+                {
+                    JsonObjectConst object = value.as<JsonObjectConst>();
+                    if (object.isNull())
+                    {
+                        publishError("LCD data array entries must be JSON objects");
+                        return;
+                    }
+
+                    updateFromObject(object);
+                }
+            }
+            else
+            {
+                JsonObjectConst object = jsonDocument.as<JsonObjectConst>();
+                if (object.isNull())
+                {
+                    publishError("LCD data must be a JSON object or array of objects");
+                    return;
+                }
+
+                updateFromObject(object);
+            }
         }
         else
         {
-            text = json;
+            updateDisplay(json, false, 0, 0);
         }
+    }
 
-        text.replace("Ä", "\xE1");
-        text.replace("Ö", "\xEF");
-        text.replace("Ü", "\xF5");
-
-        text.replace("Σ", "\xF6");
-        text.replace("π", "\xF7");
-
-        text.replace("→", "\x7E");
-        text.replace("←", "\x7F");
-
-        text.replace("∞", "\x73");
-
-        text.replace("ä", "\xE1");
-        text.replace("ö", "\xEF");
-        text.replace("ü", "\xF5");
-        text.replace("ß", "\xE2");
-        text.replace("°", "\xDF");
-        text.replace("µ", "\xE4");
-        text.replace("Ω", "\xF4");
-
-        Serial.println(text);
-        if (doClear)
+    void LcdDisplay::updateLcd(uint8_t column, uint8_t row, const String& text)
+    {
+        if (column >= cols || row >= rows)
         {
-            clear();
+            return;
         }
+        String& previousText = lastText[static_cast<size_t>(row) * cols + column];
+        if (previousText != text)
+        {
+            setCursor(column, row);
 
-        setCursor(x, y);
-        print(text);
+            uint8_t length = min((uint8_t)text.length(), (uint8_t)(cols - column));
+
+            print(text.substring(0, length));
+
+            // Overwrite old characters if the new text is shorter.
+            for (uint8_t i = length; i < previousText.length(); i++)
+            {
+                print(' ');
+            }
+            previousText = text;
+        }
     }
 
     void LcdDisplay::subscribeSetLcd160xData()
@@ -200,9 +272,16 @@ namespace IotZoo
 
     void LcdDisplay::subscribeSetBacklight()
     {
-        String topicLcd160x = getBaseTopic() + "/lcd160x/ " + getDeviceIndex() + "/backlight";
+        String topicLcd160x = getBaseTopic() + "/lcd160x/" + getDeviceIndex() + "/backlight";
         Serial.println("Subscribe Topic " + topicLcd160x);
-        mqttClient->subscribe(topicLcd160x, [=](const String& rawData) { setLcd160xBacklight(rawData); });
+        mqttClient->subscribe(topicLcd160x, [=](const String& rawData) { setBacklightStatus(rawData); });
+    }
+
+    void LcdDisplay::subscribeClear()
+    {
+        String topicLcd160x = getBaseTopic() + "/lcd160x/" + getDeviceIndex() + "/clear";
+        Serial.println("Subscribe Topic " + topicLcd160x);
+        mqttClient->subscribe(topicLcd160x, [=](const String& rawData) { clear(); });
     }
 } // namespace IotZoo
 

@@ -116,6 +116,10 @@ public class NavMenuBase : ComponentBase, IDisposable
                         NavigationManager.NavigateTo("EXAMPLEPROJECTS04");
                         break;
 
+                    case "CHEAPEST DIESEL PRICE ON A I2C LCD DISPLAY":
+                        NavigationManager.NavigateTo("EXAMPLEPROJECTS05");
+                        break;
+
                     case "HOW DO RULES WORK":
                         NavigationManager.NavigateTo("HOWDORULESWORK");
                         break;

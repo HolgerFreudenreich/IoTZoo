@@ -237,6 +237,26 @@ public class RuleEditorBase : EditorBase
          Snackbar.Clear();
          Rule.SourceTopic = KnownSourceTopic.Topic;
          Rule.TargetTopic = ResolveTargetTopic();
+         if (IsNewRecord && !string.IsNullOrEmpty(Rule.TargetTopic) && await KnownTopicsService.GetKnownTopicByTopicName(Rule.ProjectName, Rule.TargetTopic) == null)
+         {
+            bool? createTargetTopic = await DialogService.ShowMessageBoxAsync("Unknown Target Topic",
+                                                                             $"The target topic '{Rule.TargetTopic}' does not exist yet. Do you want to create it?",
+                                                                             yesText: "Yes", cancelText: "Cancel");
+            if (createTargetTopic != true)
+            {
+               return;
+            }
+            var newKnownTopic = new KnownTopic
+            {
+               NamespaceName = Rule.NamespaceName,
+               ProjectName = Rule.ProjectName,
+               Topic = Rule.TargetTopic,
+               MessageDirection = MessageDirection.Outbound
+            };
+            await KnownTopicsService.Save(newKnownTopic);
+            knownOutboundTopics.Add(newKnownTopic);
+            KnownTargetTopic = newKnownTopic;
+         }
          var knownSourceTopic = await KnownTopicsService.GetKnownTopicByTopicName(KnownSourceTopic.ProjectName, KnownSourceTopic.Topic);
          if (knownSourceTopic != null)
          {

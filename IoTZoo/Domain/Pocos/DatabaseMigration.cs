@@ -1,4 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 //      ____    ______   _____
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \
@@ -10,15 +10,15 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
-using Domain.Pocos;
+namespace Domain.Pocos;
 
-namespace IotZoo.Pages.ExpampleProjects;
-
-public class ExampleProjects01PageBase : PageBase
+public class DatabaseMigration
 {
-   protected override void OnInitialized()
-   {
-      DataTransferService.CurrentScreen = ScreenMode.ExampleProject01;
-      base.OnInitialized();
-   }
+    public long DatabaseMigrationId { get; set; }
+
+    public int DatabaseVersionId { get; set; }
+
+    public string MigrationScriptName { get; set; } = string.Empty;
+
+    public DateTime MigrationDate { get; set; }
 }

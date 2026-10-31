@@ -1,4 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 //      ____    ______   _____
 //     /  _/___/_  __/  /__  / ____  ____
 //     / // __ \/ /       / / / __ \/ __ \
@@ -11,14 +11,22 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 using Domain.Pocos;
+using static System.Net.Mime.MediaTypeNames;
 
-namespace IotZoo.Pages.ExpampleProjects;
+namespace Domain.Interfaces;
 
-public class ExampleProjects04PageBase : PageBase
+public interface IDatabaseVersionService
 {
-   protected override void OnInitialized()
-   {
-      DataTransferService.CurrentScreen = ScreenMode.ExampleProject04;
-      base.OnInitialized();
-   }
+    int? GetVersion(string connectionString);
+
+    IReadOnlyDictionary<string, int?> GetAllVersions();
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="connectionString"></param>
+    /// <returns>All database migrations that must have been executed before the application starts</returns>
+    IReadOnlyList<DatabaseMigration> GetMigrations(string connectionString);
+
+    void AddMigration(string connectionString, int databaseVersionId, string migrationScriptName);
 }
