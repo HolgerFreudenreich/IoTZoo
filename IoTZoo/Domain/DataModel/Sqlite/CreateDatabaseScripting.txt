@@ -243,6 +243,8 @@ public string GetCalendarWeek()
       return Convert.ToString(calendar.GetWeekOfYear(DateTime.Now, calendarWeekRule, firstDayOfWeek));
 }',0);
 
+---------------------------------------------------------------------------------------------------
+
 INSERT INTO "script" VALUES (3,'GetJoke','','Gets a joke','using System;
 using System.Globalization;
 using System.Net.Http;
@@ -251,8 +253,6 @@ public class Data
 {
   public string Joke {get; set;}
 }
-
----------------------------------------------------------------------------------------------------
 
 string GetJoke()
 {
