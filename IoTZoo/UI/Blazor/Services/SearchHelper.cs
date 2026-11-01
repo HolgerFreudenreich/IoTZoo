@@ -16,67 +16,52 @@ using System.Reflection;
 
 namespace IotZoo.Services
 {
-   public interface ISearchHelper
-   {
-      public string SearchString { get; set; }
+    public interface ISearchHelper
+    {
+        public string SearchString { get; set; }
 
-      public bool Search(BasePoco basePoco);
+        public bool Search(BasePoco basePoco);
 
-      public bool Search(BasePoco poco,
-                  string searchString);
-   }
+        public bool Search(BasePoco poco,
+                    string searchString);
+    }
 
-   public class SearchHelper : ISearchHelper
-   {
-      public string SearchString { get; set; } = string.Empty;
+    public class SearchHelper : ISearchHelper
+    {
+        public string SearchString { get; set; } = string.Empty;
 
-      protected ILogger<SearchHelper> Logger { get; }
-      public SearchHelper(ILogger<SearchHelper> logger)
-      {
-         this.Logger = logger;
-      }
+        protected ILogger<SearchHelper> Logger { get; }
+        public SearchHelper(ILogger<SearchHelper> logger)
+        {
+            this.Logger = logger;
+        }
 
-      public bool Search(BasePoco poco,
-                         string searchString)
-      {
-         try
-         {
-            if (string.IsNullOrEmpty(searchString))
+        public bool Search(BasePoco poco,
+                           string searchString)
+        {
+            try
             {
-               return true;
+                if (string.IsNullOrEmpty(searchString))
+                {
+                    return true;
+                }
+                return poco.GetType().GetProperties()
+                            .Select(property => property.GetValue(poco))
+                            .Where(propertyValue => propertyValue != null)
+                            .Select(propertyValue => Convert.ToString(propertyValue))
+                            .Any(value => !string.IsNullOrEmpty(value) &&
+                                          value.Contains(searchString, StringComparison.OrdinalIgnoreCase));
             }
-            var properties = poco.GetType().GetProperties();
-
-            foreach (var property in properties)
+            catch (Exception exception)
             {
-               var propertyValue = property.GetValue(poco);
-               if (propertyValue == null)
-               {
-                  continue;
-               }
-
-               string? value = Convert.ToString(propertyValue);
-               if (!string.IsNullOrEmpty(value))
-               {
-                  if (value.Contains(searchString,
-                                     StringComparison.OrdinalIgnoreCase))
-                  {
-                     return true;
-                  }
-               }
+                Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
+                return false;
             }
-         }
-         catch (Exception exception)
-         {
-            Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
-            return false;
-         }
-         return false;
-      }
+        }
 
-      public bool Search(BasePoco basePoco)
-      {
-         return Search(basePoco, SearchString);
-      }
-   }
+        public bool Search(BasePoco basePoco)
+        {
+            return Search(basePoco, SearchString);
+        }
+    }
 }

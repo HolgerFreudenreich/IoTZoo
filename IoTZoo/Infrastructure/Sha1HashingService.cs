@@ -26,13 +26,7 @@ public class Sha1HashingService : IHashingService
   public string AsBase64(string input)
   {
     input += "Salt for IotZoo"; // do not change!
-    byte[] byteArray = Encoding.ASCII.GetBytes(input);
-    byte[] hashedBytes;
-    using (SHA1 sha = SHA1.Create())
-    {
-      hashedBytes = sha.ComputeHash(byteArray);
-    }
-    string base64String = Convert.ToBase64String(hashedBytes);
-    return base64String;
+    byte[] hashedBytes = SHA1.HashData(Encoding.ASCII.GetBytes(input));
+    return Convert.ToBase64String(hashedBytes);
   }
 }

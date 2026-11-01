@@ -38,11 +38,12 @@ public class VariablesResolver : IVariablesResolver
 
     public int Count(string text, string value)
     {
-        int count = 0, minIndex = text.IndexOf(value, 0, StringComparison.Ordinal);
-        while (minIndex != -1)
+        int count = 0;
+        int index = text.IndexOf(value, StringComparison.Ordinal);
+        while (index != -1)
         {
-            minIndex = text.IndexOf(value, minIndex + value.Length, StringComparison.Ordinal);
             count++;
+            index = text.IndexOf(value, index + value.Length, StringComparison.Ordinal);
         }
         return count;
     }
@@ -72,9 +73,8 @@ public class VariablesResolver : IVariablesResolver
     private static bool IsPlainExpression(string expression)
     {
         return !expression.StartsWith("{") &&
-               !expression.Contains(FunctionNames.ReadFromMemory, StringComparison.OrdinalIgnoreCase) &&
-               !expression.Contains(FunctionNames.Calc, StringComparison.OrdinalIgnoreCase) &&
-               !expression.Contains(FunctionNames.Script, StringComparison.OrdinalIgnoreCase);
+               !new[] { FunctionNames.ReadFromMemory, FunctionNames.Calc, FunctionNames.Script }
+                   .Any(function => expression.Contains(function, StringComparison.OrdinalIgnoreCase));
     }
 
     private async Task<string> ResolvePlainExpression(string expression)

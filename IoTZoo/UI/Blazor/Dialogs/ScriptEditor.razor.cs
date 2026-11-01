@@ -25,100 +25,80 @@ public class ScriptEditorBase : EditorBase
    public Script Script { get; set; } = null!;
 
    [Inject]
-   private IScriptCrudService ScriptCrudService
-   {
-      get;
-      set;
-   } = null!;
+   private IScriptCrudService ScriptCrudService { get; set; } = null!;
 
    [Inject]
-   private IScriptService ScriptService
-   {
-      get;
-      set;
-   } = null!;
+   private IScriptService ScriptService { get; set; } = null!;
 
    protected override async Task OnInitializedAsync()
    {
-      await base.OnInitializedAsync();
-      if (Script.ScriptId <= 0)
-      {
-         DialogTitle = "Add C# Script";
-         IsNewRecord = true;
-      }
-      else
-      {
-         DialogTitle = "Edit Script";
-         IsNewRecord = false;
-      }
-
-      HashCode = GetHashCodeBase64(Script);
+       await base.OnInitializedAsync();
+       IsNewRecord = Script.ScriptId <= 0;
+       DialogTitle = IsNewRecord ? "Add C# Script" : "Edit Script";
+       HashCode = GetHashCodeBase64(Script);
    }
 
-   protected override async Task Cancel()
-   {
-      await base.Cancel(Script);
+       protected override async Task Cancel()
+       {
+           await base.Cancel(Script);
+       }
+
+       protected override async Task Save()
+       {
+           try
+           {
+               Snackbar.Clear();
+               await Task.Delay(0);
+               TrimTextFields(Script);
+               if (ValidateFields())
+               {
+                   await ScriptCrudService.Save(Script);
+                   MudDialog.Close(DialogResult.Ok(Script));
+               }
+           }
+           catch (Exception ex)
+           {
+               Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+               Snackbar.Add("Unable to save script", Severity.Error);
+           }
+       }
+
+       protected async Task Compile()
+       {
+           try
+           {
+               Snackbar.Clear();
+
+               TrimTextFields(Script);
+               if (ValidateFields())
+               {
+                   DateTime startDateTime = DateTime.UtcNow;
+                   string? error = await ScriptService.EvaluateScript(Script);
+                   if (error != null)
+                   {
+                       Snackbar.Add($"Unable to compile script{Environment.NewLine}{error}", Severity.Error);
+                   }
+                   else
+                   {
+                       Snackbar.Add($"Successful ({(int)(DateTime.UtcNow - startDateTime).TotalMilliseconds}ms)!", Severity.Success);
+                   }
+               }
+           }
+           catch (Exception ex)
+           {
+               Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+               Snackbar.Add($"Unable to compile script {ex.GetBaseException().Message}", Severity.Error);
+           }
+       }
+
+       private bool ValidateFields()
+       {
+           if (string.IsNullOrEmpty(Script.ScriptName))
+           {
+               Snackbar.Add("Script Name must not be empty!", Severity.Error);
+               return false;
+           }
+           return true;
+       }
    }
-
-   protected override async Task Save()
-   {
-      try
-      {
-         Snackbar.Clear();
-         await Task.Delay(0);
-         TrimTextFields(Script);
-         if (ValidateFields())
-         {
-            await ScriptCrudService.Save(Script);
-            MudDialog.Close(DialogResult.Ok(Script));
-         }
-      }
-      catch (Exception ex)
-      {
-         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-         Snackbar.Add("Unable to save script", Severity.Error);
-      }
-   }
-
-   protected async Task Compile()
-   {
-      try
-      {
-         Snackbar.Clear();
-
-         TrimTextFields(Script);
-         if (ValidateFields())
-         {
-            DateTime startDateTime = DateTime.UtcNow;
-            string? error = await ScriptService.EvaluateScript(Script);
-            if (error != null)
-            {
-               Snackbar.Add($"Unable to compile script{Environment.NewLine}{error}",
-                            Severity.Error);
-            }
-            else
-            {
-               Snackbar.Add($"Successful ({(int)(DateTime.UtcNow - startDateTime).TotalMilliseconds}ms)!", Severity.Success);
-            }
-         }
-      }
-      catch (Exception ex)
-      {
-         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-         Snackbar.Add($"Unable to compile script {ex.GetBaseException().Message}",
-                      Severity.Error);
-      }
-   }
-
-   private bool ValidateFields()
-   {
-      if (string.IsNullOrEmpty(Script.ScriptName))
-      {
-         Snackbar.Add("Script Name must not be empty!", Severity.Error);
-
-         return false;
-      }
-      return true;
-   }
-}
 

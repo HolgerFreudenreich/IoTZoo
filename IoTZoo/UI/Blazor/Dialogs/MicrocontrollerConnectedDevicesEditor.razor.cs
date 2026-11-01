@@ -53,13 +53,18 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
         InvokeAsync(StateHasChanged);
     }
 
-    protected async Task AddButton()
+    private const string DeviceWiredMessage = "Ensure that the device is correctly wired!";
+
+    private async Task AddDeviceAsync(string startMessage, Func<ConnectedDevice> createDevice, string? wiringMessage = null)
     {
         try
         {
-            Snackbar.Add("Adding Button configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromButton());
-            Snackbar.Add("Ensure that the button is correctly wired from GND to the pin!", Severity.Info);
+            Snackbar.Add(startMessage, Severity.Info);
+            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, createDevice());
+            if (wiringMessage != null)
+            {
+                Snackbar.Add(wiringMessage, Severity.Info);
+            }
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
@@ -69,215 +74,37 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
         }
     }
 
-    protected async Task AddAnalogInputPin()
-    {
-        try
-        {
-            Snackbar.Add("Adding Analog Pin configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromAnalogPin());
-            Snackbar.Add("Ensure that the pin is correctly wired from 3.3V to the pin (Do not use 5V!!!). Use an extra 10 K-Ohm resistor as voltage devider to ground if you want to connect a photo resistor!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddButton() => AddDeviceAsync("Adding Button configuration to the microcontroller...", ConnectedDevices.FromButton, "Ensure that the button is correctly wired from GND to the pin!");
 
-    protected async Task AddReedContact()
-    {
-        try
-        {
-            Snackbar.Add("Adding reed contact configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromReedContact());
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddAnalogInputPin() => AddDeviceAsync("Adding Analog Pin configuration to the microcontroller...", ConnectedDevices.FromAnalogPin, "Ensure that the pin is correctly wired from 3.3V to the pin (Do not use 5V!!!). Use an extra 10 K-Ohm resistor as voltage devider to ground if you want to connect a photo resistor!");
+
+    protected Task AddReedContact() => AddDeviceAsync("Adding reed contact configuration to the microcontroller...", ConnectedDevices.FromReedContact);
 
     /// <summary>
     /// Microphone INMP441
     /// </summary>
     /// <returns></returns>
-    protected async Task AddINMP441()
-    {
-        try
-        {
-            Snackbar.Add("Adding Microphone configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromMicrophone());
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddINMP441() => AddDeviceAsync("Adding Microphone configuration to the microcontroller...", ConnectedDevices.FromMicrophone);
 
-    protected async Task AddBuzzer()
-    {
-        try
-        {
-            Snackbar.Add("Adding Buzzer configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromBuzzer());
-            Snackbar.Add("Ensure that the buzzer is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddBuzzer() => AddDeviceAsync("Adding Buzzer configuration to the microcontroller...", ConnectedDevices.FromBuzzer, "Ensure that the buzzer is correctly wired!");
 
-    protected async Task AddGps()
-    {
-        try
-        {
-            Snackbar.Add("Adding Gps configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromGps());
-            Snackbar.Add("Ensure that the Gps Device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddGps() => AddDeviceAsync("Adding Gps configuration to the microcontroller...", ConnectedDevices.FromGps, "Ensure that the Gps Device is correctly wired!");
 
-    protected async Task AddSwitch()
-    {
-        try
-        {
-            Snackbar.Add("Adding Switch configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromSwitch());
-            Snackbar.Add("Ensure that the switch is correctly wired from GND to the pin!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddSwitch() => AddDeviceAsync("Adding Switch configuration to the microcontroller...", ConnectedDevices.FromSwitch, "Ensure that the switch is correctly wired from GND to the pin!");
 
-    protected async Task AddDS18B20TemperatureSensor()
-    {
-        try
-        {
-            Snackbar.Add("Adding DS18B20 temperature sensor configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromDS18B20());
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddDS18B20TemperatureSensor() => AddDeviceAsync("Adding DS18B20 temperature sensor configuration to the microcontroller...", ConnectedDevices.FromDS18B20, DeviceWiredMessage);
 
-    protected async Task AddHW507HumiditySensor()
-    {
-        try
-        {
-            Snackbar.Add("Adding HW507 humidity sensor configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromHW507());
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddHW507HumiditySensor() => AddDeviceAsync("Adding HW507 humidity sensor configuration to the microcontroller...", ConnectedDevices.FromHW507, DeviceWiredMessage);
 
-    protected async Task Add28BYJ48StepperMotor()
-    {
-        try
-        {
-            Snackbar.Add("Adding 28BYJ-48 Stepper Motor configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.From28BYJ48StepperMotor());
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task Add28BYJ48StepperMotor() => AddDeviceAsync("Adding 28BYJ-48 Stepper Motor configuration to the microcontroller...", ConnectedDevices.From28BYJ48StepperMotor, DeviceWiredMessage);
 
-    protected async Task AddBleHeartRateMonitor()
-    {
-        try
-        {
-            Snackbar.Add("Adding BLE Heart Rate Monitor configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.BleHeartRateMonitor());
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddBleHeartRateMonitor() => AddDeviceAsync("Adding BLE Heart Rate Monitor configuration to the microcontroller...", ConnectedDevices.BleHeartRateMonitor, DeviceWiredMessage);
 
-    protected async Task AddHCSR501MotionDetector()
-    {
-        try
-        {
-            Snackbar.Add("Adding HCSR501 Motion detector configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromHcSr501PirSensor());
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddHCSR501MotionDetector() => AddDeviceAsync("Adding HCSR501 Motion detector configuration to the microcontroller...", ConnectedDevices.FromHcSr501PirSensor, DeviceWiredMessage);
 
-    protected async Task AddRd03DPresenceDetector()
-    {
-        try
-        {
-            Snackbar.Add("Adding RD-03D presence detector configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromRd03DPresenseSensor());
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddRd03DPresenceDetector() => AddDeviceAsync("Adding RD-03D presence detector configuration to the microcontroller...", ConnectedDevices.FromRd03DPresenseSensor, DeviceWiredMessage);
 
-    protected async Task Add4x4ButtonMatrix()
-    {
-        try
-        {
-            Snackbar.Add("Adding 4x4 Button Matrix configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromKeypad4x4());
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task Add4x4ButtonMatrix() => AddDeviceAsync("Adding 4x4 Button Matrix configuration to the microcontroller...", ConnectedDevices.FromKeypad4x4, DeviceWiredMessage);
 
     protected async Task AddLedsTrafficLight()
     {
@@ -311,37 +138,9 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
         }
     }
 
-    protected async Task AddNeoPixel()
-    {
-        try
-        {
-            Snackbar.Add("Adding NEO-pixel configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromNeoPixel());
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddNeoPixel() => AddDeviceAsync("Adding NEO-pixel configuration to the microcontroller...", ConnectedDevices.FromNeoPixel, DeviceWiredMessage);
 
-    protected async Task AddNeoPixelMatrix()
-    {
-        try
-        {
-            Snackbar.Add("Adding NEO-pixel matrix configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromNeoPixelMatrix());
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddNeoPixelMatrix() => AddDeviceAsync("Adding NEO-pixel matrix configuration to the microcontroller...", ConnectedDevices.FromNeoPixelMatrix, DeviceWiredMessage);
 
     protected async Task AddOledDisplaySSD1306()
     {
@@ -374,109 +173,17 @@ public class MicrocontrollerConnectedDevicesEditorBase : EditorBase, IDisposable
         }
     }
 
-    protected async Task AddTM1637_4_DigitDisplay()
-    {
-        try
-        {
-            Snackbar.Add("Adding TM1637 4 digit display configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromTM1637_4());
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddTM1637_4_DigitDisplay() => AddDeviceAsync("Adding TM1637 4 digit display configuration to the microcontroller...", ConnectedDevices.FromTM1637_4, DeviceWiredMessage);
 
-    protected async Task AddTM1637_6_DigitDisplay()
-    {
-        try
-        {
-            Snackbar.Add("Adding TM1637 6 digit display configuration to the microcontroller...", Severity.Info);
-            var device = ConnectedDevices.FromTM1637_6();
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, device);
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddTM1637_6_DigitDisplay() => AddDeviceAsync("Adding TM1637 6 digit display configuration to the microcontroller...", ConnectedDevices.FromTM1637_6, DeviceWiredMessage);
 
-    protected async Task AddTM1638Display()
-    {
-        try
-        {
-            Snackbar.Add("Adding TM1637 8 digit display", Severity.Info);
-            var device = ConnectedDevices.FromTM1638();
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, device);
+    protected Task AddTM1638Display() => AddDeviceAsync("Adding TM1637 8 digit display", ConnectedDevices.FromTM1638, DeviceWiredMessage);
 
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddHT1621Display() => AddDeviceAsync("Adding HT1621 6 digit LED display", ConnectedDevices.FromHT1621, DeviceWiredMessage);
 
-    protected async Task AddHT1621Display()
-    {
-        try
-        {
-            Snackbar.Add("Adding HT1621 6 digit LED display", Severity.Info);
-            var device = ConnectedDevices.FromHT1621();
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, device);
+    protected Task AddMax7219Display() => AddDeviceAsync("Adding Max7219 6 digit LED display", ConnectedDevices.FromMax7219, DeviceWiredMessage);
 
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
-
-    protected async Task AddMax7219Display()
-    {
-        try
-        {
-            Snackbar.Add("Adding Max7219 6 digit LED display", Severity.Info);
-            var device = ConnectedDevices.FromMax7219();
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, device);
-
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
-
-    protected async Task AddHW040RotaryEncoder()
-    {
-        try
-        {
-            Snackbar.Add("Adding HW040 rotary encoder configuration to the microcontroller...", Severity.Info);
-            MicrocontrollerService.AddConnectedDevice(this.Microcontroller, ConnectedDevices.FromHW040());
-            Snackbar.Add("Ensure that the device is correctly wired!", Severity.Info);
-
-            await InvokeAsync(StateHasChanged);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-        }
-    }
+    protected Task AddHW040RotaryEncoder() => AddDeviceAsync("Adding HW040 rotary encoder configuration to the microcontroller...", ConnectedDevices.FromHW040, DeviceWiredMessage);
 
     public async Task OpenManagePinsEditor(ConnectedDevice deviceConfiguration)
     {

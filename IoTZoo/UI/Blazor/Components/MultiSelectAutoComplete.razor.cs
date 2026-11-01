@@ -17,68 +17,65 @@ namespace IotZoo.Components;
 
 public partial class MultiSelectAutoComplete<T> : ComponentBase
 {
-   private MudAutocomplete<T> autoComplete = null!;
+    private MudAutocomplete<T> autoComplete = null!;
 
-   private T? theValue;
+    private T? theValue;
 
-   private readonly List<T> selectedValues = new();
+    private readonly List<T> selectedValues = new();
 
-   [Parameter]
-   public List<T> Values { get; set; } = new();
+    [Parameter]
+    public List<T> Values { get; set; } = new();
 
-   [Parameter]
-   public EventCallback<List<T>> ValuesChanged { get; set; }
+    [Parameter]
+    public EventCallback<List<T>> ValuesChanged { get; set; }
 
-   [Parameter]
-   public Func<string, CancellationToken, Task<IEnumerable<T>>> SearchFunc { get; set; } = null!;
+    [Parameter]
+    public Func<string, CancellationToken, Task<IEnumerable<T>>> SearchFunc { get; set; } = null!;
 
-   [Parameter]
-   public Func<T, string?> GetNameFunc { get; set; } = null!;
+    [Parameter]
+    public Func<T, string?> GetNameFunc { get; set; } = null!;
 
-   [Parameter]
-   public Func<T, object> GetIDFunc { get; set; } = null!;
+    [Parameter]
+    public Func<T, object> GetIDFunc { get; set; } = null!;
 
-   [Parameter]
-   public string Label { get; set; } = string.Empty;
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
 
-   [Parameter]
-   public bool Required { get; set; }
+    [Parameter]
+    public bool Required { get; set; }
 
-   [Parameter]
-   public string RequiredError { get; set; } = "Required!";
+    [Parameter]
+    public string RequiredError { get; set; } = "Required!";
 
-   protected override void OnParametersSet()
-   {
-      selectedValues.Clear();
-      selectedValues.AddRange(Values);
-   }
+    protected override void OnParametersSet()
+    {
+        selectedValues.Clear();
+        selectedValues.AddRange(Values);
+    }
 
-   private async Task<IEnumerable<T>> SearchWrapper(string value, CancellationToken token)
-   {
-      return await SearchFunc(value, token);
-   }
+    private Task<IEnumerable<T>> SearchWrapper(string value, CancellationToken token) => SearchFunc(value, token);
 
-   private async Task RemoveValue(MudChip<T> chip)
-   {
-      if (chip.Value is null)
-      {
-         return;
-      }
+    private async Task RemoveValue(MudChip<T> chip)
+    {
+        if (chip.Value is null)
+        {
+            return;
+        }
 
-      selectedValues.Remove(chip.Value);
-      await ValuesChanged.InvokeAsync(selectedValues.ToList());
-   }
+        selectedValues.Remove(chip.Value);
+        await ValuesChanged.InvokeAsync(selectedValues.ToList());
+    }
 
-   private async Task OnValueChangedAsync(T? value)
-   {
-      if (value is null || selectedValues.Any(item => Equals(GetIDFunc(item), GetIDFunc(value))))
-      {
-         theValue = default;
-         return;
-      }
+    private async Task OnValueChangedAsync(T? value)
+    {
+        if (value is null || selectedValues.Any(item => Equals(GetIDFunc(item), GetIDFunc(value))))
+        {
+            theValue = default;
+            return;
+        }
 
-      selectedValues.Add(value);
-      theValue = default;
-      await ValuesChanged.InvokeAsync(selectedValues.ToList());
-   }
+        selectedValues.Add(value);
+        theValue = default;
+        await ValuesChanged.InvokeAsync(selectedValues.ToList());
+    }
 }

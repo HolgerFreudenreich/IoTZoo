@@ -17,7 +17,6 @@ using Domain.Pocos;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using System.Reflection;
-using System.Threading.Tasks;
 
 public class KnownTopicEditorBase : EditorBase
 {
@@ -26,16 +25,8 @@ public class KnownTopicEditorBase : EditorBase
 
    protected override async Task OnInitializedAsync()
    {
-      if (KnownTopic.KnownTopicId <= 0)
-      {
-         DialogTitle = "Add Known Topic";
-         IsNewRecord = true;
-      }
-      else
-      {
-         DialogTitle = "Edit Known Topic";
-         IsNewRecord = false;
-      }
+      IsNewRecord = KnownTopic.KnownTopicId <= 0;
+      DialogTitle = IsNewRecord ? "Add Known Topic" : "Edit Known Topic";
 
       HashCode = GetHashCodeBase64(KnownTopic);
 
@@ -76,10 +67,6 @@ public class KnownTopicEditorBase : EditorBase
    protected List<Dashboard> SelectedDashboards { get; set; } = new();
 
    protected Dictionary<int, DashboardItem> SelectedDashboardItems { get; set; } = new();
-
-   public KnownTopicEditorBase()
-   {
-   }
 
    protected override async Task Cancel()
    {
@@ -161,7 +148,7 @@ public class KnownTopicEditorBase : EditorBase
          Snackbar.Clear();
 
          TrimTextFields(KnownTopic);
-         if (!(await ValidateFieldsAsync()))
+         if (!await ValidateFieldsAsync())
          {
             return;
          }

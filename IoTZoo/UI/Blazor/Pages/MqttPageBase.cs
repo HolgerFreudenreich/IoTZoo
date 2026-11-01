@@ -67,29 +67,31 @@ public class MqttPageBase : PageBase, IDisposable
          var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
                                                                               DataTransferService.MqttBrokerSettings.Port).Build();
 
-         MqttClient.DisconnectedAsync += async e =>
-         {
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            if (isDisposed)
-            {
-               return;
-            }
-            try
-            {
-               await MqttClient.ConnectAsync(mqttClientOptions);
-               Snackbar.Add("MQTT reconnected");
-            }
-            catch
-            {
-               Logger.LogError("Reconnecting failed!");
-            }
-         };
+         MqttClient.DisconnectedAsync += _ => ReconnectAsync(mqttClientOptions);
 
          await MqttClient.ConnectAsync(mqttClientOptions);
       }
       catch (Exception ex)
       {
          Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+      }
+   }
+
+   private async Task ReconnectAsync(MqttClientOptions mqttClientOptions)
+   {
+      await Task.Delay(TimeSpan.FromSeconds(1));
+      if (isDisposed)
+      {
+         return;
+      }
+      try
+      {
+         await MqttClient.ConnectAsync(mqttClientOptions);
+         Snackbar.Add("MQTT reconnected");
+      }
+      catch
+      {
+         Logger.LogError("Reconnecting failed!");
       }
    }
 

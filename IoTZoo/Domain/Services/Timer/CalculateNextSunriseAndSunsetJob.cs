@@ -42,11 +42,7 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
     {
         try
         {
-            if (null == MqttClient)
-            {
-                return;
-            }
-            if (!MqttClient.IsConnected)
+            if (null == MqttClient || !MqttClient.IsConnected)
             {
                 return;
             }
@@ -92,7 +88,7 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
                                            .WithPayload(minutesUntilSunrise.ToString("F0"))
                                            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce)
                                            .Build();
-            MqttClientPublishResult result = await MqttClient.PublishAsync(applicationMessage);
+            await MqttClient.PublishAsync(applicationMessage);
 
             if (null != projects)
             {
@@ -103,7 +99,7 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
                                   .WithPayload(minutesUntilSunrise.ToString("F0"))
                                   .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce)
                                   .Build();
-                    result = await MqttClient.PublishAsync(applicationMessage);
+                    await MqttClient.PublishAsync(applicationMessage);
                 }
 
 
@@ -112,7 +108,7 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
                     // The sun rises now.
                     foreach (var project in projects)
                     {
-                        result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.SUNRISE_NOW}", "When the sun rises...)");
+                        await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.SUNRISE_NOW}", "When the sun rises...");
                     }
                 }
             }
@@ -131,14 +127,14 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
             {
                 double minutsAfterSunset = Math.Abs(minutesUntilSunset);
 
-                result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{TopicConstants.MINUTES_AFTER_SUNSET}",
+                await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{TopicConstants.MINUTES_AFTER_SUNSET}",
                                               minutsAfterSunset.ToString("F0"));
 
                 if (null != projects)
                 {
                     foreach (var project in projects)
                     {
-                        result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.MINUTES_AFTER_SUNSET}",
+                        await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.MINUTES_AFTER_SUNSET}",
                                                                minutsAfterSunset.ToString("F0"));
                     }
                 }
@@ -149,16 +145,16 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
                 minutesUntilSunset = (tomorrowsSunsetUtc - DateTime.UtcNow).TotalMinutes;
             }
 
-            result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{TopicConstants.MINUTES_NEXT_SUNSET}",
+            await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{TopicConstants.MINUTES_NEXT_SUNSET}",
                                                    minutesUntilSunset.ToString("F0"));
             if (null != projects)
             {
                 foreach (var project in projects)
                 {
-                    result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.MINUTES_NEXT_SUNSET}",
+                    await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.MINUTES_NEXT_SUNSET}",
                                                            minutesUntilSunset.ToString("F0"));
 
-                    result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", (minutesUntilSunset < minutesUntilSunrise).ToString());
+                    await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.IS_DAY_MODE}", (minutesUntilSunset < minutesUntilSunrise).ToString());
                 }
 
                 if (minutesUntilSunset <= 1 && minutesUntilSunset > 0)
@@ -166,8 +162,7 @@ public class CalculateNextSunriseAndSunsetJob : MqttPublisher, IJob
                     // The sun sets now.
                     foreach (var project in projects)
                     {
-                        result = await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.SUNSET_NOW}",
-                                                               "When the sun goes down...");
+                        await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{project.ProjectName}/{TopicConstants.SUNSET_NOW}", "When the sun goes down...");
                    }
                 }
             }

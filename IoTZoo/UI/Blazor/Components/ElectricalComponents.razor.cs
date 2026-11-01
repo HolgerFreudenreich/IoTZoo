@@ -18,32 +18,23 @@ namespace IotZoo.Components;
 
 public class ElectricalComponentsBase : ComponentBase
 {
-   [Inject]
-   IStockingService StockingService
-   {
-      get;
-      set;
-   } = null!;
+    [Inject]
+    IStockingService StockingService { get; set; } = null!;
 
-   [Parameter]
+    [Parameter]
+    public StorageBin StorageBin { get; set; } = null!;
 
-   public StorageBin StorageBin { get; set; } = null!;
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData(StorageBin);
+        await base.OnInitializedAsync();
+    }
 
-   protected override async Task OnInitializedAsync()
-   {
-      await LoadData(StorageBin);
-      await base.OnInitializedAsync();
-   }
+    protected async Task LoadData(StorageBin storageBinLocal)
+    {
+        Stockings = await StockingService.GetStockings(storageBinLocal);
+    }
 
-   protected async Task LoadData(StorageBin storageBinLocal)
-   {
-      this.Stockings = await StockingService.GetStockings(storageBinLocal);
-   }
-
-   protected List<Stocking>? Stockings
-   {
-      get;
-      set;
-   }
+    protected List<Stocking>? Stockings { get; set; }
 }
 

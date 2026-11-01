@@ -38,59 +38,64 @@ public class ProjectOverviewDialogBase : ComponentBase
 
    protected override async Task OnAfterRenderAsync(bool firstRender)
    {
-      await base.OnAfterRenderAsync(firstRender);
-      if (firstRender)
-      {
-         IsBusy = true;
-         await InvokeAsync(StateHasChanged);
-         try
-         {
-            var microcontrollers = await MicrocontrollerService.GetMicrocontrollers(Project);
+       await base.OnAfterRenderAsync(firstRender);
+       if (firstRender)
+       {
+           IsBusy = true;
+           await InvokeAsync(StateHasChanged);
+           try
+           {
+               HtmlContent = await BuildMindMapHtmlAsync();
+           }
+           finally
+           {
+               IsBusy = false;
+           }
+           await InvokeAsync(StateHasChanged);
+       }
+   }
 
-         StringBuilder sb = new StringBuilder();
-         sb.AppendLine("<pre class=\"mermaid\">");
-         sb.AppendLine("%%{init:{'theme': 'base','themeVariables': {'fontSize': '16px'}}}%%");
-         sb.AppendLine("mindmap");
-         sb.AppendLine($")MQTT Broker {this.DataTransferService.MqttBrokerSettings.ToString()}(");
-         sb.AppendLine("  (IoT Zoo)");
-         foreach (var microcontroller in microcontrollers)
-         {
-            sb.AppendLine($"  ESP㉜ Mac {microcontroller.MacAddress}");
-            try
-            {
+   private async Task<string> BuildMindMapHtmlAsync()
+   {
+       var microcontrollers = await MicrocontrollerService.GetMicrocontrollers(Project);
+
+       var sb = new StringBuilder();
+       sb.AppendLine("<pre class=\"mermaid\">");
+       sb.AppendLine("%%{init:{'theme': 'base','themeVariables': {'fontSize': '16px'}}}%%");
+       sb.AppendLine("mindmap");
+       sb.AppendLine($")MQTT Broker {DataTransferService.MqttBrokerSettings}(");
+       sb.AppendLine("  (IoT Zoo)");
+       foreach (var microcontroller in microcontrollers)
+       {
+           sb.AppendLine($"  ESP㉜ Mac {microcontroller.MacAddress}");
+           try
+           {
                var connectedDevices = await MicrocontrollerService.GetDeviceConfig(microcontroller);
                foreach (var connectedDevice in connectedDevices)
                {
-                  sb.AppendLine($"    {connectedDevice.DeviceType}");
-                  if (connectedDevice.Pins != null)
-                  {
-                     string pins = "      ";
-                     foreach (var pin in connectedDevice.Pins)
-                     {
-                        pins += $"{pin.PinName} → PIN {pin.MicrocontrollerGpoPin} ";
-                     }
-                     sb.AppendLine(pins);
-                  }
+                   sb.AppendLine($"    {connectedDevice.DeviceType}");
+                   if (connectedDevice.Pins != null)
+                   {
+                       var pins = "      ";
+                       foreach (var pin in connectedDevice.Pins)
+                       {
+                           pins += $"{pin.PinName} → PIN {pin.MicrocontrollerGpoPin} ";
+                       }
+                       sb.AppendLine(pins);
+                   }
                }
-            }
-            catch (Exception)
-            {
-               sb.AppendLine($"    offline! Loading config from device via REST interface failed!");
-            }
-         }
-               sb.AppendLine("</pre>");
-               HtmlContent = sb.ToString();
-               }
-               finally
-               {
-                  IsBusy = false;
-               }
-               await InvokeAsync(StateHasChanged);
-            }
-         }
+           }
+           catch (Exception)
+           {
+               sb.AppendLine("    offline! Loading config from device via REST interface failed!");
+           }
+       }
+       sb.AppendLine("</pre>");
+       return sb.ToString();
+   }
 
    public void OkBtnPress()
    {
-      MudDialog.Close();
+       MudDialog.Close();
    }
 }

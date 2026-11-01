@@ -25,10 +25,8 @@ using Microsoft.Extensions.Options;
 using MQTTnet;
 using MQTTnet.Protocol;
 using MudBlazor;
-using Quartz;
 using System.Reflection;
 using System.Text.Json;
-using Whisper.net.Wave;
 
 namespace Domain.Services.MQTT;
 
@@ -370,7 +368,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
                                 await MicrocontrollerService.Save(microcontrollerFromDatabase, false);
                                 // tell the microcontroller the namespace and the project.
                                 string topic = $"{microcontrollerFromDatabase.MacAddress}/{TopicConstants.SAVE_MICROCONTROLLER_CONFIG}";
-                                string json = System.Text.Json.JsonSerializer.Serialize(microcontrollerFromDatabase);
+                                string json = JsonSerializer.Serialize(microcontrollerFromDatabase);
                                 await PublishTopic(topic, json);
                             }
                         }
@@ -408,7 +406,6 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
                 DataTransferService.ReceivedTopicsQueue.Dequeue();
             }
         }
-
         catch (Exception exception)
         {
             Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
@@ -452,13 +449,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
 
         if (rule.DelayMs > 0)
         {
-            TimerService? existingTimerService = null;
-
-            var payload = targetPayload;
-            existingTimerService = (from data in delayedMessages
-                                    where data.ApplicationMessage.Topic == rule.TargetTopic &&
-                                          data.ApplicationMessage.ConvertPayloadToString() == payload
-                                    select data).FirstOrDefault();
+            TimerService? existingTimerService = FindDelayedMessage(rule.TargetTopic, targetPayload);
 
             if (null != existingTimerService)
             {
@@ -540,7 +531,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
         return false;
     }
 
-    private Task<bool> HandleCountDown(TopicEntry topicEntry)
+    private async Task<bool> HandleCountDown(TopicEntry topicEntry)
     {
         bool ok = false;
         if (topicEntry.Topic.EndsWith("start_countdown"))
@@ -559,64 +550,36 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
             catch (Exception exception)
             {
                 Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
-                return Task.FromResult(false);
+                return false;
             }
         }
-        return Task.FromResult(ok);
+        return ok;
     }
+
+    private static readonly (string Topic, string X, string Y)[] HueColors =
+    [
+        (TopicConstants.GREEN, "0.2465", "0.6425"),
+        (TopicConstants.YELLOW, "0.469", "0.4754"),
+        (TopicConstants.ORANGE, "0.5469", "0.417"),
+        (TopicConstants.CYAN, "0.1644", "0.4825"),
+        (TopicConstants.RED, "0.6915", "0.3083"),
+        (TopicConstants.BLUE, "0.1559", "0.1511"),
+        (TopicConstants.PURPLE, "0.3768", "0.2758"),
+        (TopicConstants.GOLD, "0.5061", "0.4476"),
+        (TopicConstants.WHITE_COLD, "0.4046", "0.3915"),
+        (TopicConstants.WHITE_WARM, "0.4672", "0.412"),
+    ];
 
     private async Task<bool> HandlePhilipsHue(TopicEntry topicEntry)
     {
         bool ok = false;
-        // green: {"LightId": 9, "Color": {"X": 0.2465, "Y": 0.6425}}
-        // yellow: {"LightId": 9, "Color": {"X": 0.469,"Y":0.4754}}
-        // red: {"LightId": 9, "Color": {"X": 0.6915,"Y":0.3083}}
         if (topicEntry.Topic.Contains($"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}", StringComparison.OrdinalIgnoreCase))
         {
-            string jsonCmd = string.Empty;
-            if (topicEntry.Topic.EndsWith(TopicConstants.GREEN, StringComparison.OrdinalIgnoreCase))
+            string jsonCmd = topicEntry.Payload!;
+            var hueColor = HueColors.FirstOrDefault(color => topicEntry.Topic.EndsWith(color.Topic, StringComparison.OrdinalIgnoreCase));
+            if (hueColor.Topic != null)
             {
-                jsonCmd = "{\"LightId\": " + topicEntry.Payload + " , \"Color\": {\"X\": 0.2465, \"Y\": 0.6425}}";
-            }
-            else if (topicEntry.Topic.EndsWith(TopicConstants.YELLOW, StringComparison.OrdinalIgnoreCase))
-            {
-                jsonCmd = "{\"LightId\": " + topicEntry.Payload + " , \"Color\": {\"X\": 0.469, \"Y\": 0.4754}}";
-            }
-            else if (topicEntry.Topic.EndsWith(TopicConstants.ORANGE, StringComparison.OrdinalIgnoreCase))
-            {
-                jsonCmd = "{\"LightId\": " + topicEntry.Payload + " , \"Color\": {\"X\": 0.5469, \"Y\": 0.417}}";
-            }
-            else if (topicEntry.Topic.EndsWith(TopicConstants.CYAN, StringComparison.OrdinalIgnoreCase))
-            {
-                jsonCmd = "{\"LightId\": " + topicEntry.Payload + " , \"Color\": {\"X\":  0.1644, \"Y\":0.4825 }}";
-            }
-            else if (topicEntry.Topic.EndsWith(TopicConstants.RED, StringComparison.OrdinalIgnoreCase))
-            {
-                jsonCmd = "{\"LightId\": " + topicEntry.Payload + " , \"Color\": {\"X\": 0.6915, \"Y\":  0.3083}}";
-            }
-            else if (topicEntry.Topic.EndsWith(TopicConstants.BLUE, StringComparison.OrdinalIgnoreCase))
-            {
-                jsonCmd = "{\"LightId\": " + topicEntry.Payload + " , \"Color\": {\"X\": 0.1559, \"Y\": 0.1511}}";
-            }
-            else if (topicEntry.Topic.EndsWith(TopicConstants.PURPLE, StringComparison.OrdinalIgnoreCase))
-            {
-                jsonCmd = "{\"LightId\": " + topicEntry.Payload + " , \"Color\": {\"X\": 0.3768, \"Y\": 0.2758}}";
-            }
-            else if (topicEntry.Topic.EndsWith(TopicConstants.GOLD, StringComparison.OrdinalIgnoreCase))
-            {
-                jsonCmd = "{\"LightId\": " + topicEntry.Payload + " , \"Color\": {\"X\": 0.5061, \"Y\": 0.4476}}";
-            }
-            else if (topicEntry.Topic.EndsWith(TopicConstants.WHITE_COLD, StringComparison.OrdinalIgnoreCase))
-            {
-                jsonCmd = "{\"LightId\": " + topicEntry.Payload + " , \"Color\": {\"X\": 0.4046, \"Y\":0.3915}}";
-            }
-            else if (topicEntry.Topic.EndsWith(TopicConstants.WHITE_WARM, StringComparison.OrdinalIgnoreCase))
-            {
-                jsonCmd = "{\"LightId\": " + topicEntry.Payload + " , \"Color\": {\"X\": 0.4672, \"Y\": 0.412}}";
-            }
-            else
-            {
-                jsonCmd = topicEntry.Payload!;
+                jsonCmd = $"{{\"LightId\": {topicEntry.Payload}, \"Color\": {{\"X\": {hueColor.X}, \"Y\": {hueColor.Y}}}}}";
             }
 
             HueColorCommand? colorCommand = null;
@@ -802,23 +765,22 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
 
             await Client.PublishAsync(elapsedEventArgs.ApplicationMessage);
 
-            if (delayedMessages.Any())
+            var existingTimerService = FindDelayedMessage(elapsedEventArgs.ApplicationMessage.Topic, payload);
+            if (null != existingTimerService)
             {
-                var existingTimerService = (from data in delayedMessages
-                                            where data.ApplicationMessage.Topic == elapsedEventArgs.ApplicationMessage.Topic
-                                                  && data.ApplicationMessage.ConvertPayloadToString() == payload
-                                            select data).FirstOrDefault();
-
-                if (null != existingTimerService)
-                {
-                    bool removed = delayedMessages.Remove(existingTimerService);
-                }
+                delayedMessages.Remove(existingTimerService);
             }
         }
         catch (Exception exception)
         {
             Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
         }
+    }
+
+    private TimerService? FindDelayedMessage(string? topic, string payload)
+    {
+        return delayedMessages.FirstOrDefault(data => data.ApplicationMessage.Topic == topic &&
+                                                      data.ApplicationMessage.ConvertPayloadToString() == payload);
     }
 
     public void ClearData()

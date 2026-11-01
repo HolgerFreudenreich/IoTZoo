@@ -14,7 +14,6 @@ using Domain.Interfaces.Timer;
 using Domain.Pocos;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Quartz;
 using System.Reflection;
 
 namespace IotZoo.Dialogs;
@@ -28,10 +27,6 @@ public class ProjectCronJobsEditorBase : EditorBase
 
     [Inject]
     ICronCrudService CronCrudService { get; set; } = null!;
-
-    public ProjectCronJobsEditorBase()
-    {
-    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,6 +66,12 @@ public class ProjectCronJobsEditorBase : EditorBase
         return true;
     }
 
+    private async Task RefreshCronJobsAsync()
+    {
+        CronJobs = await CronCrudService.LoadByProject(Project, onlyEnabledJobs: false);
+        HashCode = GetHashCodeBase64(CronJobs);
+    }
+
     public async Task AddCronJob()
     {
         try
@@ -90,9 +91,7 @@ public class ProjectCronJobsEditorBase : EditorBase
 
             if (result != null && !result.Canceled)
             {
-                // Refresh the cron jobs list after successful insertion
-                CronJobs = await CronCrudService.LoadByProject(Project, onlyEnabledJobs: false);
-                HashCode = GetHashCodeBase64(CronJobs);
+                await RefreshCronJobsAsync();
                 Snackbar.Add("Cron job added successfully", Severity.Success);
             }
         }
@@ -122,9 +121,7 @@ public class ProjectCronJobsEditorBase : EditorBase
 
             if (result != null && !result.Canceled)
             {
-                // Refresh the cron jobs list after successful update
-                CronJobs = await CronCrudService.LoadByProject(Project, onlyEnabledJobs: false);
-                HashCode = GetHashCodeBase64(CronJobs);
+                await RefreshCronJobsAsync();
                 Snackbar.Add("Cron job updated successfully", Severity.Success);
             }
         }
@@ -148,9 +145,7 @@ public class ProjectCronJobsEditorBase : EditorBase
             if (result == true)
             {
                 await CronCrudService.Delete(cronJob);
-                // Refresh the cron jobs list after successful deletion
-                CronJobs = await CronCrudService.LoadByProject(Project, onlyEnabledJobs: false);
-                HashCode = GetHashCodeBase64(CronJobs);
+                await RefreshCronJobsAsync();
                 Snackbar.Add("Cron job deleted successfully. The changes will take effect after a restart.", Severity.Success);
             }
         }
@@ -180,9 +175,7 @@ public class ProjectCronJobsEditorBase : EditorBase
 
             if (result != null && !result.Canceled)
             {
-                // Refresh the cron jobs list after successful clone
-                CronJobs = await CronCrudService.LoadByProject(Project, onlyEnabledJobs: false);
-                HashCode = GetHashCodeBase64(CronJobs);
+                await RefreshCronJobsAsync();
                 Snackbar.Add("Cron job cloned successfully", Severity.Success);
             }
         }

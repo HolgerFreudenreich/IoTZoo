@@ -27,6 +27,10 @@ namespace Domain.Interfaces.Crud
 
       public Task<bool> GetSettingBool(string category, string settingsKey);
 
+      public Task<int> GetSettingInt(SettingCategory category, SettingKey settingsKey);
+
+      public Task<int> GetSettingInt(string category, string settingsKey);
+
       public Task<double> GetSettingDouble(SettingCategory category, SettingKey settingsKey);
 
       public Task<double> GetSettingDouble(string category, string settingsKey);

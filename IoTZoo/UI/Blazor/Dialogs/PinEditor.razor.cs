@@ -78,10 +78,7 @@ public class PinEditorBase : EditorBase
                 if (null != result.Data)
                 {
                     var dataSource = (TopicLink)result.Data;
-                    if (null == ConnectedDevice.TopicLinks)
-                    {
-                        ConnectedDevice.TopicLinks = new List<TopicLink>();
-                    }
+                    ConnectedDevice.TopicLinks ??= new List<TopicLink>();
                     ConnectedDevice.TopicLinks.Add(dataSource);
                 }
             }
@@ -130,17 +127,7 @@ public class PinEditorBase : EditorBase
             {
                 return;
             }
-            // Find the first matching data source.
-            TopicLink? toEdit = null;
-            foreach (var ds in ConnectedDevice.TopicLinks)
-            {
-                // Use property name 'TriggeringTopic' as used in markup.
-                if (string.Equals(ds?.TriggeringTopic, topic, StringComparison.Ordinal))
-                {
-                    toEdit = ds;
-                    break;
-                }
-            }
+            var toEdit = ConnectedDevice.TopicLinks.FirstOrDefault(ds => string.Equals(ds?.TriggeringTopic, topic, StringComparison.Ordinal));
 
             var options = GetDialogOptions();
 
@@ -149,7 +136,7 @@ public class PinEditorBase : EditorBase
             var dialog = await this.DialogService.ShowAsync<TopicLinkEditor>("Edit DataSource",
                                                                         parameters,
                                                                         options);
-            var result = await dialog.Result;
+            await dialog.Result;
         }
         catch (Exception ex)
         {

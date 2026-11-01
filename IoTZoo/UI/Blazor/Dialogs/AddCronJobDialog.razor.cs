@@ -42,30 +42,26 @@ public class AddCronJobDialogBase : EditorBase
         CronJob.NamespaceName = DataTransferService.NamespaceName;
         CronJob.Enabled = true;
 
-        // Initialize with default cron values
-        if (string.IsNullOrWhiteSpace(CronJob.SecondExpression))
-            CronJob.SecondExpression = "*";
-        if (string.IsNullOrWhiteSpace(CronJob.MinuteExpression))
-            CronJob.MinuteExpression = "*";
-        if (string.IsNullOrWhiteSpace(CronJob.HourExpression))
-            CronJob.HourExpression = "*";
-        if (string.IsNullOrWhiteSpace(CronJob.DayOfMonthExpression))
-            CronJob.DayOfMonthExpression = "*";
-        if (string.IsNullOrWhiteSpace(CronJob.MonthOfYearExpression))
-            CronJob.MonthOfYearExpression = "*";
-        if (string.IsNullOrWhiteSpace(CronJob.DayOfWeekExpression))
-            CronJob.DayOfWeekExpression = "*";
+        CronJob.SecondExpression = DefaultIfBlank(CronJob.SecondExpression);
+        CronJob.MinuteExpression = DefaultIfBlank(CronJob.MinuteExpression);
+        CronJob.HourExpression = DefaultIfBlank(CronJob.HourExpression);
+        CronJob.DayOfMonthExpression = DefaultIfBlank(CronJob.DayOfMonthExpression);
+        CronJob.MonthOfYearExpression = DefaultIfBlank(CronJob.MonthOfYearExpression);
+        CronJob.DayOfWeekExpression = DefaultIfBlank(CronJob.DayOfWeekExpression);
 
         HashCode = GetHashCodeBase64(CronJob);
         await base.OnInitializedAsync();
     }
 
+    private static string DefaultIfBlank(string? value) => string.IsNullOrWhiteSpace(value) ? "*" : value;
+
+    private string CronExpression => $"{CronJob.SecondExpression} {CronJob.MinuteExpression} {CronJob.HourExpression} {CronJob.DayOfMonthExpression} {CronJob.MonthOfYearExpression} {CronJob.DayOfWeekExpression}";
+
     protected void Parse()
     {
         try
         {
-            string cronExpression = $"{CronJob.SecondExpression} {CronJob.MinuteExpression} {CronJob.HourExpression} {CronJob.DayOfMonthExpression} {CronJob.MonthOfYearExpression} {CronJob.DayOfWeekExpression}";
-            CrontabSchedule schedule = CrontabSchedule.Parse(cronExpression, new CrontabSchedule.ParseOptions { IncludingSeconds = true });
+            CrontabSchedule schedule = CrontabSchedule.Parse(CronExpression, new CrontabSchedule.ParseOptions { IncludingSeconds = true });
 
             Occurences = schedule.GetNextOccurrences(DateTime.UtcNow, DateTime.UtcNow.AddDays(100)).Take(10).ToList();
         }
@@ -111,8 +107,7 @@ public class AddCronJobDialogBase : EditorBase
         }
 
         // Validate Cron Expression - try to parse it
-        string cronExpression = $"{CronJob.SecondExpression} {CronJob.MinuteExpression} {CronJob.HourExpression} {CronJob.DayOfMonthExpression} {CronJob.MonthOfYearExpression} {CronJob.DayOfWeekExpression}";
-        CrontabSchedule? schedule = CrontabSchedule.TryParse(cronExpression, new CrontabSchedule.ParseOptions { IncludingSeconds = true });
+        CrontabSchedule? schedule = CrontabSchedule.TryParse(CronExpression, new CrontabSchedule.ParseOptions { IncludingSeconds = true });
 
         if (null == schedule)
         {

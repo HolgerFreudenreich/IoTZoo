@@ -5,7 +5,7 @@ function openNewTab(url) {
 
 window.copyToClipboard = async (text) => {
 
-   // Falls das Dokument keinen Fokus hat
+   // If the document does not have focus
    if (!document.hasFocus()) {
       window.focus();
    }

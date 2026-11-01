@@ -22,21 +22,12 @@ using System.Reflection;
 public class KnownMicrocontrollerEditorBase : EditorBase
 {
     [Parameter]
-
     public KnownMicrocontroller Microcontroller { get; set; } = null!;
 
     protected async override Task OnInitializedAsync()
     {
-        if (Microcontroller.MicroControllerId <= 0)
-        {
-            DialogTitle = "Add Known Microcontroller";
-            IsNewRecord = true;
-        }
-        else
-        {
-            DialogTitle = "Edit Known Microcontroller";
-            IsNewRecord = false;
-        }
+        IsNewRecord = Microcontroller.MicroControllerId <= 0;
+        DialogTitle = IsNewRecord ? "Add Known Microcontroller" : "Edit Known Microcontroller";
 
         HashCode = GetHashCodeBase64(Microcontroller);
         await base.OnInitializedAsync();
@@ -59,10 +50,6 @@ public class KnownMicrocontrollerEditorBase : EditorBase
     protected Project? SelectedProject { get; set; } = null;
 
     protected List<Project> ProjectCatalog { get; set; } = null!;
-
-    public KnownMicrocontrollerEditorBase()
-    {
-    }
 
     protected async override Task OnAfterRenderAsync(bool firstRender)
     {

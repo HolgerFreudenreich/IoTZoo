@@ -24,71 +24,59 @@ public class ProjectEditorBase : EditorBase
    public Project Project { get; set; } = null!;
 
    [Inject]
-   private IProjectCrudService ProjectService
-   {
-      get;
-      set;
-   } = null!;
+   private IProjectCrudService ProjectService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
    {
       await base.OnInitializedAsync();
-      if (Project.ProjectId <= 0)
-      {
-         DialogTitle = "Add Project";
-         IsNewRecord = true;
-      }
-      else
-      {
-         DialogTitle = "Edit Project";
-         IsNewRecord = false;
-      }
+      IsNewRecord = Project.ProjectId <= 0;
+      DialogTitle = IsNewRecord ? "Add Project" : "Edit Project";
       Project.IsNew = IsNewRecord;
       HashCode = GetHashCodeBase64(Project);
    }
 
    protected override async Task Cancel()
    {
-      await base.Cancel(Project);
+       await base.Cancel(Project);
    }
 
    protected override async Task Save()
    {
-      try
-      {
-         Snackbar.Clear();
+       try
+       {
+           Snackbar.Clear();
 
-         TrimTextFields(Project);
-         if (await ValidateFieldsAsync())
-         {
-            await ProjectService.Save(Project);
-            MudDialog.Close(DialogResult.Ok(Project));
-         }
-      }
-      catch (Exception ex)
-      {
-         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-         Snackbar.Add("Unable to save script", Severity.Error);
-      }
+           TrimTextFields(Project);
+           if (await ValidateFieldsAsync())
+           {
+               await ProjectService.Save(Project);
+               MudDialog.Close(DialogResult.Ok(Project));
+           }
+       }
+       catch (Exception ex)
+       {
+           Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+           Snackbar.Add("Unable to save script", Severity.Error);
+       }
    }
 
    private async Task<bool> ValidateFieldsAsync()
    {
-      if (string.IsNullOrEmpty(Project.ProjectName))
-      {
-         Snackbar.Add("Project Name must not be empty!", Severity.Error);
+       if (string.IsNullOrEmpty(Project.ProjectName))
+       {
+           Snackbar.Add("Project Name must not be empty!", Severity.Error);
 
-         return false;
-      }
+           return false;
+       }
 
-      var existing = await this.ProjectService.LoadProjectByName(Project.ProjectName);
-      if (existing != null)
-      {
-         Snackbar.Add($"Project with name '{Project.ProjectName}' already exists!", Severity.Error);
-         return false;
-      }
+       var existing = await ProjectService.LoadProjectByName(Project.ProjectName);
+       if (existing != null)
+       {
+           Snackbar.Add($"Project with name '{Project.ProjectName}' already exists!", Severity.Error);
+           return false;
+       }
 
-      return true;
+       return true;
    }
 }
 

@@ -164,9 +164,9 @@ catch (Exception exception)
     Console.WriteLine(exception.GetBaseException().Message);
 }
 
-var conJobService = app.Services.GetService<ICronService>();
+_ = app.Services.GetService<ICronService>();
 
-var mailReceiverFactory = app.Services.GetService<IMailReceiverFactory>();
+_ = app.Services.GetService<IMailReceiverFactory>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

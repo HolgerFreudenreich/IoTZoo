@@ -177,16 +177,15 @@ namespace SunriseAndSunset
         arcRadians = 0.0;
         return DiurnalResult.SunAlwaysBelow;
       }
-      else if (cosineOfArc <= -1.0)
+
+      if (cosineOfArc <= -1.0)
       {
         arcRadians = Math.PI;
         return DiurnalResult.SunAlwaysAbove;
       }
-      else
-      {
-        arcRadians = Math.Acos(cosineOfArc);
-        return DiurnalResult.NormalDay;
-      }
+
+      arcRadians = Math.Acos(cosineOfArc);
+      return DiurnalResult.NormalDay;
     }
 
     /// <summary>
@@ -237,6 +236,12 @@ namespace SunriseAndSunset
     private double RadiansToHours(double radians) => 12 / Math.PI * radians;
 
     /// <summary>
+    /// Converts a UTC time to the provided time zone, or returns it unchanged if no time zone is given.
+    /// </summary>
+    private static DateTime ToTimeZone(DateTime utc, TimeZoneInfo timeZone) =>
+      timeZone == null ? utc : TimeZoneInfo.ConvertTimeFromUtc(utc, timeZone);
+
+    /// <summary>
     /// Returns a <see cref="TimeSpan"/> of the time the sun spends above the specified <see cref="Horizon"/>
     /// on the day of <see cref="Day"/>.
     /// </summary>
@@ -264,16 +269,8 @@ namespace SunriseAndSunset
       DiurnalResult result = DiurnalArcRadians(HorizonDegrees(horizon), out double arcRadians);
       TimeSpan halfDay = ArcRadiansToTimeSpan(arcRadians);
 
-      if (timeZone == null)
-      {
-        sunrise = TimeSunAtLongitude - halfDay;
-        sunset = TimeSunAtLongitude + halfDay;
-      }
-      else
-      {
-        sunrise = TimeZoneInfo.ConvertTimeFromUtc(TimeSunAtLongitude - halfDay, timeZone);
-        sunset = TimeZoneInfo.ConvertTimeFromUtc(TimeSunAtLongitude + halfDay, timeZone);
-      }
+      sunrise = ToTimeZone(TimeSunAtLongitude - halfDay, timeZone);
+      sunset = ToTimeZone(TimeSunAtLongitude + halfDay, timeZone);
 
       return result;
     }
@@ -291,10 +288,7 @@ namespace SunriseAndSunset
       DiurnalResult result = DiurnalArcRadians(HorizonDegrees(horizon), out double arcRadians);
       TimeSpan halfDay = ArcRadiansToTimeSpan(arcRadians);
 
-      if (timeZone == null)
-        sunrise = TimeSunAtLongitude - halfDay;
-      else
-        sunrise = TimeZoneInfo.ConvertTimeFromUtc(TimeSunAtLongitude - halfDay, timeZone);
+      sunrise = ToTimeZone(TimeSunAtLongitude - halfDay, timeZone);
 
       return result;
     }
@@ -312,10 +306,7 @@ namespace SunriseAndSunset
       DiurnalResult result = DiurnalArcRadians(HorizonDegrees(horizon), out double arcRadians);
       TimeSpan halfDay = ArcRadiansToTimeSpan(arcRadians);
 
-      if (timeZone == null)
-        sunset = TimeSunAtLongitude + halfDay;
-      else
-        sunset = TimeZoneInfo.ConvertTimeFromUtc(TimeSunAtLongitude + halfDay, timeZone);
+      sunset = ToTimeZone(TimeSunAtLongitude + halfDay, timeZone);
 
       return result;
     }

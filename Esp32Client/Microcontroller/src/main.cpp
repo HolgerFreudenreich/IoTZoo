@@ -993,6 +993,8 @@ void onConnectionEstablished() // do not rename! This method name is forced in E
 // The configuration is stored in the flash memory of the microcontroller.
 // The configuration is loaded via the IotZooClient and stored in the flash memory.
 // After loading the configuration, the devices are instantiated and configured according to the configuration.
+void instantiateConfiguredDevice(JsonVariant value);
+
 void makeInstanceConfiguredDevices()
 {
     debug("Loading device configurations and instantiate devices...");
@@ -1001,742 +1003,747 @@ void makeInstanceConfiguredDevices()
     if (0 == jsonDeviceConfigurations.length())
     {
         debug("Not yet configured!");
+        return;
     }
-    else // if (jsonDeviceConfigurations.length() > 0)
+
+    debug("Config: " + jsonDeviceConfigurations);
+    DynamicJsonDocument jsonDocument(4096);
+
+    if (!deserializeStaticJsonAndPublishError(jsonDocument, jsonDeviceConfigurations))
     {
-        debug("Config: " + jsonDeviceConfigurations);
-        DynamicJsonDocument jsonDocument(4096);
+        return;
+    }
 
-        if (!deserializeStaticJsonAndPublishError(jsonDocument, jsonDeviceConfigurations))
-        {
-            return;
-        }
+    JsonArray arrDevices = jsonDocument.as<JsonArray>();
+    for (JsonVariant value : arrDevices)
+    {
+        instantiateConfiguredDevice(value);
+    }
+}
 
-        JsonArray arrDevices = jsonDocument.as<JsonArray>();
+void instantiateConfiguredDevice(JsonVariant value)
+{
+    String deviceType  = value["DeviceType"];
+    int    deviceIndex = value["DeviceIndex"];
+    bool   isEnabled   = value["IsEnabled"];
 
-        for (JsonVariant value : arrDevices)
-        {
-            String deviceType  = value["DeviceType"];
-            int    deviceIndex = value["DeviceIndex"];
-            bool   isEnabled   = value["IsEnabled"];
+    debug("DeviceType: '" + deviceType + "', DeviceIndex: " + String(deviceIndex) + "', IsEnabled: " + String(isEnabled));
 
-            debug("DeviceType: '" + deviceType + "', DeviceIndex: " + String(deviceIndex) + "', IsEnabled: " + String(isEnabled));
+    if (!isEnabled)
+    {
+        return;
+    }
 
-            if (isEnabled)
-            {
-                JsonArray          arrPins       = value["Pins"].as<JsonArray>();
-                JsonArray          arrProperties = value["PropertyValues"].as<JsonArray>();
-                JsonArray          arrTopicLinks = value["TopicLinks"].as<JsonArray>();
-                vector<TopicLink>* topicLinks    = new vector<TopicLink>();
-                for (JsonVariant topicLinkVariant : arrTopicLinks)
-                {
-                    String triggeringTopic = topicLinkVariant["TriggeringTopic"].as<String>();
-                    triggeringTopic.trim();
-                    triggeringTopic.toLowerCase();
-                    String targetTopic = topicLinkVariant["TargetTopic"].as<String>();
-                    targetTopic.trim();
-                    // targetTopic.toLowerCase();
+    JsonArray          arrPins       = value["Pins"].as<JsonArray>();
+    JsonArray          arrProperties = value["PropertyValues"].as<JsonArray>();
+    JsonArray          arrTopicLinks = value["TopicLinks"].as<JsonArray>();
+    vector<TopicLink>  topicLinks;
+    for (JsonVariant topicLinkVariant : arrTopicLinks)
+    {
+        String triggeringTopic = topicLinkVariant["TriggeringTopic"].as<String>();
+        triggeringTopic.trim();
+        triggeringTopic.toLowerCase();
+        String targetTopic = topicLinkVariant["TargetTopic"].as<String>();
+        targetTopic.trim();
+        // targetTopic.toLowerCase();
 
-                    String targetPayload = topicLinkVariant["TargetPayload"].as<String>();
-                    // Example: { "Operator": ">", "Value": "130"}
-                    String expression = topicLinkVariant["Expression"].as<String>();
+        String targetPayload = topicLinkVariant["TargetPayload"].as<String>();
+        // Example: { "Operator": ">", "Value": "130"}
+        String expression = topicLinkVariant["Expression"].as<String>();
 
-                    topicLinks->emplace_back(triggeringTopic, expression, targetTopic, targetPayload);
-                }
+        topicLinks.emplace_back(triggeringTopic, expression, targetTopic, targetPayload);
+    }
 #ifdef USE_BUTTON
-                if (deviceType == "Button")
-                {
-                    int buttonPin = arrPins[0]["MicrocontrollerGpoPin"];
+    if (deviceType == "Button")
+    {
+        int buttonPin = arrPins[0]["MicrocontrollerGpoPin"];
 
-                    buttonHandling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), buttonPin);
+        buttonHandling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), buttonPin);
 
-                    debug("Button initialized.");
-                }
+        debug("Button initialized.");
+    }
 #endif // USE_BUTTON
 
 #ifdef USE_KY025
-                if (deviceType == "Reed-Contact")
-                {
-                    int dataPin = arrPins[0]["MicrocontrollerGpoPin"];
+    if (deviceType == "Reed-Contact")
+    {
+        int dataPin = arrPins[0]["MicrocontrollerGpoPin"];
 
-                    u16_t intervalMs = 10000;
+        u16_t intervalMs = 10000;
 
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName = property["Name"];
-                        if (propertyName == "IntervalMs")
-                        {
-                            intervalMs = property["Value"];
-                        }
-                    }
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName = property["Name"];
+            if (propertyName == "IntervalMs")
+            {
+                intervalMs = property["Value"];
+            }
+        }
 
-                    ky025 = new KY025(deviceIndex, settings, mqttClient, getBaseTopic(), intervalMs, dataPin);
+        ky025 = new KY025(deviceIndex, settings, mqttClient, getBaseTopic(), intervalMs, dataPin);
 #ifdef USE_INTERNAL_MQTT
-                    ky025->setTopicLinks(*topicLinks);
-                    ky025->setInternalMqttClient(globalInternalMqttClient);
+        ky025->setTopicLinks(topicLinks);
+        ky025->setInternalMqttClient(globalInternalMqttClient);
 #endif // USE_INTERNAL_MQTT
-                    debug("Reed contact KY-025 initialized.");
-                }
+        debug("Reed contact KY-025 initialized.");
+    }
 #endif // USE_BUTTON
 
 #ifdef USE_AUDIO_STREAMER
-                if (deviceType == "INMP441")
+    if (deviceType == "INMP441")
+    {
+        int pinSd  = arrPins[0]["MicrocontrollerGpoPin"];
+        int pinWs  = arrPins[1]["MicrocontrollerGpoPin"];
+        int pinSck = arrPins[2]["MicrocontrollerGpoPin"];
+
+        u8_t  features = AudioStreamerFeatures::Undefined;
+        u16_t minRms   = 400;
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName = property["Name"];
+
+            if (propertyName == "AllowStreaming")
+            {
+                bool allowStreaming = property["Value"] == "true";
+                if (allowStreaming)
                 {
-                    int pinSd  = arrPins[0]["MicrocontrollerGpoPin"];
-                    int pinWs  = arrPins[1]["MicrocontrollerGpoPin"];
-                    int pinSck = arrPins[2]["MicrocontrollerGpoPin"];
-
-                    u8_t  features = AudioStreamerFeatures::Undefined;
-                    u16_t minRms   = 400;
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName = property["Name"];
-
-                        if (propertyName == "AllowStreaming")
-                        {
-                            bool allowStreaming = property["Value"] == "true";
-                            if (allowStreaming)
-                            {
-                                features |= AudioStreamerFeatures::Streaming;
-                            }
-                        }
-                        else if (propertyName == "AllowSoundLevel")
-                        {
-                            bool allowSoundLevel = property["Value"] == "true";
-                            if (allowSoundLevel)
-                            {
-                                features |= AudioStreamerFeatures::SoundLevelRms;
-                                features |= AudioStreamerFeatures::SoundLevelDecibel;
-                            }
-                        }
-                        else if (propertyName == "MinRms")
-                        {
-                            u16_t minRms = property["Value"];
-                        }
-                    }
-
-                    audioStreamer =
-                        new IotZoo::AudioStreamer(deviceIndex, settings, mqttClient, getBaseTopic(), features, minRms, pinSd, pinWs, pinSck);
-
-                    debug("AudioStreamer initialized.");
+                    features |= AudioStreamerFeatures::Streaming;
                 }
+            }
+            else if (propertyName == "AllowSoundLevel")
+            {
+                bool allowSoundLevel = property["Value"] == "true";
+                if (allowSoundLevel)
+                {
+                    features |= AudioStreamerFeatures::SoundLevelRms;
+                    features |= AudioStreamerFeatures::SoundLevelDecibel;
+                }
+            }
+            else if (propertyName == "MinRms")
+            {
+                u16_t minRms = property["Value"];
+            }
+        }
+
+        audioStreamer =
+            new IotZoo::AudioStreamer(deviceIndex, settings, mqttClient, getBaseTopic(), features, minRms, pinSd, pinWs, pinSck);
+
+        debug("AudioStreamer initialized.");
+    }
 #endif // USE_AUDIO_STREAMER
 
 #ifdef USE_GPS
-                if (deviceType == "GPS")
-                {
-                    debug("GPS is in the configuration.");
-                    int pinRx = arrPins[0]["MicrocontrollerGpoPin"];
-                    int pinTx = arrPins[1]["MicrocontrollerGpoPin"];
+    if (deviceType == "GPS")
+    {
+        debug("GPS is in the configuration.");
+        int pinRx = arrPins[0]["MicrocontrollerGpoPin"];
+        int pinTx = arrPins[1]["MicrocontrollerGpoPin"];
 
-                    gps = new Gps(deviceIndex, settings, mqttClient, getBaseTopic(), pinRx, pinTx);
-                }
+        gps = new Gps(deviceIndex, settings, mqttClient, getBaseTopic(), pinRx, pinTx);
+    }
 #endif // USE_GPS
 
 #ifdef USE_BUZZER
-                if (deviceType == "Buzzer")
-                {
-                    uint8_t buzzerPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    uint8_t ledPin    = arrPins[1]["MicrocontrollerGpoPin"];
+    if (deviceType == "Buzzer")
+    {
+        uint8_t buzzerPin = arrPins[0]["MicrocontrollerGpoPin"];
+        uint8_t ledPin    = arrPins[1]["MicrocontrollerGpoPin"];
 
-                    buzzer = new IotZoo::Buzzer(deviceIndex, settings, mqttClient, getBaseTopic(), buzzerPin, ledPin);
+        buzzer = new IotZoo::Buzzer(deviceIndex, settings, mqttClient, getBaseTopic(), buzzerPin, ledPin);
 
-                    debug("Buzzer initialized.");
-                }
+        debug("Buzzer initialized.");
+    }
 #endif // USE_BUZZER
 
 #ifdef USE_HT1621
-                if (deviceType == "HT1621")
-                {
-                    uint8_t csPin        = arrPins[0]["MicrocontrollerGpoPin"];
-                    uint8_t wsPin        = arrPins[1]["MicrocontrollerGpoPin"];
-                    uint8_t dataPin      = arrPins[2]["MicrocontrollerGpoPin"];
-                    uint8_t backlightPin = arrPins[3]["MicrocontrollerGpoPin"];
+    if (deviceType == "HT1621")
+    {
+        uint8_t csPin        = arrPins[0]["MicrocontrollerGpoPin"];
+        uint8_t wsPin        = arrPins[1]["MicrocontrollerGpoPin"];
+        uint8_t dataPin      = arrPins[2]["MicrocontrollerGpoPin"];
+        uint8_t backlightPin = arrPins[3]["MicrocontrollerGpoPin"];
 
-                    ht1621 = new IotZoo::HT1621(deviceIndex, settings, mqttClient, getBaseTopic(), csPin, wsPin, dataPin, backlightPin);
-                    if (nullptr != ht1621)
-                    {
-                        debug("HT1621 6 digit LED Display initialized.");
-                    }
-                }
+        ht1621 = new IotZoo::HT1621(deviceIndex, settings, mqttClient, getBaseTopic(), csPin, wsPin, dataPin, backlightPin);
+        if (nullptr != ht1621)
+        {
+            debug("HT1621 6 digit LED Display initialized.");
+        }
+    }
 #endif // USE_HT1621
 
 #ifdef USE_MAX7219
-                if (deviceType == "MAX7219")
-                {
-                    uint8_t dataPin         = arrPins[0]["MicrocontrollerGpoPin"];
-                    uint8_t clkPin          = arrPins[1]["MicrocontrollerGpoPin"];
-                    uint8_t csPin           = arrPins[2]["MicrocontrollerGpoPin"];
-                    uint8_t numberOfDevices = 1;
+    if (deviceType == "MAX7219")
+    {
+        uint8_t dataPin         = arrPins[0]["MicrocontrollerGpoPin"];
+        uint8_t clkPin          = arrPins[1]["MicrocontrollerGpoPin"];
+        uint8_t csPin           = arrPins[2]["MicrocontrollerGpoPin"];
+        uint8_t numberOfDevices = 1;
 
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName = property["Name"];
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName = property["Name"];
 
-                        if (propertyName == "numberOfDevices")
-                        {
-                            numberOfDevices = property["Value"];
-                        }
-                    }
+            if (propertyName == "numberOfDevices")
+            {
+                numberOfDevices = property["Value"];
+            }
+        }
 
-                    max7219 = new IotZoo::Max7219(deviceIndex, settings, mqttClient, getBaseTopic(), numberOfDevices, dataPin, clkPin, csPin);
-                    if (nullptr != max7219)
-                    {
-                        debug("Max7219 8x8 LED Matrix initialized.");
-                    }
-                }
+        max7219 = new IotZoo::Max7219(deviceIndex, settings, mqttClient, getBaseTopic(), numberOfDevices, dataPin, clkPin, csPin);
+        if (nullptr != max7219)
+        {
+            debug("Max7219 8x8 LED Matrix initialized.");
+        }
+    }
 #endif // USE_MAX7219
 
 #ifdef USE_SWITCH
-                if (deviceType == "Switch")
-                {
-                    int switchPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    switches.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), switchPin);
-                    debug("Switch initialized.");
-                }
+    if (deviceType == "Switch")
+    {
+        int switchPin = arrPins[0]["MicrocontrollerGpoPin"];
+        switches.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), switchPin);
+        debug("Switch initialized.");
+    }
 #endif // USE_SWITCH
 
 #ifdef USE_KEYPAD
-                if (deviceType == "Keypad 4x4")
-                {
-                    int column3Pin = arrPins[0]["MicrocontrollerGpoPin"];
-                    int column2Pin = arrPins[1]["MicrocontrollerGpoPin"];
-                    int column1Pin = arrPins[2]["MicrocontrollerGpoPin"];
-                    int column0Pin = arrPins[3]["MicrocontrollerGpoPin"];
-                    int row0Pin    = arrPins[4]["MicrocontrollerGpoPin"];
-                    int row1Pin    = arrPins[5]["MicrocontrollerGpoPin"];
-                    int row2Pin    = arrPins[6]["MicrocontrollerGpoPin"];
-                    int row3Pin    = arrPins[7]["MicrocontrollerGpoPin"];
+    if (deviceType == "Keypad 4x4")
+    {
+        int column3Pin = arrPins[0]["MicrocontrollerGpoPin"];
+        int column2Pin = arrPins[1]["MicrocontrollerGpoPin"];
+        int column1Pin = arrPins[2]["MicrocontrollerGpoPin"];
+        int column0Pin = arrPins[3]["MicrocontrollerGpoPin"];
+        int row0Pin    = arrPins[4]["MicrocontrollerGpoPin"];
+        int row1Pin    = arrPins[5]["MicrocontrollerGpoPin"];
+        int row2Pin    = arrPins[6]["MicrocontrollerGpoPin"];
+        int row3Pin    = arrPins[7]["MicrocontrollerGpoPin"];
 
-                    ButtonMatrix* buttonMatrix = new ButtonMatrix(deviceIndex, settings, mqttClient, getBaseTopic());
-                    buttonMatrix->setRowPins(row0Pin, row1Pin, row2Pin, row3Pin);
-                    buttonMatrix->setColPins(column0Pin, column1Pin, column2Pin, column3Pin);
+        ButtonMatrix* buttonMatrix = new ButtonMatrix(deviceIndex, settings, mqttClient, getBaseTopic());
+        buttonMatrix->setRowPins(row0Pin, row1Pin, row2Pin, row3Pin);
+        buttonMatrix->setColPins(column0Pin, column1Pin, column2Pin, column3Pin);
 
-                    buttonMatrixHandling.AddDevice(buttonMatrix);
+        buttonMatrixHandling.AddDevice(buttonMatrix);
 
-                    debug("Buttonmatrix initialized.");
-                }
+        debug("Buttonmatrix initialized.");
+    }
 #endif // USE_KEYPAD
 
 #ifdef USE_ANALOG_INPUT_PIN
-                if (deviceType == "ADC")
-                {
-                    int   analogPin  = arrPins[0]["MicrocontrollerGpoPin"];
-                    u16_t intervalMs = 1000;
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
-                        if (propertyName == "Interval")
-                        {
-                            intervalMs = propertyValue.toInt();
-                        }
-                    }
+    if (deviceType == "ADC")
+    {
+        int   analogPin  = arrPins[0]["MicrocontrollerGpoPin"];
+        u16_t intervalMs = 1000;
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName  = property["Name"];
+            String propertyValue = property["Value"];
+            if (propertyName == "Interval")
+            {
+                intervalMs = propertyValue.toInt();
+            }
+        }
 
-                    if (analogPin != 32 && analogPin != 33 && analogPin != 34 && analogPin != 35 && analogPin != 36 && analogPin != 39)
-                    {
-                        debug("Warning: analogPin " + String(analogPin) + " is not an ADC pin (34, 35, 36, 39 are valid ADC pins on ESP32)!");
-                        mqttClient->publish(getBaseTopic() + "/error/" + String(deviceIndex),
-                                            "Warning: pinAdc is not an ADC pin (32, 33 34, 35, 36, 39 are valid ADC pins on ESP32)!");
-                        continue;
-                    }
-                    else
-                    {
-                        analogInputPins.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), analogPin, intervalMs);
-                        debug("Analog Input Pin initialized on pin " + String(analogPin) + ".");
-                    }
-                }
+        if (analogPin != 32 && analogPin != 33 && analogPin != 34 && analogPin != 35 && analogPin != 36 && analogPin != 39)
+        {
+            debug("Warning: analogPin " + String(analogPin) + " is not an ADC pin (34, 35, 36, 39 are valid ADC pins on ESP32)!");
+            mqttClient->publish(getBaseTopic() + "/error/" + String(deviceIndex),
+                                "Warning: pinAdc is not an ADC pin (32, 33 34, 35, 36, 39 are valid ADC pins on ESP32)!");
+            return;
+        }
+        else
+        {
+            analogInputPins.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), analogPin, intervalMs);
+            debug("Analog Input Pin initialized on pin " + String(analogPin) + ".");
+        }
+    }
 #endif // USE_ANALOG_INPUT_PIN
 
 #ifdef USE_STEPPER_MOTOR
-                if (deviceType == "28BY48Stepper")
-                {
-                    int pin1 = arrPins[0]["MicrocontrollerGpoPin"];
-                    int pin2 = arrPins[1]["MicrocontrollerGpoPin"];
-                    int pin3 = arrPins[2]["MicrocontrollerGpoPin"];
-                    int pin4 = arrPins[3]["MicrocontrollerGpoPin"];
+    if (deviceType == "28BY48Stepper")
+    {
+        int pin1 = arrPins[0]["MicrocontrollerGpoPin"];
+        int pin2 = arrPins[1]["MicrocontrollerGpoPin"];
+        int pin3 = arrPins[2]["MicrocontrollerGpoPin"];
+        int pin4 = arrPins[3]["MicrocontrollerGpoPin"];
 
-                    stepperMotor = new StepperMotor(deviceIndex, settings, mqttClient, getBaseTopic(), pin1, pin2, pin3, pin4);
+        stepperMotor = new StepperMotor(deviceIndex, settings, mqttClient, getBaseTopic(), pin1, pin2, pin3, pin4);
 
-                    debug("28BY48 Stepper initialized.");
-                }
+        debug("28BY48 Stepper initialized.");
+    }
 #endif // USE_STEPPER_MOTOR
 
 #ifdef USE_HC_SR501
-                // Add 1..3 HC-SR501 motion detectors.
-                if (deviceType == "HC-SR501")
-                {
-                    int pinMotionDetector = arrPins[0]["MicrocontrollerGpoPin"];
-                    motionDetectorsHrsc501Handling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), pinMotionDetector);
-                }
+    // Add 1..3 HC-SR501 motion detectors.
+    if (deviceType == "HC-SR501")
+    {
+        int pinMotionDetector = arrPins[0]["MicrocontrollerGpoPin"];
+        motionDetectorsHrsc501Handling.addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), pinMotionDetector);
+    }
 #endif // USE_HC_SR501
 
 #ifdef USE_RD_03D
-                if (deviceType == "Rd-03D")
-                {
-                    uint8_t pinRx = arrPins[0]["MicrocontrollerGpoPin"];
-                    uint8_t pinTx = arrPins[1]["MicrocontrollerGpoPin"];
+    if (deviceType == "Rd-03D")
+    {
+        uint8_t pinRx = arrPins[0]["MicrocontrollerGpoPin"];
+        uint8_t pinTx = arrPins[1]["MicrocontrollerGpoPin"];
 
-                    u_int16_t timeoutMillis          = 30000;
-                    u_int16_t maxDistanceMillimeters = 60000;
-                    bool      multiTargetMode        = false;
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName = property["Name"];
+        u_int16_t timeoutMillis          = 30000;
+        u_int16_t maxDistanceMillimeters = 60000;
+        bool      multiTargetMode        = false;
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName = property["Name"];
 
-                        if (propertyName == "TimeoutMillis")
-                        {
-                            timeoutMillis = property["Value"];
-                        }
-                        else if (propertyName == "MaxDistanceMillimeters")
-                        {
-                            maxDistanceMillimeters = property["Value"];
-                        }
-                        else if (propertyName == "MultiTargetMode")
-                        {
-                            multiTargetMode = property["Value"];
-                        }
-                    }
+            if (propertyName == "TimeoutMillis")
+            {
+                timeoutMillis = property["Value"];
+            }
+            else if (propertyName == "MaxDistanceMillimeters")
+            {
+                maxDistanceMillimeters = property["Value"];
+            }
+            else if (propertyName == "MultiTargetMode")
+            {
+                multiTargetMode = property["Value"];
+            }
+        }
 
-                    rd03d = new Rd03D(deviceIndex, settings, mqttClient, getBaseTopic(), pinRx, pinTx, timeoutMillis, maxDistanceMillimeters,
-                                      multiTargetMode);
-                    debug("Rd-03d configuration added! pinRx: " + String(pinRx) + ", pinTx: " + String(pinTx));
-                    debug(", TimeOutMillis: " + String(timeoutMillis) + ", MaxDistanceMillimeters: " + String(maxDistanceMillimeters));
-                }
+        rd03d = new Rd03D(deviceIndex, settings, mqttClient, getBaseTopic(), pinRx, pinTx, timeoutMillis, maxDistanceMillimeters,
+                          multiTargetMode);
+        debug("Rd-03d configuration added! pinRx: " + String(pinRx) + ", pinTx: " + String(pinTx));
+        debug(", TimeOutMillis: " + String(timeoutMillis) + ", MaxDistanceMillimeters: " + String(maxDistanceMillimeters));
+    }
 #endif // USE_RD_03D
 
 #ifdef USE_LCD_160X
-                // Add USE_LCD_160X display.
-                if (deviceType == "LCD160x")
-                {
-                    debug("Initializing LCD160x display.");
-                    uint8_t columns    = 20;
-                    uint8_t rows       = 4;
-                    uint8_t i2cAddress = 0x27;
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
+    // Add USE_LCD_160X display.
+    if (deviceType == "LCD160x")
+    {
+        debug("Initializing LCD160x display.");
+        uint8_t columns    = 20;
+        uint8_t rows       = 4;
+        uint8_t i2cAddress = 0x27;
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName  = property["Name"];
+            String propertyValue = property["Value"];
 
-                        if (propertyName == "Columns")
-                        {
-                            columns = std::stoi(propertyValue.c_str());
-                        }
-                        else if (propertyName == "Rows")
-                        {
-                            rows = std::stoi(propertyValue.c_str());
-                        }
-                        else if (propertyName == "I2CAddress")
-                        {
-                            i2cAddress = std::stoi(propertyValue.c_str(), nullptr, 0);
-                        }
-                    }
+            if (propertyName == "Columns")
+            {
+                columns = std::stoi(propertyValue.c_str());
+            }
+            else if (propertyName == "Rows")
+            {
+                rows = std::stoi(propertyValue.c_str());
+            }
+            else if (propertyName == "I2CAddress")
+            {
+                i2cAddress = std::stoi(propertyValue.c_str(), nullptr, 0);
+            }
+        }
 
-                    lcdDisplay = new LcdDisplay(deviceIndex, settings, mqttClient, getBaseTopic(),
-                                                i2cAddress, // set the LCD address to 0x27
-                                                columns, rows);
+        lcdDisplay = new LcdDisplay(deviceIndex, settings, mqttClient, getBaseTopic(),
+                                    i2cAddress, // set the LCD address to 0x27
+                                    columns, rows);
 
-                    debug("LCD160x configuration added! I2C-Address: " + String(i2cAddress));
-                }
+        debug("LCD160x configuration added! I2C-Address: " + String(i2cAddress));
+    }
 #endif // USE_LCD_160X
 
 #ifdef USE_OLED_SSD1306
 
-                // SDA must be connected to pin 21 and SCL to pin 22.
-                if (deviceType == "OLED_SSD1306")
-                {
-                    debug("Initializing OLED_SSD1306 display.");
-                    // u_int8_t sclPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    // u_int8_t sdaPin = arrPins[1]["MicrocontrollerGpoPin"];
-                    u_int8_t i2cAddress = 0x3C;
+    // SDA must be connected to pin 21 and SCL to pin 22.
+    if (deviceType == "OLED_SSD1306")
+    {
+        debug("Initializing OLED_SSD1306 display.");
+        // u_int8_t sclPin = arrPins[0]["MicrocontrollerGpoPin"];
+        // u_int8_t sdaPin = arrPins[1]["MicrocontrollerGpoPin"];
+        u_int8_t i2cAddress = 0x3C;
 
-                    oled1306 = new OledSsd1306Display(deviceIndex, settings, mqttClient, getBaseTopic(), i2cAddress);
-                    debug("Oled display SSD1306 initialized! I2C-Address: " + String(i2cAddress));
-                }
+        oled1306 = new OledSsd1306Display(deviceIndex, settings, mqttClient, getBaseTopic(), i2cAddress);
+        debug("Oled display SSD1306 initialized! I2C-Address: " + String(i2cAddress));
+    }
 #endif // USE_OLED_SSD1306
 
 #ifdef USE_DS18B20
-                if (deviceType == "DS18B20")
-                {
+    if (deviceType == "DS18B20")
+    {
 
-                    int datPin = arrPins[0]["MicrocontrollerGpoPin"];
+        int datPin = arrPins[0]["MicrocontrollerGpoPin"];
 
-                    int transmissionInterval = 20000;
-                    int resolution           = 11;
+        int transmissionInterval = 20000;
+        int resolution           = 11;
 
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
-                        if (propertyName == "Interval")
-                        {
-                            transmissionInterval = std::stoi(propertyValue.c_str());
-                        }
-                        else if (propertyName == "Resolution")
-                        {
-                            resolution = std::stoi(propertyValue.c_str());
-                        }
-                        if (transmissionInterval < 5000)
-                        {
-                            transmissionInterval = 5000;
-                        }
-                        if (transmissionInterval > 900000) // 15 min
-                        {
-                            transmissionInterval = 900000;
-                        }
-                        if (resolution < 9)
-                        {
-                            resolution = 9;
-                        }
-                        if (resolution > 11)
-                        {
-                            resolution = 11;
-                        }
-                    }
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName  = property["Name"];
+            String propertyValue = property["Value"];
+            if (propertyName == "Interval")
+            {
+                transmissionInterval = std::stoi(propertyValue.c_str());
+            }
+            else if (propertyName == "Resolution")
+            {
+                resolution = std::stoi(propertyValue.c_str());
+            }
+            if (transmissionInterval < 5000)
+            {
+                transmissionInterval = 5000;
+            }
+            if (transmissionInterval > 900000) // 15 min
+            {
+                transmissionInterval = 900000;
+            }
+            if (resolution < 9)
+            {
+                resolution = 9;
+            }
+            if (resolution > 11)
+            {
+                resolution = 11;
+            }
+        }
 
-                    // Add 1 DS18B20 temperature sensors manager which can support 1..64 DS18B20 temperature sensors.
-                    ds18B20SensorManager = new DS18B20(deviceIndex, settings, mqttClient, getBaseTopic(), datPin, resolution, transmissionInterval);
+        // Add 1 DS18B20 temperature sensors manager which can support 1..64 DS18B20 temperature sensors.
+        ds18B20SensorManager = new DS18B20(deviceIndex, settings, mqttClient, getBaseTopic(), datPin, resolution, transmissionInterval);
 
 #ifdef USE_INTERNAL_MQTT
-                    ds18B20SensorManager->setTopicLinks(*topicLinks);
-                    ds18B20SensorManager->setInternalMqttClient(globalInternalMqttClient);
+        ds18B20SensorManager->setTopicLinks(topicLinks);
+        ds18B20SensorManager->setInternalMqttClient(globalInternalMqttClient);
 #endif // USE_INTERNAL_MQTT
-                    debug("DS18B20 sensors configuration loaded! Dat Pin is " + String(datPin) + ", Resolution: " + String(resolution) +
-                          ", Transmission interval ms: " + String(transmissionInterval));
-                }
+        debug("DS18B20 sensors configuration loaded! Dat Pin is " + String(datPin) + ", Resolution: " + String(resolution) +
+              ", Transmission interval ms: " + String(transmissionInterval));
+    }
 #endif // USE_DS18B20
 
 #ifdef USE_HW507
-                if (deviceType == "HW507")
-                {
-                    uint8_t dataPin    = arrPins[0]["MicrocontrollerGpoPin"];
-                    u16_t   intervalMs = 10000;
-                    uint8_t deviceType = DHT11;
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName = property["Name"];
+    if (deviceType == "HW507")
+    {
+        uint8_t dataPin    = arrPins[0]["MicrocontrollerGpoPin"];
+        u16_t   intervalMs = 10000;
+        uint8_t deviceType = DHT11;
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName = property["Name"];
 
-                        if (propertyName == "DeviceType")
-                        {
-                            deviceType = property["Value"];
-                        }
-                        else if (propertyName == "IntervalMs")
-                        {
-                            intervalMs = property["Value"];
-                        }
-                    }
-                    hw507HumiditySensor = new IotZoo::HW507(deviceIndex, settings, mqttClient, getBaseTopic(), deviceType, dataPin, intervalMs);
-                }
+            if (propertyName == "DeviceType")
+            {
+                deviceType = property["Value"];
+            }
+            else if (propertyName == "IntervalMs")
+            {
+                intervalMs = property["Value"];
+            }
+        }
+        hw507HumiditySensor = new IotZoo::HW507(deviceIndex, settings, mqttClient, getBaseTopic(), deviceType, dataPin, intervalMs);
+    }
 #endif // USE_HW507
 
 #ifdef USE_WS2818
-                if (deviceType == "NEO")
-                {
-                    debug("Configuration of NEO pixels...");
-                    int dioPin       = arrPins[0]["MicrocontrollerGpoPin"];
-                    int numberOfLeds = 256;
+    if (deviceType == "NEO")
+    {
+        debug("Configuration of NEO pixels...");
+        int dioPin       = arrPins[0]["MicrocontrollerGpoPin"];
+        int numberOfLeds = 256;
 
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
-                        if (propertyName == "numberOfLeds")
-                        {
-                            numberOfLeds = std::stoi(propertyValue.c_str());
-                        }
-                    }
-                    ws2812 = new WS2818(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLeds);
-                    debug("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
-                }
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName  = property["Name"];
+            String propertyValue = property["Value"];
+            if (propertyName == "numberOfLeds")
+            {
+                numberOfLeds = std::stoi(propertyValue.c_str());
+            }
+        }
+        ws2812 = new WS2818(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLeds);
+        debug("Neo pixel configuration loaded! DIO Pin is " + String(dioPin) + ", Leds: " + String(numberOfLeds));
+    }
 #ifdef USE_WS2818_PIXEL_MATRIX
-                if (deviceType == "PixelMatrix")
-                {
-                    debug("Configuration of NEO pixel matrix...");
-                    int  dioPin                = arrPins[0]["MicrocontrollerGpoPin"];
-                    uint numberOfLedsPerColumn = 8;
-                    uint numberOfLedsPerRow    = 8;
-                    uint extensions            = 0;
+    if (deviceType == "PixelMatrix")
+    {
+        debug("Configuration of NEO pixel matrix...");
+        int  dioPin                = arrPins[0]["MicrocontrollerGpoPin"];
+        uint numberOfLedsPerColumn = 8;
+        uint numberOfLedsPerRow    = 8;
+        uint extensions            = 0;
 
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
-                        if (propertyName == "numberOfLedsPerColumn")
-                        {
-                            numberOfLedsPerColumn = std::stoi(propertyValue.c_str());
-                        }
-                        else if (propertyName == "numberOfLedsPerRow")
-                        {
-                            numberOfLedsPerRow = std::stoi(propertyValue.c_str());
-                        }
-                        else if (propertyName == "extensions")
-                        {
-                            extensions = std::stoi(propertyValue.c_str());
-                        }
-                        extensions = 1;
-                    }
-                    ws2812 = new PixelMatrix(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLedsPerColumn, numberOfLedsPerRow,
-                                             (PixelMatrixExtensions)extensions);
-                    debug("Neo pixel matrix configuration loaded! DIO Pin is " + String(dioPin) +
-                          ", numberOfLedsPerColumn: " + String(numberOfLedsPerColumn) + ", numberOfLedsPerRow: " + String(numberOfLedsPerRow) +
-                          ", Extensions: " + String(extensions));
-                }
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName  = property["Name"];
+            String propertyValue = property["Value"];
+            if (propertyName == "numberOfLedsPerColumn")
+            {
+                numberOfLedsPerColumn = std::stoi(propertyValue.c_str());
+            }
+            else if (propertyName == "numberOfLedsPerRow")
+            {
+                numberOfLedsPerRow = std::stoi(propertyValue.c_str());
+            }
+            else if (propertyName == "extensions")
+            {
+                extensions = std::stoi(propertyValue.c_str());
+            }
+            extensions = 1;
+        }
+        ws2812 = new PixelMatrix(deviceIndex, settings, mqttClient, getBaseTopic(), dioPin, numberOfLedsPerColumn, numberOfLedsPerRow,
+                                 (PixelMatrixExtensions)extensions);
+        debug("Neo pixel matrix configuration loaded! DIO Pin is " + String(dioPin) +
+              ", numberOfLedsPerColumn: " + String(numberOfLedsPerColumn) + ", numberOfLedsPerRow: " + String(numberOfLedsPerRow) +
+              ", Extensions: " + String(extensions));
+    }
 #endif // USE_WS2818_PIXEL_MATRIX
 #endif // USE_WS2818
 
 #ifdef USE_TM1637_4
-                if (deviceType == "TM1637_4")
-                {
-                    debug("TM1637_4 display");
+    if (deviceType == "TM1637_4")
+    {
+        debug("TM1637_4 display");
 
-                    int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
+        int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
+        int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
 
-                    bool   flipDisplay = false;
-                    String serverDownText;
-                    bool   enableServerDownText = false;
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
+        bool   flipDisplay = false;
+        String serverDownText;
+        bool   enableServerDownText = false;
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName  = property["Name"];
+            String propertyValue = property["Value"];
 
-                        if (propertyName == "flipDisplay")
-                        {
-                            propertyValue.toLowerCase();
-                            flipDisplay = propertyValue == "true";
-                        }
-                        else if (propertyName == "serverDownText")
-                        {
-                            propertyValue.toLowerCase();
-                            serverDownText = propertyValue;
-                        }
-                        else if (propertyName == "enableServerDownText")
-                        {
-                            propertyValue.toLowerCase();
-                            serverDownText       = propertyValue;
-                            enableServerDownText = propertyValue == "true";
-                        }
-                    }
-                    if (nullptr == tm1637_4Handling)
-                    {
-                        tm1637_4Handling = new TM1637_4_Handling();
-                        TM1637_Handling::setInternalCallback(globalInternalMqttClient);
-                    }
+            if (propertyName == "flipDisplay")
+            {
+                propertyValue.toLowerCase();
+                flipDisplay = propertyValue == "true";
+            }
+            else if (propertyName == "serverDownText")
+            {
+                propertyValue.toLowerCase();
+                serverDownText = propertyValue;
+            }
+            else if (propertyName == "enableServerDownText")
+            {
+                propertyValue.toLowerCase();
+                serverDownText       = propertyValue;
+                enableServerDownText = propertyValue == "true";
+            }
+        }
+        if (nullptr == tm1637_4Handling)
+        {
+            tm1637_4Handling = new TM1637_4_Handling();
+            TM1637_Handling::setInternalCallback(globalInternalMqttClient);
+        }
 
-                    DeviceBase& device = tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
-                    device.setEnableServerDownText(enableServerDownText);
-                    debug("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
-                          ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay) +
-                          ", enableServerDownText: " + String(enableServerDownText));
-                }
+        DeviceBase& device = tm1637_4Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+        device.setEnableServerDownText(enableServerDownText);
+        debug("TM1637_4 display with deviceIndex " + String(deviceIndex) + " initialized! CLK Pin is " + String(clkPin) +
+              ", DIO Pin is " + String(dioPin) + ", FlipDisplay: " + String(flipDisplay) +
+              ", enableServerDownText: " + String(enableServerDownText));
+    }
 #endif // USE_TM1637_4
 
 #ifdef USE_TM1637_6
-                if (deviceType == "TM1637_6")
-                {
-                    debug("TM1637_6 display");
-                    if (nullptr == tm1637_6Handling)
-                    {
-                        tm1637_6Handling = new TM1637_6_Handling();
-                        TM1637_Handling::setInternalCallback(globalInternalMqttClient);
-                    }
+    if (deviceType == "TM1637_6")
+    {
+        debug("TM1637_6 display");
+        if (nullptr == tm1637_6Handling)
+        {
+            tm1637_6Handling = new TM1637_6_Handling();
+            TM1637_Handling::setInternalCallback(globalInternalMqttClient);
+        }
 
-                    int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
+        int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
+        int dioPin = arrPins[1]["MicrocontrollerGpoPin"];
 
-                    bool   flipDisplay = false;
-                    String serverDownText;
-                    bool   enableServerDownText = false;
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
+        bool   flipDisplay = false;
+        String serverDownText;
+        bool   enableServerDownText = false;
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName  = property["Name"];
+            String propertyValue = property["Value"];
 
-                        if (propertyName == "flipDisplay")
-                        {
-                            propertyValue.toLowerCase();
-                            flipDisplay = propertyValue == "true";
-                        }
-                        else if (propertyName == "serverDownText")
-                        {
-                            propertyValue.toLowerCase();
-                            serverDownText = propertyValue;
-                        }
-                        else if (propertyName == "enableServerDownText")
-                        {
-                            propertyValue.toLowerCase();
-                            serverDownText       = propertyValue;
-                            enableServerDownText = propertyValue == "true";
-                        }
-                    }
+            if (propertyName == "flipDisplay")
+            {
+                propertyValue.toLowerCase();
+                flipDisplay = propertyValue == "true";
+            }
+            else if (propertyName == "serverDownText")
+            {
+                propertyValue.toLowerCase();
+                serverDownText = propertyValue;
+            }
+            else if (propertyName == "enableServerDownText")
+            {
+                propertyValue.toLowerCase();
+                serverDownText       = propertyValue;
+                enableServerDownText = propertyValue == "true";
+            }
+        }
 
-                    DeviceBase& device = tm1637_6Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
-                    device.setEnableServerDownText(enableServerDownText);
+        DeviceBase& device = tm1637_6Handling->addDevice(getBaseTopic(), deviceIndex, clkPin, dioPin, flipDisplay, serverDownText);
+        device.setEnableServerDownText(enableServerDownText);
 
-                    debug("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin) +
-                          "enableServerDownText: " + String(enableServerDownText));
-                }
+        debug("TM1637_6 display initialized! CLK Pin is " + String(clkPin) + ", DIO Pin is " + String(dioPin) +
+              "enableServerDownText: " + String(enableServerDownText));
+    }
 #endif // USE_TM1637_6
 
 #ifdef USE_LED_AND_KEY
-                if (deviceType == "TM1638")
-                {
-                    debug("TM1638_8 display");
+    if (deviceType == "TM1638")
+    {
+        debug("TM1638_8 display");
 
-                    int strobePin = arrPins[0]["MicrocontrollerGpoPin"];
-                    int clkPin    = arrPins[1]["MicrocontrollerGpoPin"];
-                    int dioPin    = arrPins[2]["MicrocontrollerGpoPin"];
+        int strobePin = arrPins[0]["MicrocontrollerGpoPin"];
+        int clkPin    = arrPins[1]["MicrocontrollerGpoPin"];
+        int dioPin    = arrPins[2]["MicrocontrollerGpoPin"];
 
-                    tm1638 = new TM1638(deviceIndex, settings, mqttClient, getBaseTopic(), strobePin, clkPin, dioPin);
+        tm1638 = new TM1638(deviceIndex, settings, mqttClient, getBaseTopic(), strobePin, clkPin, dioPin);
 
-                    debug("TM1638 display initialized! Strobe Pin is " + String(strobePin) + ", CLK Pin is " + String(clkPin) + ", DIO Pin is " +
-                          String(dioPin));
-                }
+        debug("TM1638 display initialized! Strobe Pin is " + String(strobePin) + ", CLK Pin is " + String(clkPin) + ", DIO Pin is " +
+              String(dioPin));
+    }
 #endif // USE_LED_AND_KEY
 
 #ifdef USE_REMOTE_GPIOS
-                if (deviceType == "Remote GPIO")
-                {
-                    debug("Remote GPIO");
+    if (deviceType == "Remote GPIO")
+    {
+        debug("Remote GPIO");
 
-                    int gpioPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    remoteGpios.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), gpioPin);
-                    debug("Remote GPIO PIN configuration loaded! Pin is " + String(gpioPin) + ". Size remoteGpios: " + remoteGpios.size());
-                }
+        int gpioPin = arrPins[0]["MicrocontrollerGpoPin"];
+        remoteGpios.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), gpioPin);
+        debug("Remote GPIO PIN configuration loaded! Pin is " + String(gpioPin) + ". Size remoteGpios: " + remoteGpios.size());
+    }
 #endif // USE_REMOTE_GPIOS
 
 #ifdef USE_TRAFFIC_LIGHT_LEDS
-                if (deviceType == "LEDS Traffic Light")
-                {
-                    debug("LEDS Traffic Light");
+    if (deviceType == "LEDS Traffic Light")
+    {
+        debug("LEDS Traffic Light");
 
-                    int gpioLedRed    = -1;
-                    int gpioLedYellow = -1;
-                    int gpioLedGreen  = -1;
+        int gpioLedRed    = -1;
+        int gpioLedYellow = -1;
+        int gpioLedGreen  = -1;
 
-                    for (JsonVariant property : arrPins)
-                    {
-                        String propertyName  = property["PinName"];
-                        String propertyValue = property["MicrocontrollerGpoPin"];
-                        debug("propertyName: " + propertyName + ", propertyValue: " + propertyValue);
+        for (JsonVariant property : arrPins)
+        {
+            String propertyName  = property["PinName"];
+            String propertyValue = property["MicrocontrollerGpoPin"];
+            debug("propertyName: " + propertyName + ", propertyValue: " + propertyValue);
 
-                        if (propertyName == "R")
-                        {
-                            gpioLedRed = std::stoi(propertyValue.c_str());
-                            debug("Red Gpio: " + gpioLedRed);
-                        }
-                        else if (propertyName == "Y")
-                        {
-                            gpioLedYellow = std::stoi(propertyValue.c_str());
-                            debug("Yellow Gpio: " + gpioLedYellow);
-                        }
-                        else if (propertyName == "G")
-                        {
-                            gpioLedGreen = std::stoi(propertyValue.c_str());
-                            debug("Green Gpio: " + gpioLedGreen);
-                        }
-                    }
+            if (propertyName == "R")
+            {
+                gpioLedRed = std::stoi(propertyValue.c_str());
+                debug("Red Gpio: " + gpioLedRed);
+            }
+            else if (propertyName == "Y")
+            {
+                gpioLedYellow = std::stoi(propertyValue.c_str());
+                debug("Yellow Gpio: " + gpioLedYellow);
+            }
+            else if (propertyName == "G")
+            {
+                gpioLedGreen = std::stoi(propertyValue.c_str());
+                debug("Green Gpio: " + gpioLedGreen);
+            }
+        }
 
-                    if (gpioLedRed != -1 && gpioLedYellow != -1 && gpioLedGreen != -1)
-                    {
-                        trafficLightLeds.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), gpioLedRed, gpioLedYellow, gpioLedGreen);
-                    }
-                }
+        if (gpioLedRed != -1 && gpioLedYellow != -1 && gpioLedGreen != -1)
+        {
+            trafficLightLeds.emplace_back(deviceIndex, settings, mqttClient, getBaseTopic(), gpioLedRed, gpioLedYellow, gpioLedGreen);
+        }
+    }
 #endif // USE_TRAFFIC_LIGHT_LEDS
 
 #ifdef USE_HW040
-                if (deviceType == "HW-040")
-                {
-                    debug("HW-040 rotary encoder");
-                    int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
-                    int dtPin  = arrPins[1]["MicrocontrollerGpoPin"];
-                    int swPin  = arrPins[2]["MicrocontrollerGpoPin"];
+    if (deviceType == "HW-040")
+    {
+        debug("HW-040 rotary encoder");
+        int clkPin = arrPins[0]["MicrocontrollerGpoPin"];
+        int dtPin  = arrPins[1]["MicrocontrollerGpoPin"];
+        int swPin  = arrPins[2]["MicrocontrollerGpoPin"];
 
-                    int  boundaryMinValue = 0;
-                    int  boundaryMaxValue = 255;
-                    bool circleValues     = false;
-                    int  acceleration     = 250;
-                    int  encoderSteps     = 2;
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName  = property["Name"];
-                        String propertyValue = property["Value"];
+        int  boundaryMinValue = 0;
+        int  boundaryMaxValue = 255;
+        bool circleValues     = false;
+        int  acceleration     = 250;
+        int  encoderSteps     = 2;
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName  = property["Name"];
+            String propertyValue = property["Value"];
 
-                        if (propertyName == "BoundaryMinValue")
-                        {
-                            boundaryMinValue = std::stoi(propertyValue.c_str());
-                        }
+            if (propertyName == "BoundaryMinValue")
+            {
+                boundaryMinValue = std::stoi(propertyValue.c_str());
+            }
 
-                        if (propertyName == "BoundaryMaxValue")
-                        {
-                            boundaryMaxValue = std::stoi(propertyValue.c_str());
-                        }
+            if (propertyName == "BoundaryMaxValue")
+            {
+                boundaryMaxValue = std::stoi(propertyValue.c_str());
+            }
 
-                        if (propertyName == "Acceleration")
-                        {
-                            acceleration = std::stoi(propertyValue.c_str());
-                        }
+            if (propertyName == "Acceleration")
+            {
+                acceleration = std::stoi(propertyValue.c_str());
+            }
 
-                        if (propertyName == "EncoderSteps")
-                        {
-                            encoderSteps = std::stoi(propertyValue.c_str());
-                        }
+            if (propertyName == "EncoderSteps")
+            {
+                encoderSteps = std::stoi(propertyValue.c_str());
+            }
 
-                        if (propertyName == "CircleValue")
-                        {
-                            circleValues = propertyValue == "true";
-                        }
-                    }
+            if (propertyName == "CircleValue")
+            {
+                circleValues = propertyValue == "true";
+            }
+        }
 
-                    hw040Handling = new IotZoo::HW040Handling();
+        hw040Handling = new IotZoo::HW040Handling();
 
-                    DeviceBase& device =
-                        hw040Handling->addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), boundaryMinValue, boundaryMaxValue, circleValues,
-                                                 acceleration, encoderSteps, clkPin, dtPin, swPin, -1);
-                    device.setInternalMqttClient(globalInternalMqttClient);
-                    device.setTopicLinks(*topicLinks);
+        DeviceBase& device =
+            hw040Handling->addDevice(deviceIndex, settings, mqttClient, getBaseTopic(), boundaryMinValue, boundaryMaxValue, circleValues,
+                                     acceleration, encoderSteps, clkPin, dtPin, swPin, -1);
+        device.setInternalMqttClient(globalInternalMqttClient);
+        device.setTopicLinks(topicLinks);
 
-                    debug("HW-040 rotary encoder initialized! CLK Pin is " + String(clkPin) + ", DT Pin is " + String(dtPin) + ", MS Pin is " +
-                          String(swPin) + ", boundaryMinValue is " + String(boundaryMinValue) + ", boundaryMaxValue is " + String(boundaryMaxValue) +
-                          ", acceleration is " + String(acceleration) + ", circleValues is " + String(circleValues) + ", encoderSteps is " +
-                          String(encoderSteps));
-                }
-                if (nullptr != hw040Handling)
-                {
-                    HW040Handling::setInternalCallback(globalInternalMqttClient);
-                }
+        debug("HW-040 rotary encoder initialized! CLK Pin is " + String(clkPin) + ", DT Pin is " + String(dtPin) + ", MS Pin is " +
+              String(swPin) + ", boundaryMinValue is " + String(boundaryMinValue) + ", boundaryMaxValue is " + String(boundaryMaxValue) +
+              ", acceleration is " + String(acceleration) + ", circleValues is " + String(circleValues) + ", encoderSteps is " +
+              String(encoderSteps));
+    }
+    if (nullptr != hw040Handling)
+    {
+        HW040Handling::setInternalCallback(globalInternalMqttClient);
+    }
 #endif // USE_HW040
 
 #ifdef USE_BLE_HEART_RATE_SENSOR
-                if (deviceType == "BleHeartRateSensor")
-                {
-                    uint8_t advertisingTimeoutSeconds = 30;
-                    for (JsonVariant property : arrProperties)
-                    {
-                        String propertyName = property["Name"];
+    if (deviceType == "BleHeartRateSensor")
+    {
+        uint8_t advertisingTimeoutSeconds = 30;
+        for (JsonVariant property : arrProperties)
+        {
+            String propertyName = property["Name"];
 
-                        if (propertyName == "AdvertisingTimeoutSeconds")
-                        {
-                            advertisingTimeoutSeconds = property["Value"].as<uint8_t>();
-                        }
-                    }
-
-                    heartRateSensor = new HeartRateSensor(deviceIndex, settings, mqttClient, getBaseTopic(), advertisingTimeoutSeconds);
-#ifdef USE_INTERNAL_MQTT
-                    heartRateSensor->setTopicLinks(*topicLinks);
-                    heartRateSensor->setInternalMqttClient(globalInternalMqttClient);
-#endif
-                    debug("Heart rate sensor configuration loaded! Advertising timeout seconds: " + String(advertisingTimeoutSeconds));
-
-                    xTaskCreate(taskInitHeartRateSensor, "TaskInitHeartRateSensor", 4096, (void*)(intptr_t)advertisingTimeoutSeconds, 1, NULL);
-
-                    debug("Heart rate sensor task created.");
-                }
-#endif // USE_BLE_HEART_RATE_SENSOR
+            if (propertyName == "AdvertisingTimeoutSeconds")
+            {
+                advertisingTimeoutSeconds = property["Value"].as<uint8_t>();
             }
         }
+
+        heartRateSensor = new HeartRateSensor(deviceIndex, settings, mqttClient, getBaseTopic(), advertisingTimeoutSeconds);
+#ifdef USE_INTERNAL_MQTT
+        heartRateSensor->setTopicLinks(topicLinks);
+        heartRateSensor->setInternalMqttClient(globalInternalMqttClient);
+#endif
+        debug("Heart rate sensor configuration loaded! Advertising timeout seconds: " + String(advertisingTimeoutSeconds));
+
+        xTaskCreate(taskInitHeartRateSensor, "TaskInitHeartRateSensor", 4096, (void*)(intptr_t)advertisingTimeoutSeconds, 1, NULL);
+
+        debug("Heart rate sensor task created.");
     }
-} // end of setup()
+#endif // USE_BLE_HEART_RATE_SENSOR
+}
 
 #if defined(USE_REST_SERVER)
 #if defined(USE_MQTT)

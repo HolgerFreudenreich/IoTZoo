@@ -25,6 +25,12 @@ using System.Text.Json;
 
 public class RulesPageBase : PageBase
 {
+    private static readonly JsonSerializerOptions ExportSerializerOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
+
     [Inject]
     public IIoTZooMqttClient MqttClient
     {
@@ -103,12 +109,7 @@ public class RulesPageBase : PageBase
 
     protected async Task ExportRule(Rule rule)
     {
-        var serializerOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        };
-        string json = System.Text.Json.JsonSerializer.Serialize(rule, serializerOptions);
+        string json = JsonSerializer.Serialize(rule, ExportSerializerOptions);
         await CopyToClipboard(json);
     }
 
@@ -138,13 +139,7 @@ public class RulesPageBase : PageBase
         {
             await RulesService.GetRulesByProject(SelectedProject);
 
-            var serializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            };
-
-            string json = System.Text.Json.JsonSerializer.Serialize(Rules, serializerOptions);
+            string json = JsonSerializer.Serialize(Rules, ExportSerializerOptions);
             await CopyToClipboard(json);
         }
         catch (Exception ex)
@@ -170,35 +165,10 @@ public class RulesPageBase : PageBase
                                                                                          parameters,
                                                                                          options);
             var result = await dialog.Result;
-            string json = result?.Data as string ?? string.Empty;
-            json = json.Trim();
+            string json = (result?.Data as string ?? string.Empty).Trim();
             if (json.Length > 0)
             {
-                if (json.StartsWith("{") && json.EndsWith("}"))
-                {
-                    var singleRule = System.Text.Json.JsonSerializer.Deserialize<Rule>(json);
-                    if (singleRule != null)
-                    {
-                        singleRule.RuleId = 0; // force new
-                        await RulesService.Save(singleRule);
-                    }
-                }
-                else if (json.StartsWith("[") && json.EndsWith("]"))
-                {
-                    var importedRules = System.Text.Json.JsonSerializer.Deserialize<List<Rule>>(json);
-                    if (importedRules != null)
-                    {
-                        foreach (var rule in importedRules)
-                        {
-                            rule.RuleId = 0; // force new
-                            await RulesService.Save(rule);
-                        }
-                    }
-                }
-                else
-                {
-                    Snackbar.Add("Importing rules failed: JSON is not valid!", Severity.Error);
-                }
+                await ImportRulesJson(json);
             }
         }
         catch (Exception ex)
@@ -210,6 +180,35 @@ public class RulesPageBase : PageBase
         {
             IsEditorOpen = false;
             await LoadData();
+        }
+    }
+
+    private async Task ImportRulesJson(string json)
+    {
+        if (json.StartsWith("{") && json.EndsWith("}"))
+        {
+            var singleRule = JsonSerializer.Deserialize<Rule>(json);
+            if (singleRule != null)
+            {
+                singleRule.RuleId = 0; // force new
+                await RulesService.Save(singleRule);
+            }
+        }
+        else if (json.StartsWith("[") && json.EndsWith("]"))
+        {
+            var importedRules = JsonSerializer.Deserialize<List<Rule>>(json);
+            if (importedRules != null)
+            {
+                foreach (var rule in importedRules)
+                {
+                    rule.RuleId = 0; // force new
+                    await RulesService.Save(rule);
+                }
+            }
+        }
+        else
+        {
+            Snackbar.Add("Importing rules failed: JSON is not valid!", Severity.Error);
         }
     }
 

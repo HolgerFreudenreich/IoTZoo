@@ -39,12 +39,10 @@ public class MqttPublisher : IMqttPublisher, IDisposable
     {
         try
         {
-            var factory = new MqttClientFactory();
-            MqttClient = factory.CreateMqttClient();
+            MqttClient = new MqttClientFactory().CreateMqttClient();
 
             var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
                                                                                  DataTransferService.MqttBrokerSettings.Port).Build();
-            MqttClient.DisconnectedAsync -= MqttClient_DisconnectedAsync;
             MqttClient.DisconnectedAsync += MqttClient_DisconnectedAsync;
             MqttClientConnectResult connectionResult = await MqttClient.ConnectAsync(mqttClientOptions);
             if (connectionResult.ResultCode == MqttClientConnectResultCode.Success)

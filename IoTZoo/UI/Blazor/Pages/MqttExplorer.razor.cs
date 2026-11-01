@@ -109,14 +109,9 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
 
     private async Task SubscribeToProjectTopics()
     {
-        if (null == DataTransferService.SelectedProject)
-        {
-            selectedTopic = $"{DataTransferService.NamespaceName}/#";
-        }
-        else
-        {
-            selectedTopic = $"{DataTransferService.NamespaceName}/{DataTransferService.SelectedProject.ProjectName}/#";
-        }
+        selectedTopic = null == DataTransferService.SelectedProject
+            ? $"{DataTransferService.NamespaceName}/#"
+            : $"{DataTransferService.NamespaceName}/{DataTransferService.SelectedProject.ProjectName}/#";
         await MqttClient.SubscribeAsync(selectedTopic);
     }
 
@@ -125,7 +120,7 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
         timerServiceRefreshUserInterface = new TimerService(900);
         timerServiceRefreshUserInterface.OnElapsed -= TimerServiceRefreshUserInterfaceOnElapsed;
         timerServiceRefreshUserInterface.OnElapsed += TimerServiceRefreshUserInterfaceOnElapsed;
-        ReceivedTopicsQueue = new Queue<TopicEntry>(75);
+        ReceivedTopicsQueue = new Queue<TopicEntry>();
     }
 
     protected override void OnInitialized()
@@ -199,29 +194,24 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
                 topicEntry.KeepHistory = knownTopic.KeepHistory;
             }
 
-            if (GroupTopics)
-            {
-                var enqueuedTopic = (from data in ReceivedTopicsQueue where data.Topic == topicEntry.Topic select data).FirstOrDefault();
+            var enqueuedTopic = GroupTopics
+                ? ReceivedTopicsQueue.FirstOrDefault(data => data.Topic == topicEntry.Topic)
+                : null;
 
-                if (enqueuedTopic != null)
-                {
-                    enqueuedTopic.LastPayload = enqueuedTopic.Payload;
-                    enqueuedTopic.Payload = topicEntry.Payload;
-                    enqueuedTopic.TimeDiff = topicEntry.DateOfReceipt - enqueuedTopic.DateOfReceipt;
-                    enqueuedTopic.DateOfReceipt = topicEntry.DateOfReceipt;
-                    enqueuedTopic.Retain = topicEntry.Retain;
-                }
-                else
-                {
-                    this.ReceivedTopicsQueue.Enqueue(topicEntry);
-                }
+            if (enqueuedTopic != null)
+            {
+                enqueuedTopic.LastPayload = enqueuedTopic.Payload;
+                enqueuedTopic.Payload = topicEntry.Payload;
+                enqueuedTopic.TimeDiff = topicEntry.DateOfReceipt - enqueuedTopic.DateOfReceipt;
+                enqueuedTopic.DateOfReceipt = topicEntry.DateOfReceipt;
+                enqueuedTopic.Retain = topicEntry.Retain;
             }
             else
             {
-                this.ReceivedTopicsQueue.Enqueue(topicEntry);
+                ReceivedTopicsQueue.Enqueue(topicEntry);
             }
 
-            if (ReceivedTopicsQueue.Count > 75)
+            if (ReceivedTopicsQueue.Count > DataTransferService.MqttExplorerMaxReceivedTopics)
             {
                 ReceivedTopicsQueue.Dequeue();
             }
@@ -272,12 +262,17 @@ public class MqttExplorerBase : MqttPageBase, IDisposable
 
     protected void TopicHistoryBtnPress(TopicEntry topicEntry)
     {
-        NavigationManager.NavigateTo($"TopicsHistory?project={Uri.EscapeDataString(topicEntry.ProjectName ?? string.Empty)}&search={Uri.EscapeDataString(topicEntry.Topic)}");
+        NavigateToTopicPage("TopicsHistory", topicEntry);
     }
 
     protected void KnownTopicBtnPress(TopicEntry topicEntry)
     {
-        NavigationManager.NavigateTo($"KnownTopics?project={Uri.EscapeDataString(topicEntry.ProjectName ?? string.Empty)}&search={Uri.EscapeDataString(topicEntry.Topic)}");
+        NavigateToTopicPage("KnownTopics", topicEntry);
+    }
+
+    private void NavigateToTopicPage(string page, TopicEntry topicEntry)
+    {
+        NavigationManager.NavigateTo($"{page}?project={Uri.EscapeDataString(topicEntry.ProjectName ?? string.Empty)}&search={Uri.EscapeDataString(topicEntry.Topic)}");
     }
     protected override async Task RefreshData(bool firstRender = false)
     {

@@ -142,12 +142,19 @@
       <br />
       <br />
       <MudText Typo="Typo.h5">User Interface</MudText>
-      <MudPaper Class="pa-6" Height="110px" Width="600px" Elevation="1">
+      <MudPaper Class="pa-6" Height="200px" Width="600px" Elevation="1">
          <MudSwitch Value="@DataTransferService.IsDarkMode"
                     ValueChanged="DarkModeChanged"
                     Color="Color.Primary"
                     T="bool"
                     Label="Dark Mode" />
+         <br />
+         <MudNumericField T="int"
+                          Label="MQTT Explorer: max. received topics"
+                          HelperText="Default: 75"
+                          Min="1"
+                          @bind-Value="DataTransferService.MqttExplorerMaxReceivedTopics"
+                          Variant="@Variant.Text" />
       </MudPaper>
    </MudFocusTrap>
    <br />

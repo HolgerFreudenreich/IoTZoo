@@ -34,21 +34,11 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
     public event Action<EventStreamData>? OnLightChanged;
 
 
-    protected LightColor LightColorPoc
-    {
-        get;
-        set;
-    }
+    protected LightColor LightColorPoc { get; set; }
 
-    protected IKnownTopicsCrudService KnownTopicsDatabaseService
-    {
-        get; set;
-    }
+    protected IKnownTopicsCrudService KnownTopicsDatabaseService { get; set; }
 
-    protected IProjectCrudService ProjectCrudService
-    {
-        get; set;
-    }
+    protected IProjectCrudService ProjectCrudService { get; set; }
 
     protected LocalHueApi HueApi { get; set; } = null!;
 
@@ -61,12 +51,7 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
         KnownTopicsDatabaseService = knownTopicsCrudService;
         ProjectCrudService = projectCrudService;
 
-        LightColorPoc = new LightColor()
-        {
-            Red = 255,
-            Blue = 255,
-            Green = 255
-        };
+        LightColorPoc = new LightColor { Red = 255, Blue = 255, Green = 255 };
 
         ApplySettings();
     }
@@ -168,18 +153,7 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
         }
     }
 
-    protected bool IsLightDevice(Light? light)
-    {
-        if (null == light)
-        {
-            return false;
-        }
-        if (null == light.Dimming)
-        {
-            return false;
-        }
-        return true;
-    }
+    protected bool IsLightDevice(Light? light) => light is not null && light.Dimming is not null;
 
     public async Task TurnOnLight(int lightId)
     {
@@ -329,16 +303,12 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
         {
             Logger.LogInformation($"Make light with lightId {lightId} brighter.");
             var light = await GetLight(lightId);
-            if (null == light)
-            {
-                return;
-            }
-            if (null == light.Dimming)
+            if (!IsLightDevice(light))
             {
                 return;
             }
 
-            double currentBrightness = light.Dimming.Brightness;
+            double currentBrightness = light!.Dimming!.Brightness;
             double newBrightness = currentBrightness + 10.0;
             if (newBrightness > 100)
             {
@@ -363,16 +333,12 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
         {
             Logger.LogInformation($"Make light with lightId {lightId} darker.");
             var light = await GetLight(lightId);
-            if (null == light)
-            {
-                return;
-            }
-            if (null == light.Dimming)
+            if (!IsLightDevice(light))
             {
                 return;
             }
 
-            double currentBrightness = light.Dimming.Brightness;
+            double currentBrightness = light!.Dimming!.Brightness;
             double newBrightness = currentBrightness - 10.0;
             if (newBrightness < 0)
             {
@@ -474,8 +440,7 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
                 return null;
             }
 
-            IEnumerable<Light> light = from data in lights.Data where data.IdV1 == $"/lights/{lightId}" select data;
-            return light.FirstOrDefault();
+            return lights.Data.FirstOrDefault(data => data.IdV1 == $"/lights/{lightId}");
         }
         catch (Exception ex)
         {

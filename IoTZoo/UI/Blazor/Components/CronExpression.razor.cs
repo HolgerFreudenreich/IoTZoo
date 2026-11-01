@@ -19,24 +19,24 @@ namespace IotZoo.Components;
 
 public partial class CronExpression : ComponentBase
 {
-   public Domain.Pocos.CronExpression Cron { get; } = new();
+    public Domain.Pocos.CronExpression Cron { get; } = new();
 
-   public List<DateTime> Occurences { get; set; } = new();
+    public List<DateTime> Occurences { get; set; } = new();
 
-   [Inject]
-   ISnackbar Snackbar { get; set; } = null!;
+    [Inject]
+    ISnackbar Snackbar { get; set; } = null!;
 
-   protected void Parse()
-   {
-      try
-      {
-         CrontabSchedule schedule = CrontabSchedule.Parse(Cron.ToString(), new CrontabSchedule.ParseOptions { IncludingSeconds = true });
+    protected void Parse()
+    {
+        try
+        {
+            CrontabSchedule schedule = CrontabSchedule.Parse(Cron.ToString(), new CrontabSchedule.ParseOptions { IncludingSeconds = true });
 
-         Occurences = schedule.GetNextOccurrences(DateTime.UtcNow, DateTime.UtcNow.AddDays(100)).Take(25).AsList();
-      }
-      catch (Exception ex)
-      {
-         Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
-      }
-   }
+            Occurences = schedule.GetNextOccurrences(DateTime.UtcNow, DateTime.UtcNow.AddDays(100)).Take(25).AsList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.GetBaseException().Message, Severity.Error);
+        }
+    }
 }

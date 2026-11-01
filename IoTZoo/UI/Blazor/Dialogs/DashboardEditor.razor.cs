@@ -28,16 +28,8 @@ public class DashboardEditorBase : EditorBase
 
     protected async override Task OnInitializedAsync()
     {
-        if (Dashboard.DashboardId <= 0)
-        {
-            DialogTitle = "Add Dashboard";
-            IsNewRecord = true;
-        }
-        else
-        {
-            DialogTitle = "Edit Dashboard";
-            IsNewRecord = false;
-        }
+        IsNewRecord = Dashboard.DashboardId <= 0;
+        DialogTitle = IsNewRecord ? "Add Dashboard" : "Edit Dashboard";
 
         HashCode = GetHashCodeBase64(Dashboard);
         await base.OnInitializedAsync();

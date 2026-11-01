@@ -35,7 +35,6 @@ public class TopicsHistoryPageBase : PageBase
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
             ProjectsCatalog = await ProjectService.LoadProjects();
@@ -43,8 +42,8 @@ public class TopicsHistoryPageBase : PageBase
             {
                 DataTransferService.SelectedProject = ProjectsCatalog.FirstOrDefault(p => p.ProjectName == ProjectName);
             }
-            await LoadData();
         }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     [Inject]

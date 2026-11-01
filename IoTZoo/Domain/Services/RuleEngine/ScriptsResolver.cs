@@ -42,21 +42,22 @@ public class ScriptsResolver : IScriptsResolver
             scriptResult = ResolveJsonPath(scriptResult, expression.Substring(call.EndOfCall, endOfPath - call.EndOfCall));
          }
 
-         expression = ReplaceFirstScriptCall(expression, scriptResult, endOfPath);
+         expression = expression.Substring(0, call.StartOfCall) + scriptResult + expression.Substring(endOfPath);
       }
       return expression;
    }
 
    private static ScriptCall ParseScriptCall(string expression)
    {
-      int startOfName = expression.IndexOf(FunctionNames.Script, StringComparison.Ordinal) + FunctionNames.Script.Length;
+      int startOfCall = expression.IndexOf(FunctionNames.Script, StringComparison.Ordinal);
+      int startOfName = startOfCall + FunctionNames.Script.Length;
       int startOfData = expression.IndexOf('(', startOfName + 1);
       int endOfData = expression.IndexOf(')', startOfData + 1);
 
       string name = expression.Substring(startOfName, startOfData - startOfName).Trim('(', ')');
       string data = expression.Substring(startOfData + 1, endOfData - startOfData - 1);
 
-      return new ScriptCall(name, data, endOfData + 1);
+      return new ScriptCall(name, data, startOfCall, endOfData + 1);
    }
 
    private static int FindPathEnd(string expression, int start)
@@ -80,13 +81,7 @@ public class ScriptsResolver : IScriptsResolver
       return position;
    }
 
-   private static string ReplaceFirstScriptCall(string expression, string replacement, int endOfCall)
-   {
-      int startOfCall = expression.IndexOf(FunctionNames.Script, StringComparison.Ordinal);
-      return expression.Substring(0, startOfCall) + replacement + expression.Substring(endOfCall);
-   }
-
-   private sealed record ScriptCall(string Name, string Data, int EndOfCall);
+   private sealed record ScriptCall(string Name, string Data, int StartOfCall, int EndOfCall);
 
    protected static string ResolveJsonPath(string json, string path)
    {

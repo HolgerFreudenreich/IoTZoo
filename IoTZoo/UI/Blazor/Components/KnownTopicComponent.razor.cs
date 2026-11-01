@@ -17,36 +17,36 @@ namespace IotZoo.Components;
 
 public class KnownTopicComponentBase : ComponentBase
 {
-   private string topic = string.Empty;
+    private string topic = string.Empty;
 
-   [Parameter]
+    [Parameter]
 #pragma warning disable BL0007 // Component parameters should be auto properties
-   public string Topic
+    public string Topic
 #pragma warning restore BL0007 // Component parameters should be auto properties
-   {
-      get => topic;
-      set
-      {
-         if (!string.IsNullOrEmpty(value) && value.StartsWith("/"))
-         {
-            topic = $"<Namespace>/<Project>/<BoardType>/<MacAddress>{value}";
-         }
-         else
-         {
-            topic = value;
-         }
-      }
-   }
+    {
+        get => topic;
+        set
+        {
+            if (!string.IsNullOrEmpty(value) && value.StartsWith("/"))
+            {
+                topic = $"<Namespace>/<Project>/<BoardType>/<MacAddress>{value}";
+            }
+            else
+            {
+                topic = value;
+            }
+        }
+    }
 
-   [Parameter]
-   public string Description { get; set; } = string.Empty;
+    [Parameter]
+    public string Description { get; set; } = string.Empty;
 
-   [Parameter]
-   public string Payload { get; set; } = string.Empty;
+    [Parameter]
+    public string Payload { get; set; } = string.Empty;
 
-   [Parameter]
-   public string ExamplePayload { get; set; } = string.Empty;
+    [Parameter]
+    public string ExamplePayload { get; set; } = string.Empty;
 
-   [Parameter]
-   public MessageDirection MessageDirection { get; set; }
+    [Parameter]
+    public MessageDirection MessageDirection { get; set; }
 }

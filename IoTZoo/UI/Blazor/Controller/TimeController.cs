@@ -21,58 +21,33 @@ namespace IotZoo.Controller;
 [Route("api/[controller]")]
 public class TimeController : ControllerBase
 {
-  public TimeController(ILogger<TimeController> logger, IOptions<AppSettings> options)
-  {
-    this.Logger      = logger;
-    this.AppSettings = options.Value;
+    public TimeController(ILogger<TimeController> logger, IOptions<AppSettings> options)
+    {
+        Logger = logger;
+        AppSettings = options.Value;
 
-    SunriseCalc sunriseCalc = new SunriseCalc(AppSettings.Latitude, AppSettings.Longitude);
+        SunriseCalc sunriseCalc = new SunriseCalc(AppSettings.Latitude, AppSettings.Longitude);
 
-    sunriseCalc.GetRiseAndSet(out DateTime sunriseDateTime, out DateTime sunsetDateTime);
+        sunriseCalc.GetRiseAndSet(out DateTime sunriseDateTime, out DateTime sunsetDateTime);
 
-    SunriseDateTimeUtc = sunriseDateTime;
-    SunsetDateTimeUtc  = sunsetDateTime;
-  }
+        SunriseDateTimeUtc = sunriseDateTime;
+        SunsetDateTimeUtc = sunsetDateTime;
+    }
 
-  protected AppSettings AppSettings
-  {
-    get;
-    set;
-  }
+    protected AppSettings AppSettings { get; set; }
 
-  protected ILogger<TimeController> Logger
-  {
-    get;
-    set;
-  }
+    protected ILogger<TimeController> Logger { get; set; }
 
-  protected DateTime SunriseDateTimeUtc
-  {
-    get;
-    set;
-  }
+    protected DateTime SunriseDateTimeUtc { get; set; }
 
-  protected DateTime SunsetDateTimeUtc
-  {
-    get;
-    set;
-  }
+    protected DateTime SunsetDateTimeUtc { get; set; }
 
-  [HttpGet]
-  public DateTime Get()
-  {
-    return DateTime.Now;
-  }
+    [HttpGet]
+    public DateTime Get() => DateTime.Now;
 
-  [HttpGet("Sunset")]
-  public DateTime GetSunset()
-  {
-    return SunsetDateTimeUtc.ToLocalTime();
-  }
+    [HttpGet("Sunset")]
+    public DateTime GetSunset() => SunsetDateTimeUtc.ToLocalTime();
 
-  [HttpGet("Sunrise")]
-  public DateTime GetSunrise()
-  {
-    return SunriseDateTimeUtc.ToLocalTime();
-  }
+    [HttpGet("Sunrise")]
+    public DateTime GetSunrise() => SunriseDateTimeUtc.ToLocalTime();
 }

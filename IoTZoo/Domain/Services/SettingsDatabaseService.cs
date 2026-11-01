@@ -59,6 +59,22 @@ public class SettingsDatabaseService : DataServiceBase, ISettingsCrudService
       return await GetSettingDouble(category.ToString(), settingsKey.ToString());
    }
 
+   public async Task<int> GetSettingInt(SettingCategory category, SettingKey settingsKey)
+   {
+      return await GetSettingInt(category.ToString(), settingsKey.ToString());
+   }
+
+   public async Task<int> GetSettingInt(string category, string settingsKey)
+   {
+      var setting = await GetSetting(category, settingsKey);
+      if (null != setting)
+      {
+         return Convert.ToInt32(setting.SettingValue, CultureInfo.InvariantCulture);
+      }
+
+      throw new Exception("unknown settingsKey!");
+   }
+
    public async Task<double> GetSettingDouble(string category, string settingsKey)
    {
       var setting = await GetSetting(category, settingsKey);

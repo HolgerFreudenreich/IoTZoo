@@ -87,11 +87,6 @@ public class ProjectsPageBase : PageBase
         base.OnInitialized();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
     protected override async Task LoadData()
     {
         Projects = await this.ProjectDatabaseService.LoadProjects();
@@ -341,58 +336,9 @@ public class ProjectsPageBase : PageBase
             await MicrocontrollerDatabaseService.Save(microcontroller, false);
         }
 
-        List<string> skippedTopics = new();
-        if (export.Dashboards != null)
-        {
-            int importedProjectId = importedProject.ProjectId;
-            List<Dashboard> existingDashboards = (await DashboardService.GetDashboards())
-                .Where(d => d.ProjectId == importedProjectId)
-                .ToList();
-
-            foreach (DashboardExport dashboardExport in export.Dashboards)
-            {
-                Dashboard dashboard = dashboardExport.Dashboard;
-                dashboard.ProjectId = importedProjectId;
-
-                int dashboardId;
-                Dashboard? existingDashboard = existingDashboards.FirstOrDefault(d => d.DashboardName == dashboard.DashboardName);
-                if (existingDashboard != null)
-                {
-                    dashboard.DashboardId = existingDashboard.DashboardId;
-                    await DashboardService.Update(dashboard);
-                    dashboardId = dashboard.DashboardId;
-
-                    foreach (DashboardItem existingItem in await DashboardItemsService.GetDashboardItemsByDashboardId(dashboardId))
-                    {
-                        await DashboardItemsService.Delete(existingItem);
-                    }
-                }
-                else
-                {
-                    dashboard.DashboardId = 0;
-                    dashboardId = await DashboardService.Insert(dashboard);
-                }
-
-                foreach (DashboardItemExport itemExport in dashboardExport.Items)
-                {
-                    KnownTopic? knownTopic = await KnownTopicsService.GetKnownTopicByTopicName(projectName, itemExport.TopicName);
-                    if (knownTopic == null)
-                    {
-                        skippedTopics.Add(itemExport.TopicName);
-                        continue;
-                    }
-
-                    await DashboardItemsService.Insert(new DashboardItem
-                    {
-                        DashboardId = dashboardId,
-                        KnownTopicId = knownTopic.KnownTopicId,
-                        IndexInDashboard = itemExport.Item.IndexInDashboard,
-                        DisplayType = itemExport.Item.DisplayType,
-                        SettingsJson = itemExport.Item.SettingsJson
-                    });
-                }
-            }
-        }
+        List<string> skippedTopics = export.Dashboards != null
+            ? await ImportDashboards(export.Dashboards, importedProject.ProjectId, projectName)
+            : new List<string>();
 
         if (skippedTopics.Count > 0)
         {
@@ -400,6 +346,60 @@ public class ProjectsPageBase : PageBase
         }
 
         Snackbar.Add($"The project '{projectName}' is imported!", Severity.Success);
+    }
+
+    private async Task<List<string>> ImportDashboards(List<DashboardExport> dashboardExports, int projectId, string projectName)
+    {
+        List<string> skippedTopics = new();
+        List<Dashboard> existingDashboards = (await DashboardService.GetDashboards())
+            .Where(d => d.ProjectId == projectId)
+            .ToList();
+
+        foreach (DashboardExport dashboardExport in dashboardExports)
+        {
+            Dashboard dashboard = dashboardExport.Dashboard;
+            dashboard.ProjectId = projectId;
+
+            int dashboardId;
+            Dashboard? existingDashboard = existingDashboards.FirstOrDefault(d => d.DashboardName == dashboard.DashboardName);
+            if (existingDashboard != null)
+            {
+                dashboard.DashboardId = existingDashboard.DashboardId;
+                await DashboardService.Update(dashboard);
+                dashboardId = dashboard.DashboardId;
+
+                foreach (DashboardItem existingItem in await DashboardItemsService.GetDashboardItemsByDashboardId(dashboardId))
+                {
+                    await DashboardItemsService.Delete(existingItem);
+                }
+            }
+            else
+            {
+                dashboard.DashboardId = 0;
+                dashboardId = await DashboardService.Insert(dashboard);
+            }
+
+            foreach (DashboardItemExport itemExport in dashboardExport.Items)
+            {
+                KnownTopic? knownTopic = await KnownTopicsService.GetKnownTopicByTopicName(projectName, itemExport.TopicName);
+                if (knownTopic == null)
+                {
+                    skippedTopics.Add(itemExport.TopicName);
+                    continue;
+                }
+
+                await DashboardItemsService.Insert(new DashboardItem
+                {
+                    DashboardId = dashboardId,
+                    KnownTopicId = knownTopic.KnownTopicId,
+                    IndexInDashboard = itemExport.Item.IndexInDashboard,
+                    DisplayType = itemExport.Item.DisplayType,
+                    SettingsJson = itemExport.Item.SettingsJson
+                });
+            }
+        }
+
+        return skippedTopics;
     }
 
     protected async Task DeleteProject(Project project)

@@ -10,17 +10,6 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
-// // --------------------------------------------------------------------------------------------------------------------
-//      ____    ______   _____
-//     /  _/___/_  __/  /__  / ____  ____
-//     / // __ \/ /       / / / __ \/ __ \
-//   _/ // /_/ / /       / /_/ /_/ / /_/ /
-//  /___/\____/_/       /____|____/\____/ 
-//
-// --------------------------------------------------------------------------------------------------------------------
-// (c) 2025 - 2026 Holger Freudenreich under MIT license
-// --------------------------------------------------------------------------------------------------------------------
-
 using Domain.Interfaces;
 using Domain.Pocos;
 using Infrastructure;
@@ -119,34 +108,22 @@ public class EditorBase : DialogBase
     {
         try
         {
-            var properties = poco.GetType().GetProperties();
-
-            foreach (var property in properties)
+            foreach (var property in poco.GetType().GetProperties())
             {
                 try
                 {
-                    if (property.PropertyType == typeof(string))
+                    if (property.PropertyType != typeof(string) || !property.CanWrite)
                     {
-                        object? objectStringValue = property.GetValue(poco);
-                        if (objectStringValue == null)
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
 
-                        string? value = Convert.ToString(objectStringValue);
-                        if (!string.IsNullOrEmpty(value))
-                        {
-                            if (property.CanWrite)
-                            {
-                                property.SetValue(poco,
-                                                  value.Trim());
-                            }
-                        }
+                    if (property.GetValue(poco) is string value && !string.IsNullOrEmpty(value))
+                    {
+                        property.SetValue(poco, value.Trim());
                     }
                 }
                 catch
                 {
-                    continue;
                 }
             }
         }
@@ -159,24 +136,17 @@ public class EditorBase : DialogBase
 
     protected virtual DialogOptions GetDialogOptions()
     {
-        DialogOptions options = new DialogOptions
+        return new DialogOptions
         {
             BackdropClick = false,
             CloseButton = false,
             MaxWidth = MaxWidth.Large,
             CloseOnEscapeKey = false,
         };
-
-        return options;
     }
 
     protected string GetHashCodeBase64(object? poco)
     {
-        if (poco == null)
-        {
-            return string.Empty;
-        }
-        string jsonString = JsonSerializer.Serialize(poco);
-        return this.HashingService.AsBase64(jsonString);
+        return poco == null ? string.Empty : HashingService.AsBase64(JsonSerializer.Serialize(poco));
     }
 }

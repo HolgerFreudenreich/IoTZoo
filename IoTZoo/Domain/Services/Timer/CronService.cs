@@ -36,7 +36,7 @@ public class CronService : ICronService
     {
         CronCrudService = cronCrudService;
         Logger = logger;
-        this.DataTransferService = dataTransferService;
+        DataTransferService = dataTransferService;
         this.scheduler = scheduler;
         _ = InitCronScheduler();
     }
@@ -96,7 +96,6 @@ public class CronService : ICronService
                                         .WithIdentity(nameof(CalculateNextSunriseAndSunsetJob))
                                         .Build();
 
-
             var trigger = TriggerBuilder.Create()
                                .WithIdentity("trigger-" + nameof(CalculateNextSunriseAndSunsetJob))
                                .StartAt(DateTimeOffset.UtcNow.AddSeconds(5)) // Give mqtt client time to connect to the broker before firing.
@@ -134,7 +133,7 @@ public class CronService : ICronService
         var cronJobs = await CronCrudService.LoadByProject(project, onlyEnabledJobs: true);
         foreach (CronJob cronJob in cronJobs)
         {
-            bool deleted = await scheduler.DeleteJob(new JobKey(nameof(PublishTimeJob), cronJob.CronId.ToString()));
+            await scheduler.DeleteJob(new JobKey(nameof(PublishTimeJob), cronJob.CronId.ToString()));
         }
     }
 

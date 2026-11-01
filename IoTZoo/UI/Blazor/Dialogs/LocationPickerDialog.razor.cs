@@ -42,7 +42,7 @@ public class LocationPickerDialogBase : DialogBase, IAsyncDisposable
 
     protected double SelectedLongitude { get; set; }
 
-    private DotNetObjectReference<LocationPickerDialogBase>? _dotNetRef;
+    private DotNetObjectReference<LocationPickerDialogBase>? dotNetRef;
 
     protected override void OnInitialized()
     {
@@ -56,8 +56,8 @@ public class LocationPickerDialogBase : DialogBase, IAsyncDisposable
         await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
-            _dotNetRef = DotNetObjectReference.Create(this);
-            await JS.InvokeVoidAsync("locationPicker.create", MapId, Latitude, Longitude, _dotNetRef);
+            dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("locationPicker.create", MapId, Latitude, Longitude, dotNetRef);
             if (!string.IsNullOrWhiteSpace(Route))
             {
                 await JS.InvokeVoidAsync("locationPicker.drawRoute", MapId, Route);
@@ -91,6 +91,6 @@ public class LocationPickerDialogBase : DialogBase, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await JS.InvokeVoidAsync("locationPicker.dispose", MapId);
-        _dotNetRef?.Dispose();
+        dotNetRef?.Dispose();
     }
 }

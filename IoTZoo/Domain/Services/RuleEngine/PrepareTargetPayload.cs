@@ -49,16 +49,7 @@ public class PrepareTargetPayload : IPrepareTargetPayload
 
    public bool IsCalculation(string expression)
    {
-      bool hasMathOps = HasMathOps(expression);
-      if (!hasMathOps)
-      {
-         if (expression.Contains("NOT", StringComparison.OrdinalIgnoreCase))
-         {
-            return true;
-         }
-      }
-      return hasMathOps;
-      //return expression.Contains(FunctionNames.Calc, StringComparison.OrdinalIgnoreCase);
+      return HasMathOps(expression) || expression.Contains("NOT", StringComparison.OrdinalIgnoreCase);
    }
 
    public async Task<string?> Execute(string? expression, string? payload)
