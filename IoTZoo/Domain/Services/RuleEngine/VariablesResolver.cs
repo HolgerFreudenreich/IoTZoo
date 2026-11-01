@@ -53,47 +53,13 @@ public class VariablesResolver : IVariablesResolver
     /// <returns></returns>
     public async Task<string> ResolveVariables(string expression)
     {
-        if (!expression.StartsWith("{") &&
-            !expression.Contains(FunctionNames.ReadFromMemory, StringComparison.OrdinalIgnoreCase) &&
-            !expression.Contains(FunctionNames.Calc, StringComparison.OrdinalIgnoreCase) &&
-            !expression.Contains(FunctionNames.Script, StringComparison.OrdinalIgnoreCase))
+        if (IsPlainExpression(expression))
         {
-            expression = expression.Replace(FunctionNames.Calc, string.Empty, StringComparison.OrdinalIgnoreCase);
-            string output1 = string.Empty;
-            var splitted = expression.Split(" ");
-            foreach (var item in splitted)
-            {
-                if (char.IsLetter(item[0]))
-                {
-                    TopicEntry? topicFromMemory = (from data in DataTransferService.ReceivedTopicsQueue where data.Topic == item select data).SingleOrDefault();
-                    if (topicFromMemory != null)
-                    {
-                        output1 += topicFromMemory.Payload;
-                    }
-                    else
-                    {
-                        var knownTopic = await KnownTopicsDatabaseService.GetKnownTopicByTopicName("", item); // fixme Holger
-                        if (knownTopic != null)
-                        {
-                            output1 += knownTopic.LastPayload;
-                        }
-                        else
-                        {
-                            return expression;
-                        }
-                    }
-                }
-                else
-                {
-                    output1 += item;
-                }
-                output1 += " ";
-            }
-            return output1.TrimEnd();
+            return await ResolvePlainExpression(expression);
         }
 
         string output = expression;
-        int count = Count(expression, FunctionNames.ReadFromMemory); // Regex.Count(expression, FunctionNames.ReadFromMemory);
+        int count = Count(expression, FunctionNames.ReadFromMemory);
 
         for (int i = 0; i < count; i++)
         {
@@ -101,6 +67,44 @@ public class VariablesResolver : IVariablesResolver
         }
 
         return output;
+    }
+
+    private static bool IsPlainExpression(string expression)
+    {
+        return !expression.StartsWith("{") &&
+               !expression.Contains(FunctionNames.ReadFromMemory, StringComparison.OrdinalIgnoreCase) &&
+               !expression.Contains(FunctionNames.Calc, StringComparison.OrdinalIgnoreCase) &&
+               !expression.Contains(FunctionNames.Script, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task<string> ResolvePlainExpression(string expression)
+    {
+        expression = expression.Replace(FunctionNames.Calc, string.Empty, StringComparison.OrdinalIgnoreCase);
+        string output = string.Empty;
+
+        foreach (string item in expression.Split(" "))
+        {
+            string? value = char.IsLetter(item[0]) ? await GetTopicPayload(item) : item;
+            if (value == null)
+            {
+                return expression;
+            }
+            output += value + " ";
+        }
+
+        return output.TrimEnd();
+    }
+
+    private async Task<string?> GetTopicPayload(string topic)
+    {
+        TopicEntry? topicFromMemory = (from data in DataTransferService.ReceivedTopicsQueue where data.Topic == topic select data).SingleOrDefault();
+        if (topicFromMemory != null)
+        {
+            return topicFromMemory.Payload ?? string.Empty;
+        }
+
+        KnownTopic? knownTopic = await KnownTopicsDatabaseService.GetKnownTopicByTopicName("", topic); // fixme Holger
+        return knownTopic == null ? null : knownTopic.LastPayload ?? string.Empty;
     }
 
     /// <summary>
@@ -111,32 +115,22 @@ public class VariablesResolver : IVariablesResolver
     /// <returns></returns>
     private string HandleJsonPathArrayIndexer(string input, string? payload, int startIndex, int indexEnd)
     {
+        if (string.IsNullOrEmpty(payload))
+        {
+            return input;
+        }
+
         try
         {
-            if (string.IsNullOrEmpty(payload))
-            {
-                return input;
-            }
-            string indexAccessor = input.Substring(indexEnd + 1);
             int arrayIndexerStartIndex = indexEnd + 3;
             int arrayIndexerEndIndex = input.IndexOf("]", arrayIndexerStartIndex);
             string arrayIndexer = input.Substring(arrayIndexerStartIndex, arrayIndexerEndIndex - arrayIndexerStartIndex - 1);
 
-            string source = $"$.*.{arrayIndexer}";
-
-            var path = JsonPath.Parse(source);
-            JsonNode? jsonNode = JsonNode.Parse(payload);
-            PathResult? pathResult = path.Evaluate(jsonNode);
-            if (pathResult.Matches is not { Count: > 0 })
-            {
-                pathResult = JsonPath.Parse($"$.{arrayIndexer}").Evaluate(jsonNode);
-            }
-
-            Node? firstMatch = pathResult.Matches?.FirstOrDefault();
-            if (firstMatch != null && firstMatch.Value != null)
+            string? value = EvaluateArrayIndexer(payload, arrayIndexer);
+            if (value != null)
             {
                 string segment = input.Substring(startIndex, arrayIndexerEndIndex - startIndex + 1);
-                return input.Replace(segment, firstMatch.Value.ToString());
+                return input.Replace(segment, value);
             }
         }
         catch (Exception exception)
@@ -146,14 +140,38 @@ public class VariablesResolver : IVariablesResolver
         return input;
     }
 
+    private static string? EvaluateArrayIndexer(string payload, string arrayIndexer)
+    {
+        JsonNode? jsonNode = JsonNode.Parse(payload);
+        PathResult? pathResult = JsonPath.Parse($"$.*.{arrayIndexer}").Evaluate(jsonNode);
+        if (pathResult.Matches is not { Count: > 0 })
+        {
+            pathResult = JsonPath.Parse($"$.{arrayIndexer}").Evaluate(jsonNode);
+        }
+        return pathResult.Matches?.FirstOrDefault()?.Value?.ToString();
+    }
+
     protected async Task<string> ReplaceVariableNameWithVariableContent(string input)
     {
-        // Are there many ReadFromMemory occurrences?
-        int nextStartIndex = input.IndexOf(FunctionNames.ReadFromMemory, StringComparison.Ordinal);
-        if (-1 == nextStartIndex)
+        int startIndex = input.IndexOf(FunctionNames.ReadFromMemory, StringComparison.Ordinal);
+        if (-1 == startIndex)
         {
             return input;
         }
+
+        ReadCall call = ParseReadCall(input, startIndex);
+
+        TopicEntry? topicFromMemory = (from data in DataTransferService.ReceivedTopicsQueue where data.FullQualifiedTopic == call.NettoTopicName select data).SingleOrDefault();
+        if (null != topicFromMemory && !string.IsNullOrEmpty(topicFromMemory.Payload))
+        {
+            return ResolveFromMemory(input, call, topicFromMemory.Payload);
+        }
+
+        return await ResolveFromDatabase(input, call);
+    }
+
+    private static ReadCall ParseReadCall(string input, int startIndex)
+    {
         int indexEnd = input.IndexOf(")", StringComparison.Ordinal);
         bool hasBrackets = true;
         if (-1 == indexEnd)
@@ -162,69 +180,57 @@ public class VariablesResolver : IVariablesResolver
             hasBrackets = false;
         }
 
-        string formula = input.Substring(nextStartIndex - 0, indexEnd - nextStartIndex + 1).Trim();
-        string topicName = string.Empty;
-
-        if (hasBrackets)
-        {
-            topicName = formula.Substring(FunctionNames.ReadFromMemory.Length + 1, formula.Length - FunctionNames.ReadFromMemory.Length - 2);
-        }
-        else
-        {
-            topicName = formula.Substring(FunctionNames.ReadFromMemory.Length, formula.Length - FunctionNames.ReadFromMemory.Length);
-        }
+        string formula = input.Substring(startIndex, indexEnd - startIndex + 1).Trim();
+        string topicName = hasBrackets
+            ? formula.Substring(FunctionNames.ReadFromMemory.Length + 1, formula.Length - FunctionNames.ReadFromMemory.Length - 2)
+            : formula.Substring(FunctionNames.ReadFromMemory.Length, formula.Length - FunctionNames.ReadFromMemory.Length);
 
         string[] topicArguments = topicName.Split(',');
-        string nettoTopicName = topicArguments[0].Replace("'", string.Empty).Replace("\\\"", string.Empty).Trim();
-        string? defaultValue = topicArguments.Length > 1 ? topicArguments[1].Replace("'", string.Empty).Replace("\\\"", string.Empty).Trim() : null;
+        string nettoTopicName = CleanArgument(topicArguments[0]);
+        string? defaultValue = topicArguments.Length > 1 ? CleanArgument(topicArguments[1]) : null;
 
-        string output = string.Empty;
+        bool isArrayIndexer = input.Length > indexEnd + 1 && input[indexEnd + 1] == '[';
 
-        bool isArrayIndexer = false;
-
-        if (input.Length > indexEnd + 1)
-        {
-            if (input.Substring(indexEnd + 1, 1) == "[")
-            {
-                // Something like ReadFromMemory('colors')['green']
-                isArrayIndexer = true;
-            }
-        }
-
-        TopicEntry? topicFromMemory = (from data in DataTransferService.ReceivedTopicsQueue where data.FullQualifiedTopic == nettoTopicName select data).SingleOrDefault();
-        if (null != topicFromMemory && !string.IsNullOrEmpty(topicFromMemory.Payload))
-        {
-            if (hasBrackets)
-            {
-                output = input.Replace($"{FunctionNames.ReadFromMemory}({topicName})", topicFromMemory.Payload);
-            }
-            else
-            {
-                output = input.Replace($"{FunctionNames.ReadFromMemory}{topicName}", topicFromMemory.Payload);
-            }
-            if (isArrayIndexer)
-            {
-                output = HandleJsonPathArrayIndexer(input, topicFromMemory.Payload, nextStartIndex, indexEnd);
-            }
-        }
-        else
-        {
-            // Read from Database
-            KnownTopic? topicFromDatabase = await KnownTopicsDatabaseService.GetKnownTopicByTopicName("", nettoTopicName); // fixme Holger
-            if (null != topicFromDatabase && !string.IsNullOrEmpty(topicFromDatabase.LastPayload))
-            {
-                output = input.Replace($"{FunctionNames.ReadFromMemory}({topicName})", topicFromDatabase.LastPayload);
-
-                if (isArrayIndexer)
-                {
-                    output = HandleJsonPathArrayIndexer(input, topicFromDatabase.LastPayload, nextStartIndex, indexEnd);
-                }
-            }
-            else if (null != defaultValue)
-            {
-                output = input.Replace(formula, defaultValue);
-            }
-        }
-        return output;
+        return new ReadCall(formula, topicName, nettoTopicName, defaultValue, hasBrackets, isArrayIndexer, startIndex, indexEnd);
     }
+
+    private static string CleanArgument(string argument)
+    {
+        return argument.Replace("'", string.Empty).Replace("\\\"", string.Empty).Trim();
+    }
+
+    private string ResolveFromMemory(string input, ReadCall call, string payload)
+    {
+        if (call.IsArrayIndexer)
+        {
+            return HandleJsonPathArrayIndexer(input, payload, call.StartIndex, call.IndexEnd);
+        }
+
+        string key = call.HasBrackets
+            ? $"{FunctionNames.ReadFromMemory}({call.TopicName})"
+            : $"{FunctionNames.ReadFromMemory}{call.TopicName}";
+        return input.Replace(key, payload);
+    }
+
+    private async Task<string> ResolveFromDatabase(string input, ReadCall call)
+    {
+        KnownTopic? topicFromDatabase = await KnownTopicsDatabaseService.GetKnownTopicByTopicName("", call.NettoTopicName); // fixme Holger
+        if (null != topicFromDatabase && !string.IsNullOrEmpty(topicFromDatabase.LastPayload))
+        {
+            if (call.IsArrayIndexer)
+            {
+                return HandleJsonPathArrayIndexer(input, topicFromDatabase.LastPayload, call.StartIndex, call.IndexEnd);
+            }
+            return input.Replace($"{FunctionNames.ReadFromMemory}({call.TopicName})", topicFromDatabase.LastPayload);
+        }
+
+        if (null != call.DefaultValue)
+        {
+            return input.Replace(call.Formula, call.DefaultValue);
+        }
+
+        return string.Empty;
+    }
+
+    private sealed record ReadCall(string Formula, string TopicName, string NettoTopicName, string? DefaultValue, bool HasBrackets, bool IsArrayIndexer, int StartIndex, int IndexEnd);
 }

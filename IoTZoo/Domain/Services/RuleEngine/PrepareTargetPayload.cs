@@ -65,7 +65,7 @@ public class PrepareTargetPayload : IPrepareTargetPayload
    {
       if (null != expression)
       {
-         expression = Regex.Replace(expression, $@"(?<![\w/']){FunctionNames.Input}(?![\w'/])", _ => payload ?? string.Empty, RegexOptions.IgnoreCase);
+         expression = ReplaceInputWithPayload(expression, payload);
          expression = await ExpressionParser.ResolveExpression(expression);
 
          if (expression.Contains("$["))
@@ -81,9 +81,21 @@ public class PrepareTargetPayload : IPrepareTargetPayload
 
       if (!string.IsNullOrEmpty(expression))
       {
-         expression = System.Text.RegularExpressions.Regex.Unescape(expression);
+         expression = Regex.Unescape(expression);
       }
       return expression;
+   }
+
+   /// <summary>
+   /// Replaces every standalone input placeholder in the expression with the payload.
+   /// Empty string is used when the payload is null.
+   /// </summary>
+   /// <param name="expression">Expression containing the input placeholder.</param>
+   /// <param name="payload">Payload that replaces the placeholder.</param>
+   /// <returns>The expression with the placeholder substituted.</returns>
+   private static string ReplaceInputWithPayload(string expression, string? payload)
+   {
+      return Regex.Replace(expression, $@"(?<![\w/']){FunctionNames.Input}(?![\w'/])", _ => payload ?? string.Empty, RegexOptions.IgnoreCase);
    }
 
    public async Task<string?> Execute(Rule rule, TopicEntry topicEntry)
@@ -111,22 +123,35 @@ public class PrepareTargetPayload : IPrepareTargetPayload
       {
          return string.Empty;
       }
+
+      string? location = ExtractJsonLocation(targetProperty);
+      if (null == location)
+      {
+         return targetProperty;
+      }
+
+      string? firstValue = FindFirstJsonValue(location, payloadJson);
+      if (null == firstValue)
+      {
+         return targetProperty;
+      }
+
+      return targetProperty.Replace(location, firstValue);
+   }
+
+   private static string ExtractJsonLocation(string targetProperty)
+   {
       int index = targetProperty.LastIndexOf("]");
       int startIndex = targetProperty.LastIndexOf("[");
-      string location = targetProperty.Substring(startIndex - 1, index - startIndex + 2);
+      return targetProperty.Substring(startIndex - 1, index - startIndex + 2);
+   }
+
+   private static string? FindFirstJsonValue(string location, string payloadJson)
+   {
       var path = JsonPath.Parse(location);
       JsonNode? jsonNode = JsonNode.Parse(payloadJson);
       PathResult? pathResult = path.Evaluate(jsonNode);
 
-      var firstMatch = pathResult.Matches?.FirstOrDefault();
-      if (firstMatch != null)
-      {
-         if (firstMatch.Value != null)
-         {
-            targetProperty = targetProperty.Replace(location, firstMatch.Value.ToString());
-         }
-      }
-
-      return targetProperty;
+      return pathResult.Matches?.FirstOrDefault()?.Value?.ToString();
    }
 }

@@ -130,10 +130,6 @@ namespace UnitTests
         }
 
         /// <summary>
-        /// Test simple addition.
-        /// </summary>
-        /// <exception cref="Exception"></exception>
-        /// <summary>
         /// Calculating '1 + 1' returns 2.
         /// </summary>
         [Fact]
@@ -196,24 +192,40 @@ namespace UnitTests
         /// Test text comparison matching.
         /// </summary>
         /// <exception cref="Exception"></exception>
-        [Fact]
-        public void CalcComparisonStringTest1()
+        [Theory]
+        [InlineData("'IoTZoo' == 'IoTZoo'", true)]
+        [InlineData("'iotzoo' == 'IOTZOO'", false)]
+        public void CalcComparisonStringTest(string expression, bool expected)
         {
-            var result = CalculationService.Calculate("'IoTZoo' == 'IoTZoo'");
+            var result = CalculationService.Calculate(expression);
 
-            Assert.True(Convert.ToBoolean(result));
+            Assert.Equal(expected, Convert.ToBoolean(result));
         }
 
         /// <summary>
-        /// Test text comparison not matching.
+        /// Null or empty expressions are treated as evaluated (matching).
         /// </summary>
-        /// <exception cref="Exception"></exception>
-        [Fact]
-        public void CalcComparisonStringFailTest()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public async Task EvaluateExpressionNullOrEmptyMatches(string? expression)
         {
-            var result = CalculationService.Calculate("'iotzoo' == 'IOTZOO'");
+            var expressionEvaluationResult =
+                await ExpressionEvaluationService.EvaluateExpressionAsync(expression, "1");
 
-            Assert.False(Convert.ToBoolean(result));
+            Assert.True(expressionEvaluationResult.Matches);
+        }
+
+        /// <summary>
+        /// A malformed JSON expression does not match and does not throw.
+        /// </summary>
+        [Fact]
+        public async Task EvaluateExpressionMalformedJsonDoesNotMatch()
+        {
+            var expressionEvaluationResult =
+                await ExpressionEvaluationService.EvaluateExpressionAsync("{ \"Operator\": \">", "1");
+
+            Assert.False(expressionEvaluationResult.Matches);
         }
 
         /// <summary>
@@ -1490,7 +1502,7 @@ namespace UnitTests
             {
                 Topic = "INC_VARIABLE1"
             };
-            var targetPayload1 = PrepareTargetPayload.Execute(rule2, topicEntry1);
+            var targetPayload1 = await PrepareTargetPayload.Execute(rule2, topicEntry1);
 
             var topicEntry2 = new TopicEntry
             {
@@ -1509,7 +1521,7 @@ namespace UnitTests
         /// Target payloads that read a colors JSON array from memory are prepared without throwing.
         /// </summary>
         [Fact]
-        public void DataFromJsonTest1()
+        public async Task DataFromJsonTest1()
         {
             DataTransferService.ReceivedTopicsQueue.Clear();
             DataTransferService.ReceivedTopicsQueue.Enqueue(new TopicEntry
@@ -1523,7 +1535,8 @@ namespace UnitTests
             };
 
             var topicEntry0 = new TopicEntry();
-            var targetPayload0 = PrepareTargetPayload.Execute(rule0, topicEntry0);
+            var targetPayload0 = await PrepareTargetPayload.Execute(rule0, topicEntry0);
+            Assert.NotNull(targetPayload0);
 
             Rule rule1 = new Rule
             {
@@ -1534,7 +1547,8 @@ namespace UnitTests
             };
 
             var topicEntry1 = new TopicEntry();
-            var targetPayload1 = PrepareTargetPayload.Execute(rule1, topicEntry1);
+            var targetPayload1 = await PrepareTargetPayload.Execute(rule1, topicEntry1);
+            Assert.NotNull(targetPayload1);
 
             Rule rule2 = new Rule
             {
@@ -1545,7 +1559,8 @@ namespace UnitTests
             };
 
             var topicEntry2 = new TopicEntry();
-            var targetPayload2 = PrepareTargetPayload.Execute(rule2, topicEntry2);
+            var targetPayload2 = await PrepareTargetPayload.Execute(rule2, topicEntry2);
+            Assert.NotNull(targetPayload2);
         }
 
         /// <summary>
@@ -1566,8 +1581,7 @@ namespace UnitTests
             rule0.TargetPayload = $"{FunctionNames.ReadFromMemory}(colors)";
             await RulesService.Save(rule0);
 
-            var messageHandlingResult =
-                await IoTZooMqttClient.HandleMqttMessage(new TopicEntry { Topic = "IOTZOO/TEST" });
+            await IoTZooMqttClient.HandleMqttMessage(new TopicEntry { Topic = "IOTZOO/TEST" });
         }
 
         /// <summary>
