@@ -28,6 +28,7 @@ public interface IDataTransferService
     long TopicsPerSecond { get; set; }
     PhilipsHueBridgeSettings PhilipsHueBridgeSettings { get; set; }
     bool IsDarkMode { get; set; }
+    int MqttExplorerMaxReceivedTopics { get; set; }
     ScreenMode CurrentScreen { get; set; }
     KnownTopic? SelectedKnownTopic { get; set; }
 }

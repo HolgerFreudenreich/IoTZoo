@@ -19,14 +19,9 @@ namespace Infrastructure
    {
       public static string GetLocalIpAddress()
       {
-         // return Dns.GetHostName();
          IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
          IPAddress? ipAddress = host.AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
-         if (ipAddress == null)
-         {
-            return string.Empty;
-         }
-         return ipAddress.ToString();
+         return ipAddress?.ToString() ?? string.Empty;
       }
 
       public static T DeepCopyReflection<T>(T input)
@@ -42,7 +37,7 @@ namespace Infrastructure
          {
             if (property.CanWrite)
             {
-               object? value = property.GetValue(input)!;
+               object? value = property.GetValue(input);
                if (value != null &&
                    value.GetType().IsClass &&
                    !value.GetType().FullName!.StartsWith("System."))

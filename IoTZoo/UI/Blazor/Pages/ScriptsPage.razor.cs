@@ -38,13 +38,6 @@ public class ScriptsPageBase : PageBase
         set;
     } = null!;
 
-    [Inject]
-    protected IJSRuntime JSRuntime
-    {
-        get;
-        set;
-    } = null!;
-
     protected List<Script>? Scripts
     {
         get;
@@ -55,15 +48,6 @@ public class ScriptsPageBase : PageBase
     {
         DataTransferService.CurrentScreen = ScreenMode.Scripts;
         base.OnInitialized();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-        if (firstRender)
-        {
-            await LoadData();
-        }
     }
 
     protected override async Task LoadData()
@@ -127,7 +111,7 @@ public class ScriptsPageBase : PageBase
         try
         {
             string json = JsonSerializer.Serialize(script);
-            await JSRuntime.InvokeVoidAsync("copyToClipboard", json);
+            await JsRuntime.InvokeVoidAsync("copyToClipboard", json);
             Snackbar.Add($"{script.ScriptName} exported to clipboard.", Severity.Success);
         }
         catch (Exception exception)
@@ -140,7 +124,7 @@ public class ScriptsPageBase : PageBase
     {
         try
         {
-            string? json = await JSRuntime.InvokeAsync<string?>("readClipboardText");
+            string? json = await JsRuntime.InvokeAsync<string?>("readClipboardText");
             var script = string.IsNullOrWhiteSpace(json) ? null : JsonSerializer.Deserialize<Script>(json);
             if (script == null || string.IsNullOrWhiteSpace(script.SourceCode))
             {
@@ -160,28 +144,10 @@ public class ScriptsPageBase : PageBase
     {
         try
         {
-            var inputs = new List<string>();
-            var parameterLabels = GetParameterLabels(script);
-            for (int index = 0; index < parameterLabels.Count; index++)
+            var inputs = await CollectParameterValues(GetParameterLabels(script));
+            if (inputs == null)
             {
-                var parameters = new DialogParameters
-                {
-                    ["Title"] = $"Parameter {index + 1}",
-                    ["LabelText"] = parameterLabels[index],
-                    ["LabelButtonSave"] = "OK"
-                };
-                var dialog = await DialogService.ShowAsync<Dialogs.TextEditor>($"Parameter {index + 1}", parameters, GetDialogOptions());
-                var result = await dialog.Result;
-                if (result == null || result.Canceled)
-                {
-                    return;
-                }
-                string value = result.Data as string ?? string.Empty;
-                if (parameterLabels[index].EndsWith("(string)") && !(value.Length >= 2 && value.StartsWith('"') && value.EndsWith('"')))
-                {
-                    value = $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
-                }
-                inputs.Add(value);
+                return;
             }
             string input = string.Join(", ", inputs);
 
@@ -192,6 +158,43 @@ public class ScriptsPageBase : PageBase
         {
             Snackbar.Add($"{script.ScriptName}: {ex.GetBaseException().Message}", Severity.Error, options => options.VisibleStateDuration = 20000);
         }
+    }
+
+    private async Task<List<string>?> CollectParameterValues(List<string> parameterLabels)
+    {
+        var inputs = new List<string>();
+        for (int index = 0; index < parameterLabels.Count; index++)
+        {
+            var parameters = new DialogParameters
+            {
+                ["Title"] = $"Parameter {index + 1}",
+                ["LabelText"] = parameterLabels[index],
+                ["LabelButtonSave"] = "OK"
+            };
+            var dialog = await DialogService.ShowAsync<Dialogs.TextEditor>($"Parameter {index + 1}", parameters, GetDialogOptions());
+            var result = await dialog.Result;
+            if (result == null || result.Canceled)
+            {
+                return null;
+            }
+            string value = result.Data as string ?? string.Empty;
+            if (parameterLabels[index].EndsWith("(string)") && !IsQuoted(value))
+            {
+                value = QuoteString(value);
+            }
+            inputs.Add(value);
+        }
+        return inputs;
+    }
+
+    private static bool IsQuoted(string value)
+    {
+        return value.Length >= 2 && value.StartsWith('"') && value.EndsWith('"');
+    }
+
+    private static string QuoteString(string value)
+    {
+        return $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
     }
 
     private static List<string> GetParameterLabels(Script script)

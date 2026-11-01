@@ -26,16 +26,8 @@ public class CronJobEditorBase : EditorBase
 
    protected override async Task OnInitializedAsync()
    {
-      if (CronJob.CronId <= 0)
-      {
-         DialogTitle = "Add Cronjob";
-         IsNewRecord = true;
-      }
-      else
-      {
-         DialogTitle = "Edit Cronjob";
-         IsNewRecord = false;
-      }
+      IsNewRecord = CronJob.CronId <= 0;
+      DialogTitle = IsNewRecord ? "Add Cronjob" : "Edit Cronjob";
 
       HashCode = GetHashCodeBase64(CronJob);
       await base.OnInitializedAsync();

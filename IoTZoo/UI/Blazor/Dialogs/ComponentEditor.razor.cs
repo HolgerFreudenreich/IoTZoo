@@ -18,29 +18,19 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using System.Reflection;
 
-
 public class ComponentEditorBase : EditorBase
 {
-   [Parameter]
+    [Parameter]
+    public Component Component { get; set; } = null!;
 
-   public Component Component { get; set; } = null!;
+    protected override async Task OnInitializedAsync()
+    {
+        IsNewRecord = Component.ComponentId <= 0;
+        DialogTitle = IsNewRecord ? "Add Component" : "Edit Component";
 
-   protected override async Task OnInitializedAsync()
-   {
-      if (Component.ComponentId <= 0)
-      {
-         DialogTitle = "Add Component";
-         IsNewRecord = true;
-      }
-      else
-      {
-         DialogTitle = "Edit Component";
-         IsNewRecord = false;
-      }
-
-      HashCode = GetHashCodeBase64(Component);
-      await base.OnInitializedAsync();
-   }
+        HashCode = GetHashCodeBase64(Component);
+        await base.OnInitializedAsync();
+    }
 
    [Inject]
    private IComponentService ComponentService

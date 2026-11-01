@@ -43,45 +43,24 @@ public class IotZooMqttBroker : IIotZooMqttBroker
       {
          return;
       }
-      if (null != MqttServer)
-      {
-         if (MqttServer.IsStarted)
-         {
-            return;
-         }
-      }
 
       if (null == MqttServer)
       {
-         var mqttFactory = new MqttServerFactory();
-
-         //IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
-         //IPAddress? ipAddress = host.AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
-
-         // var mqttServerOptions = new MqttServerOptionsBuilder().WithDefaultEndpointBoundIPAddress(ipAddress).Build();
-
          var mqttServerOptions = new MqttServerOptionsBuilder().WithDefaultEndpoint().Build();
-
-         MqttServer = mqttFactory.CreateMqttServer(mqttServerOptions);
-
+         MqttServer = new MqttServerFactory().CreateMqttServer(mqttServerOptions);
       }
-      if (null != MqttServer)
+
+      if (!MqttServer.IsStarted)
       {
-         if (!MqttServer.IsStarted)
-         {
-            await MqttServer.StartAsync();
-         }
+         await MqttServer.StartAsync();
       }
    }
 
    public async Task StopServer()
    {
-      if (null != MqttServer)
+      if (null != MqttServer && MqttServer.IsStarted)
       {
-         if (MqttServer.IsStarted)
-         {
-            await MqttServer.StopAsync();
-         }
+         await MqttServer.StopAsync();
       }
    }
 

@@ -23,26 +23,23 @@ namespace DataAccess.Services;
 
 public class NamespaceService : DataServiceBase, INamespaceCrudService
 {
-   public NamespaceService(IOptions<AppSettings> options, ILogger<DataServiceBase> logger) : base(options, logger)
-   {
-      Initialize(typeof(KnownTopicPrefix), "cfg", "known_topic_prefix");
-   }
+    public NamespaceService(IOptions<AppSettings> options, ILogger<DataServiceBase> logger) : base(options, logger)
+    {
+        Initialize(typeof(KnownTopicPrefix), "cfg", "known_topic_prefix");
+    }
 
-   public string GetNamespaceName()
-   {
-      return Convert.ToString(Db.ExecuteScalar($"select topic_prefix from {FullQualifiedTableName}"))!;
-   }
+    public string GetNamespaceName() => Convert.ToString(Db.ExecuteScalar($"select topic_prefix from {FullQualifiedTableName}"))!;
 
-   public async Task Update(string namespaceName)
-   {
-      try
-      {
-         int rows = await Db.ExecuteAsync("update known_topic_prefix set topic_prefix = @TopicPrefix;", new { TopicPrefix = namespaceName });
-      }
-      catch (Exception ex)
-      {
-         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-         throw;
-      }
-   }
+    public async Task Update(string namespaceName)
+    {
+        try
+        {
+            await Db.ExecuteAsync("update known_topic_prefix set topic_prefix = @TopicPrefix;", new { TopicPrefix = namespaceName });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+            throw;
+        }
+    }
 }

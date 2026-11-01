@@ -144,10 +144,6 @@ namespace Domain.Services.RuleEngine
                 return expressionEvaluationResult; // treat as evaluated.
             }
 
-            //if (string.IsNullOrEmpty(payload))
-            //{
-            //   return false;
-            //}
             // does expression contain multiple expressions?
 
             ExpressionEvaluationResult? andResult = await EvaluateAndAsync(expressions, payload);
@@ -239,8 +235,6 @@ namespace Domain.Services.RuleEngine
                     expression = await ResolvePlainExpression(expression, payload);
                 }
 
-                // Datenbank ist schneller!
-                //result = await CSharpScript.EvaluateAsync(expression);
                 result = CalculationService.Calculate(expression);
 
                 Debug.WriteLine($"{expression} ➔ {result}");
@@ -279,7 +273,7 @@ namespace Domain.Services.RuleEngine
 
         private ExpressionEvaluationResult EvaluateJsonArrayExpression(string expression, string? payload)
         {
-            // Mehrere Expressions im JSON Format. Werden zunächst mit "OR" verknüpft
+            // Multiple expressions in JSON format. They are initially combined with "OR"
             var expressionPocos = JsonSerializer.Deserialize<List<ExpressionPoco>>(expression);
             if (null != expressionPocos)
             {

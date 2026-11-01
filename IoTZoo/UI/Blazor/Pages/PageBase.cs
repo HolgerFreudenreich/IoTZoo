@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using MudBlazor;
+using System.Diagnostics;
 using System.Reflection;
 
 public class PageBase : ComponentBase
@@ -104,48 +105,41 @@ public class PageBase : ComponentBase
         try
         {
             bool ok = await JsRuntime.InvokeAsync<bool>("copyToClipboard", text);
-            if (ok)
-            {
-                Snackbar.Add("Copied to clipboard", MudBlazor.Severity.Info);
-            }
-            else
-            {
-                Snackbar.Add("Copy to clipboard failed", MudBlazor.Severity.Error);
-            }
+            Snackbar.Add(ok ? "Copied to clipboard" : "Copy to clipboard failed", ok ? Severity.Info : Severity.Error);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-            Snackbar.Add("Copy to clipboard failed", MudBlazor.Severity.Error);
+            Snackbar.Add("Copy to clipboard failed", Severity.Error);
         }
     }
 
     protected virtual async Task RefreshData(bool firstRender = false)
     {
-        DateTime startDateTime = DateTime.UtcNow;
+        Stopwatch stopwatch = Stopwatch.StartNew();
 
         await LoadData();
 
         if (!firstRender)
         {
-            int ms = Convert.ToInt32((DateTime.UtcNow - startDateTime).TotalMilliseconds);
-
-            if (ms > 100)
-            {
-                this.Snackbar.Add($"Reloaded in {ms} ms",
-                                  Severity.Info);
-            }
-            if (ms > 1000)
-            {
-                this.Snackbar.Add($"Reloaded in {ms / 1000} s",
-                                  Severity.Info);
-            }
-            else
-            {
-                this.Snackbar.Add("Reloaded",
-                                  Severity.Info);
-            }
+            ShowReloadedMessage(Convert.ToInt32(stopwatch.Elapsed.TotalMilliseconds));
             await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void ShowReloadedMessage(int ms)
+    {
+        if (ms > 100)
+        {
+            Snackbar.Add($"Reloaded in {ms} ms", Severity.Info);
+        }
+        if (ms > 1000)
+        {
+            Snackbar.Add($"Reloaded in {ms / 1000} s", Severity.Info);
+        }
+        else
+        {
+            Snackbar.Add("Reloaded", Severity.Info);
         }
     }
 

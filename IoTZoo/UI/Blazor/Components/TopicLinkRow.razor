@@ -54,15 +54,3 @@
    </MudGrid>
 
 </MudPaper>
-
-@code {
-
-   [Parameter, EditorRequired]
-   public TopicLink TopicLinks { get; set; } = null!;
-
-   [Parameter]
-   public EventCallback<TopicLink> OnRemove { get; set; }
-
-   [Parameter]
-   public EventCallback<string> OnEdit { get; set; }
-}

@@ -25,60 +25,43 @@ public class RuleEditorBase : EditorBase
 
    protected override async Task OnInitializedAsync()
    {
-      await base.OnInitializedAsync();
-      Rule.NamespaceName = DataTransferService.NamespaceName;
-      if (Rule.RuleId <= 0)
-      {
-         DialogTitle = "Add Rule";
-         Rule.Enabled = true;
-         IsNewRecord = true;
-      }
-      else
-      {
-         DialogTitle = "Edit Rule";
-         IsNewRecord = false;
-      }
-      if (null != DataTransferService.SelectedProject)
-      {
-         Rule.ProjectName = DataTransferService.SelectedProject.ProjectName;
-         DialogTitle += $" for Project {Rule.ProjectName}";
-      }
+       await base.OnInitializedAsync();
+       Rule.NamespaceName = DataTransferService.NamespaceName;
+       IsNewRecord = Rule.RuleId <= 0;
+       DialogTitle = IsNewRecord ? "Add Rule" : "Edit Rule";
+       if (IsNewRecord)
+       {
+           Rule.Enabled = true;
+       }
+       if (null != DataTransferService.SelectedProject)
+       {
+           Rule.ProjectName = DataTransferService.SelectedProject.ProjectName;
+           DialogTitle += $" for Project {Rule.ProjectName}";
+       }
 
-      knownInboundTopics = await KnownTopicsService.GetKnownTopicsByProjectName(Rule.ProjectName, new List<MessageDirection> { MessageDirection.Inbound, MessageDirection.Internal });
-      knownOutboundTopics = await KnownTopicsService.GetKnownTopicsByProjectName(Rule.ProjectName, new List<MessageDirection> { MessageDirection.Outbound, MessageDirection.Internal });
+       knownInboundTopics = await KnownTopicsService.GetKnownTopicsByProjectName(Rule.ProjectName, new List<MessageDirection> { MessageDirection.Inbound, MessageDirection.Internal });
+       knownOutboundTopics = await KnownTopicsService.GetKnownTopicsByProjectName(Rule.ProjectName, new List<MessageDirection> { MessageDirection.Outbound, MessageDirection.Internal });
 
-      if (null != Rule.SourceTopic)
-      {
-         KnownSourceTopic.Topic = Rule.SourceTopic;
-      }
-      if (null != Rule.TargetTopic)
-      {
-         KnownTargetTopic.Topic = Rule.TargetTopic;
-         TargetTopicText = Rule.TargetTopic;
-      }
-      HashCode = GetHashCodeBase64(Rule);
+       if (null != Rule.SourceTopic)
+       {
+           KnownSourceTopic.Topic = Rule.SourceTopic;
+       }
+       if (null != Rule.TargetTopic)
+       {
+           KnownTargetTopic.Topic = Rule.TargetTopic;
+           TargetTopicText = Rule.TargetTopic;
+       }
+       HashCode = GetHashCodeBase64(Rule);
    }
 
    [Inject]
-   private IRulesCrudService RulesService
-   {
-      get;
-      set;
-   } = null!;
+   private IRulesCrudService RulesService { get; set; } = null!;
 
    [Inject]
-   private IKnownTopicsCrudService KnownTopicsService
-   {
-      get;
-      set;
-   } = null!;
+   private IKnownTopicsCrudService KnownTopicsService { get; set; } = null!;
 
    [Inject]
-   private IProjectCrudService ProjectService
-   {
-      get;
-      set;
-   } = null!;
+   private IProjectCrudService ProjectService { get; set; } = null!;
 
    /// <summary>
    /// Catalog for the field SourceTopic.
@@ -90,258 +73,234 @@ public class RuleEditorBase : EditorBase
    /// </summary>
    List<KnownTopic> knownOutboundTopics = new();
 
-   protected KnownTopic KnownSourceTopic
-   {
-      get;
-      set;
-   } = new();
+   protected KnownTopic KnownSourceTopic { get; set; } = new();
 
-   protected KnownTopic KnownTargetTopic
-   {
-      get;
-      set;
-   } = new();
+   protected KnownTopic KnownTargetTopic { get; set; } = new();
 
-   protected string TargetTopicText
-   {
-      get;
-      set;
-   } = string.Empty;
-
-   public RuleEditorBase()
-   {
-   }
+   protected string TargetTopicText { get; set; } = string.Empty;
 
    protected override async Task Cancel()
    {
-      await base.Cancel(Rule);
+       await base.Cancel(Rule);
    }
 
    protected async Task OpenEditorDialogNewKnownTopicAsSourceTopic()
    {
-      await OpenEditorDialogNewKnownTopicAsSourceTopic(new KnownTopic());
+       await OpenEditorDialogNewKnownTopicAsSourceTopic(new KnownTopic());
    }
 
    protected async Task OpenEditorDialogNewKnownTopicAsSourceTopic(KnownTopic knownTopic)
    {
-      try
-      {
-         var options = GetDialogOptions();
+       try
+       {
+           var options = GetDialogOptions();
 
-         var parameters = new DialogParameters { ["KnownTopic"] = knownTopic };
+           var parameters = new DialogParameters { ["KnownTopic"] = knownTopic };
 
-         var dialog = await this.DialogService.ShowAsync<KnownTopicEditor>("Edit Known Topic",
-                                                                           parameters,
-                                                                           options);
-         var result = await dialog.Result;
-         var newKnownTopic = result!.Data as KnownTopic;
-         if (newKnownTopic != null)
-         {
-            knownInboundTopics.Add(newKnownTopic);
-            Rule.SourceTopic = newKnownTopic.Topic;
-            KnownSourceTopic = newKnownTopic;
-         }
-      }
-      finally
-      {
-         await InvokeAsync(StateHasChanged);
-      }
+           var dialog = await this.DialogService.ShowAsync<KnownTopicEditor>("Edit Known Topic",
+                                                                             parameters,
+                                                                             options);
+           var result = await dialog.Result;
+           var newKnownTopic = result!.Data as KnownTopic;
+           if (newKnownTopic != null)
+           {
+               knownInboundTopics.Add(newKnownTopic);
+               Rule.SourceTopic = newKnownTopic.Topic;
+               KnownSourceTopic = newKnownTopic;
+           }
+       }
+       finally
+       {
+           await InvokeAsync(StateHasChanged);
+       }
    }
 
    protected async Task OpenKnownTopicCatalogForSource()
    {
-      try
-      {
-         var result = await OpenKnownTopicCatalog();
-         if (result != null)
-         {
-            var selectedKnownTopic = result;
-
-            KnownSourceTopic = selectedKnownTopic;
-            Rule.SourceTopic = selectedKnownTopic.Topic;
-         }
-      }
-      finally
-      {
-         await InvokeAsync(StateHasChanged);
-      }
+       try
+       {
+           var result = await OpenKnownTopicCatalog();
+           if (result != null)
+           {
+               KnownSourceTopic = result;
+               Rule.SourceTopic = result.Topic;
+           }
+       }
+       finally
+       {
+           await InvokeAsync(StateHasChanged);
+       }
    }
 
    protected async Task OpenKnownTopicCatalogForTarget()
    {
-      try
-      {
-         var result = await OpenKnownTopicCatalog();
-         if (result != null)
-         {
-            var selectedKnownTopic = result;
-
-            KnownTargetTopic = selectedKnownTopic;
-            Rule.TargetTopic = selectedKnownTopic.Topic;
-            TargetTopicText = selectedKnownTopic.Topic;
-         }
-      }
-      finally
-      {
-         await InvokeAsync(StateHasChanged);
-      }
+       try
+       {
+           var result = await OpenKnownTopicCatalog();
+           if (result != null)
+           {
+               KnownTargetTopic = result;
+               Rule.TargetTopic = result.Topic;
+               TargetTopicText = result.Topic;
+           }
+       }
+       finally
+       {
+           await InvokeAsync(StateHasChanged);
+       }
    }
 
    protected async Task<KnownTopic?> OpenKnownTopicCatalog()
    {
-      var options = GetDialogOptions();
+       var options = GetDialogOptions();
 
-      var dialog = await this.DialogService.ShowAsync<KnownTopicCatalog>("Known Topic Catalog",
-                                                                         new DialogParameters(),
-                                                                         options);
-      DialogResult? result = await dialog.Result;
-      return result?.Data as KnownTopic;
+       var dialog = await this.DialogService.ShowAsync<KnownTopicCatalog>("Known Topic Catalog",
+                                                                          new DialogParameters(),
+                                                                          options);
+       DialogResult? result = await dialog.Result;
+       return result?.Data as KnownTopic;
    }
 
    protected async Task OpenEditorDialogNewKnownTopicAsTargetTopic()
    {
-      await OpenEditorDialogNewKnownTopicAsTargetTopic(new KnownTopic());
+       await OpenEditorDialogNewKnownTopicAsTargetTopic(new KnownTopic());
    }
 
    protected async Task OpenEditorDialogNewKnownTopicAsTargetTopic(KnownTopic knownTopic)
    {
-      try
-      {
-         var options = GetDialogOptions();
+       try
+       {
+           var options = GetDialogOptions();
 
-         var parameters = new DialogParameters { ["KnownTopic"] = knownTopic };
+           var parameters = new DialogParameters { ["KnownTopic"] = knownTopic };
 
-         var dialog = await this.DialogService.ShowAsync<KnownTopicEditor>("Edit Known Topic",
-                                                                           parameters,
-                                                                           options);
-         var result = await dialog.Result;
-         var newKnownTopic = result!.Data as KnownTopic;
-         if (newKnownTopic != null)
-         {
-            knownOutboundTopics.Add(newKnownTopic);
-            Rule.TargetTopic = newKnownTopic.Topic;
-            KnownTargetTopic = newKnownTopic;
-            TargetTopicText = newKnownTopic.Topic;
-         }
-      }
-      finally
-      {
-         await InvokeAsync(StateHasChanged);
-      }
+           var dialog = await this.DialogService.ShowAsync<KnownTopicEditor>("Edit Known Topic",
+                                                                             parameters,
+                                                                             options);
+           var result = await dialog.Result;
+           var newKnownTopic = result!.Data as KnownTopic;
+           if (newKnownTopic != null)
+           {
+               knownOutboundTopics.Add(newKnownTopic);
+               Rule.TargetTopic = newKnownTopic.Topic;
+               KnownTargetTopic = newKnownTopic;
+               TargetTopicText = newKnownTopic.Topic;
+           }
+       }
+       finally
+       {
+           await InvokeAsync(StateHasChanged);
+       }
    }
 
    protected override async Task Save()
    {
-      try
-      {
-         Snackbar.Clear();
-         Rule.SourceTopic = KnownSourceTopic.Topic;
-         Rule.TargetTopic = ResolveTargetTopic();
-         if (IsNewRecord && !string.IsNullOrEmpty(Rule.TargetTopic) && await KnownTopicsService.GetKnownTopicByTopicName(Rule.ProjectName, Rule.TargetTopic) == null)
-         {
-            bool? createTargetTopic = await DialogService.ShowMessageBoxAsync("Unknown Target Topic",
-                                                                             $"The target topic '{Rule.TargetTopic}' does not exist yet. Do you want to create it?",
-                                                                             yesText: "Yes", cancelText: "Cancel");
-            if (createTargetTopic != true)
-            {
-               return;
-            }
-            var newKnownTopic = new KnownTopic
-            {
-               NamespaceName = Rule.NamespaceName,
-               ProjectName = Rule.ProjectName,
-               Topic = Rule.TargetTopic,
-               MessageDirection = MessageDirection.Outbound
-            };
-            await KnownTopicsService.Save(newKnownTopic);
-            knownOutboundTopics.Add(newKnownTopic);
-            KnownTargetTopic = newKnownTopic;
-         }
-         var knownSourceTopic = await KnownTopicsService.GetKnownTopicByTopicName(KnownSourceTopic.ProjectName, KnownSourceTopic.Topic);
-         if (knownSourceTopic != null)
-         {
-            if (!string.IsNullOrEmpty(knownSourceTopic.ProjectName))
-            {
+       try
+       {
+           Snackbar.Clear();
+           Rule.SourceTopic = KnownSourceTopic.Topic;
+           Rule.TargetTopic = ResolveTargetTopic();
+           if (IsNewRecord && !string.IsNullOrEmpty(Rule.TargetTopic) && await KnownTopicsService.GetKnownTopicByTopicName(Rule.ProjectName, Rule.TargetTopic) == null)
+           {
+               bool? createTargetTopic = await DialogService.ShowMessageBoxAsync("Unknown Target Topic",
+                                                                                $"The target topic '{Rule.TargetTopic}' does not exist yet. Do you want to create it?",
+                                                                                yesText: "Yes", cancelText: "Cancel");
+               if (createTargetTopic != true)
+               {
+                   return;
+               }
+               var newKnownTopic = new KnownTopic
+               {
+                   NamespaceName = Rule.NamespaceName,
+                   ProjectName = Rule.ProjectName,
+                   Topic = Rule.TargetTopic,
+                   MessageDirection = MessageDirection.Outbound
+               };
+               await KnownTopicsService.Save(newKnownTopic);
+               knownOutboundTopics.Add(newKnownTopic);
+               KnownTargetTopic = newKnownTopic;
+           }
+           var knownSourceTopic = await KnownTopicsService.GetKnownTopicByTopicName(KnownSourceTopic.ProjectName, KnownSourceTopic.Topic);
+           if (knownSourceTopic != null && !string.IsNullOrEmpty(knownSourceTopic.ProjectName))
+           {
                var project = await ProjectService.LoadProjectByName(knownSourceTopic.ProjectName);
                if (project != null)
                {
-                  Rule.ProjectName = project.ProjectName;
+                   Rule.ProjectName = project.ProjectName;
                }
-            }
-         }
+           }
 
-         TrimTextFields(Rule);
-         if (ValidateFields())
-         {
-            await RulesService.Save(Rule);
-            MudDialog.Close(DialogResult.Ok(Rule));
-         }
-      }
-      catch (Exception ex)
-      {
-         Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
-         Snackbar.Add("Unable to save rule!", Severity.Error);
-      }
+           TrimTextFields(Rule);
+           if (ValidateFields())
+           {
+               await RulesService.Save(Rule);
+               MudDialog.Close(DialogResult.Ok(Rule));
+           }
+       }
+       catch (Exception ex)
+       {
+           Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
+           Snackbar.Add("Unable to save rule!", Severity.Error);
+       }
    }
 
    private string ResolveTargetTopic()
    {
-      var topic = TargetTopicText?.Trim() ?? string.Empty;
-      var knownTopic = knownOutboundTopics.FirstOrDefault(data => string.Equals(data.Topic, topic, StringComparison.InvariantCultureIgnoreCase));
-      return knownTopic?.Topic ?? topic;
+       var topic = TargetTopicText?.Trim() ?? string.Empty;
+       var knownTopic = knownOutboundTopics.FirstOrDefault(data => string.Equals(data.Topic, topic, StringComparison.InvariantCultureIgnoreCase));
+       return knownTopic?.Topic ?? topic;
    }
 
    private bool ValidateFields()
    {
-      bool result = true;
-      if (string.IsNullOrEmpty(Rule.SourceTopic))
-      {
-         Snackbar.Add("SourceTopic is required!", Severity.Error);
-         result = false;
-      }
-      if (string.IsNullOrEmpty(Rule.TargetTopic))
-      {
-         Snackbar.Add("TargetTopic is required!", Severity.Error);
-         result = false;
-      }
-      if (!string.IsNullOrEmpty(Rule.SourceTopic) && !string.IsNullOrEmpty(Rule.TargetTopic))
-      {
-         if (Rule.SourceTopic == Rule.TargetTopic)
-         {
-            Snackbar.Add("Endless loop detected. SourceTopic must differ from TargetTopic!", Severity.Error);
-            return false;
-         }
-      }
-      return result;
+       bool result = true;
+       if (string.IsNullOrEmpty(Rule.SourceTopic))
+       {
+           Snackbar.Add("SourceTopic is required!", Severity.Error);
+           result = false;
+       }
+       if (string.IsNullOrEmpty(Rule.TargetTopic))
+       {
+           Snackbar.Add("TargetTopic is required!", Severity.Error);
+           result = false;
+       }
+       if (!string.IsNullOrEmpty(Rule.SourceTopic) && !string.IsNullOrEmpty(Rule.TargetTopic))
+       {
+           if (Rule.SourceTopic == Rule.TargetTopic)
+           {
+               Snackbar.Add("Endless loop detected. SourceTopic must differ from TargetTopic!", Severity.Error);
+               return false;
+           }
+       }
+       return result;
    }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-   protected async Task<IEnumerable<KnownTopic>> SearchSourceTopic(string value, CancellationToken token)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-   {
-      if (string.IsNullOrEmpty(value))
-      {
-         return this.knownInboundTopics;
-      }
+       protected async Task<IEnumerable<KnownTopic>> SearchSourceTopic(string value, CancellationToken token)
+   #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+       {
+           if (string.IsNullOrEmpty(value))
+           {
+               return this.knownInboundTopics;
+           }
 
-      IEnumerable<KnownTopic> matching = from data in this.knownInboundTopics
-                                         where
-                                         data.Topic.Contains(value, StringComparison.InvariantCultureIgnoreCase)
-                                         select data;
-      return matching;
+           IEnumerable<KnownTopic> matching = from data in this.knownInboundTopics
+                                              where
+                                              data.Topic.Contains(value, StringComparison.InvariantCultureIgnoreCase)
+                                              select data;
+           return matching;
+       }
+
+       protected async Task<IEnumerable<KnownTopic>> SearchTargetTopic(string value, CancellationToken cancellationToken)
+       {
+           return await Task.Run(() =>
+           {
+               if (string.IsNullOrEmpty(value))
+               {
+                   return this.knownOutboundTopics;
+               }
+
+               return this.knownOutboundTopics.Where(data => data.Topic.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+           }, cancellationToken);
+       }
    }
-
-   protected async Task<IEnumerable<KnownTopic>> SearchTargetTopic(string value, CancellationToken cancellationToken)
-   {
-      return await Task.Run(() =>
-      {
-         if (string.IsNullOrEmpty(value))
-         {
-            return this.knownOutboundTopics;
-         }
-
-         return this.knownOutboundTopics.Where(data => data.Topic.Contains(value, StringComparison.InvariantCultureIgnoreCase));
-      }, cancellationToken);
-   }
-
-}

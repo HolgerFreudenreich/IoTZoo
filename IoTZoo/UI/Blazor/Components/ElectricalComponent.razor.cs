@@ -20,24 +20,13 @@ namespace IotZoo.Components;
 
 public partial class ElectricalComponent : ComponentBase
 {
-
     protected string ClassName = "show";
 
+    [Inject]
+    IStockingService StockingService { get; set; } = null!;
 
     [Inject]
-    IStockingService StockingService
-    {
-        get;
-        set;
-    } = null!;
-
-
-    [Inject]
-    protected IDialogService DialogService
-    {
-        get;
-        set;
-    } = null!;
+    protected IDialogService DialogService { get; set; } = null!;
 
     [Parameter]
     public Stocking Stocking { get; set; } = null!;

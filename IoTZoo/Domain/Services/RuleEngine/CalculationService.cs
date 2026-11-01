@@ -35,17 +35,12 @@ public class CalculationService : DataServiceBase, ICalculationService
         {
             return null;
         }
-        //string[] tokens = { "and", "or", "like", ">", "<", "=", "%", "-", "+", "*", "/", "^" };
 
-        //if (!tokens.Any(t => expression.Contains(t)))
-        //{
-        //    return null;
-        //}
         try
         {
-            expression = expression.Replace("&&", "and");
-            expression = expression.Replace("||", "or");
-            expression = expression.Replace(FunctionNames.Calc, " ", StringComparison.OrdinalIgnoreCase);
+            expression = expression.Replace("&&", "and")
+                                   .Replace("||", "or")
+                                   .Replace(FunctionNames.Calc, " ", StringComparison.OrdinalIgnoreCase);
             // Let SQLite do the calculation because it is fast!
             return Db.ExecuteScalar($"select {expression};");
         }

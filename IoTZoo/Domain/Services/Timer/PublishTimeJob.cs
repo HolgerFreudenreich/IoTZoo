@@ -32,11 +32,7 @@ public class PublishTimeJob : MqttPublisher, IJob
     {
         try
         {
-            if (null == MqttClient)
-            {
-                return;
-            }
-            if (!MqttClient.IsConnected)
+            if (null == MqttClient || !MqttClient.IsConnected)
             {
                 return;
             }
@@ -46,10 +42,7 @@ public class PublishTimeJob : MqttPublisher, IJob
                 string? strTopic = topicData.ToString();
                 if (null != strTopic)
                 {
-                    //string dateTimeString = DateTime.Now.ToString(DataTransferService.DateTimeFormat);
                     DateTime dateTime = DateTime.Now;
-
-                    //if (DateTime.TryParse(dateTimeString, out dateTime))
 
                     string jsonPayload = string.Empty;
                     try

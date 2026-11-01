@@ -19,7 +19,6 @@ using IotZoo.Services;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 
-
 public class KnownTopicCatalogBase : ComponentBase
 {
    protected MudTable<KnownTopic> MudTable = null!;
@@ -77,15 +76,13 @@ public class KnownTopicCatalogBase : ComponentBase
 
    protected virtual DialogOptions GetDialogOptions()
    {
-      DialogOptions options = new DialogOptions
+      return new DialogOptions
       {
          BackdropClick = false,
          CloseButton = false,
          MaxWidth = MaxWidth.Large,
          CloseOnEscapeKey = false,
       };
-
-      return options;
    }
 
    protected void RowClickEvent(TableRowClickEventArgs<KnownTopic> tableRowClickEventArgs)

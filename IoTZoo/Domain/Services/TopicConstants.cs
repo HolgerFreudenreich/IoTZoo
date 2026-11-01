@@ -52,6 +52,12 @@ namespace DataAccess.Services
         public const string EVERY_30_MINUTES = "every_30_minutes";
 
         public const string EVERY_HOUR = "every_hour";
+        public const string EVERY_2_HOURS = "every_2_hours";
+        public const string EVERY_3_HOURS = "every_3_hours";
+        public const string EVERY_6_HOURS = "every_6_hours";
+        public const string EVERY_12_HOURS = "every_12_hours";
+        public const string EVERY_4_HOURS = "every_4_hours";
+        public const string EVERY_5_HOURS = "every_5_hours";
 
         public const string HUE_BRIDGE = "hue_bridge";
 

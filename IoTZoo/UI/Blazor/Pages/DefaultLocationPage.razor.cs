@@ -83,10 +83,6 @@ public class DefaultLocationPageBase : PageBase
     {
         await base.OnInitializedAsync();
         DataTransferService.CurrentScreen = ScreenMode.SetLocation;
-       // ChartOptions.LineStrokeWidth = 2;
-      //  ChartOptions.YAxisTicks = 24;
-      //  ChartOptions.XAxisLines = true;
-        //ChartOptions.InterpolationOption = InterpolationOption.NaturalSpline;
         try
         {
             Latitude = await SettingsService.GetSettingDouble(SettingCategory.Location, SettingKey.Latitude);
@@ -177,16 +173,7 @@ public class DefaultLocationPageBase : PageBase
                 {
                     Day = dateTime.Add(TimeSpan.FromDays(i * (365.0 / 13)))
                 };
-                double totalHours = homeLocationSunrise.GetDayLength().TotalHours;
-                if (totalHours < 0)
-                {
-                    totalHours = 0;
-                }
-
-                if (totalHours > 24)
-                {
-                    totalHours = 24;
-                }
+                double totalHours = Math.Clamp(homeLocationSunrise.GetDayLength().TotalHours, 0, 24);
                 dayLengthInHoursList.Add(totalHours);
             }
         }

@@ -40,22 +40,11 @@ public class AssignComponentEditorBase : EditorBase
       set;
    } = null!;
 
-   private StorageBin? storageBin;
-
    [Parameter]
-   public StorageBin? StorageBin
-   {
-      get => storageBin;
-      set
-      {
-         storageBin = value;
-      }
-   }
+   public StorageBin? StorageBin { get; set; }
 
    protected override async Task OnInitializedAsync()
    {
-      //Stocking = StockingService.GetStocking(storageBin);
-
       DialogTitle = "Insert";
       IsNewRecord = true;
 
@@ -65,7 +54,7 @@ public class AssignComponentEditorBase : EditorBase
          Quantity = 1
       };
 
-      HashCode = GetHashCodeBase64(storageBin);
+      HashCode = GetHashCodeBase64(StorageBin);
       await base.OnInitializedAsync();
    }
 
@@ -107,13 +96,9 @@ public class AssignComponentEditorBase : EditorBase
       }
       var result = await Task.FromResult(ComponentsCatalog!.Where(x => x.Sku.Contains(search, StringComparison.OrdinalIgnoreCase)).AsList());
 
-      if (1 == result.Count)
+      if (1 == result.Count && ComponentsCatalog!.Any(data => data.Sku == search))
       {
-         bool fitsExactly = (from data in ComponentsCatalog where data.Sku == search select data).FirstOrDefault() != null;
-         if (fitsExactly)
-         {
-            return ComponentsCatalog!;
-         }
+         return ComponentsCatalog!;
       }
       return result;
    }

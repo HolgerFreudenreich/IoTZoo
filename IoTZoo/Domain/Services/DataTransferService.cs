@@ -40,6 +40,11 @@ public class DataTransferService : IDataTransferService
         PhilipsHueBridgeSettings.Ip = settingsService.GetSettingString(SettingCategory.PhilipsHue, SettingKey.Ip).Result;
         PhilipsHueBridgeSettings.Key = settingsService.GetSettingString(SettingCategory.PhilipsHue, SettingKey.AppKey).Result;
         IsDarkMode = settingsService.GetSettingBool(SettingCategory.UiSettings, SettingKey.IsDarkMode).Result;
+        var maxReceivedTopics = settingsService.GetSetting(SettingCategory.UiSettings.ToString(), SettingKey.MqttExplorerMaxReceivedTopics.ToString()).Result;
+        if (int.TryParse(maxReceivedTopics?.SettingValue, out var maxReceivedTopicsValue) && maxReceivedTopicsValue > 0)
+        {
+            MqttExplorerMaxReceivedTopics = maxReceivedTopicsValue;
+        }
     }
 
     public ISettingsCrudService SettingsService { get; set; }
@@ -91,7 +96,10 @@ public class DataTransferService : IDataTransferService
     }
 
     public bool IsDarkMode { get; set; }
-    public Project? SelectedProject { get; set; } = null!;
 
-    public KnownTopic? SelectedKnownTopic { get; set; } = null!;
+    public int MqttExplorerMaxReceivedTopics { get; set; } = 75;
+
+    public Project? SelectedProject { get; set; }
+
+    public KnownTopic? SelectedKnownTopic { get; set; }
 }

@@ -10,7 +10,6 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
-using Domain.Pocos;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using System.Reflection;
@@ -29,7 +28,6 @@ public class TextEditorBase : EditorBase
     public string Title { get; set; } = string.Empty;
 
     public string Text { get; set; } = string.Empty;
-
 
     protected override Task Cancel()
     {

@@ -28,40 +28,31 @@ namespace Domain.Services;
 public class MicrocontrollerService : DataServiceBase,
                                       IMicrocontrollerService, IDisposable
 {
-   protected IMqttClient MqttClient
-   {
-      get;
-      set;
-   } = null!;
+    protected IMqttClient MqttClient { get; set; } = null!;
 
-   private readonly HttpClient httpClient;
+    private readonly HttpClient httpClient;
 
-   public event Action<MqttClientConnectedEventArgs> OnMqttConnected = null!;
-   public event Action<AliveMessage> OnReceivedAliveMessage = null!;
-   public event Action<List<ConnectedDevice>> OnReceivedDeviceConfig = null!;
+    public event Action<MqttClientConnectedEventArgs> OnMqttConnected = null!;
+    public event Action<AliveMessage> OnReceivedAliveMessage = null!;
+    public event Action<List<ConnectedDevice>> OnReceivedDeviceConfig = null!;
 
-   public List<ConnectedDevice> ConnectedDevicesList
-   {
-      get;
-      set;
-   }
+    public List<ConnectedDevice> ConnectedDevicesList { get; set; }
 
-   public IDataTransferService DataTransferService { get; set; }
-   public IProjectCrudService ProjectCrudService { get; }
+    public IDataTransferService DataTransferService { get; set; }
+    public IProjectCrudService ProjectCrudService { get; }
 
-   public MicrocontrollerService(IOptions<AppSettings> options,
-                                 ILogger<DataServiceBase> logger,
-                                 IDataTransferService dataTransferService,
-                                 IProjectCrudService projectCrudService) : base(options, logger)
-   {
-      Initialize(typeof(KnownMicrocontroller), "cfg", "microcontroller");
-      httpClient = new();
-      httpClient.Timeout = TimeSpan.FromMilliseconds(1000);
-      ConnectedDevicesList = new();
-      DataTransferService = dataTransferService;
-      ProjectCrudService = projectCrudService;
-      _ = InitMqttClient();
-   }
+    public MicrocontrollerService(IOptions<AppSettings> options,
+                                  ILogger<DataServiceBase> logger,
+                                  IDataTransferService dataTransferService,
+                                  IProjectCrudService projectCrudService) : base(options, logger)
+    {
+        Initialize(typeof(KnownMicrocontroller), "cfg", "microcontroller");
+        httpClient = new() { Timeout = TimeSpan.FromMilliseconds(1000) };
+        ConnectedDevicesList = new();
+        DataTransferService = dataTransferService;
+        ProjectCrudService = projectCrudService;
+        _ = InitMqttClient();
+    }
 
    public async Task Save(KnownMicrocontroller microcontroller, bool pushDeviceConfigToMicrocontroller)
    {
@@ -258,16 +249,8 @@ public class MicrocontrollerService : DataServiceBase,
 
    public void AddConnectedDevice(KnownMicrocontroller microcontroller, ConnectedDevice device)
    {
-      var max = (from data in ConnectedDevicesList where data.DeviceType == device.DeviceType select data.DeviceIndex).Max();
-      if (null == max)
-      {
-         max = 0;
-      }
-      else
-      {
-         max++;
-      }
-      device.DeviceIndex = max;
+      var max = ConnectedDevicesList.Where(data => data.DeviceType == device.DeviceType).Select(data => data.DeviceIndex).Max();
+      device.DeviceIndex = max is null ? 0 : max + 1;
       ConnectedDevicesList.Add(device);
       //await PushDeviceConfigToMicrocontroller(microcontroller);
 

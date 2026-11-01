@@ -22,52 +22,40 @@ using System.Reflection;
 
 public class BoxEditorBase : EditorBase
 {
-   [Parameter]
-   public StorageBin Box { get; set; } = null!;
+    [Parameter]
+    public StorageBin Box { get; set; } = null!;
 
-   protected override async Task OnInitializedAsync()
-   {
-      if (Box.StorageBinId <= 0)
-      {
-         DialogTitle = "Add Box";
-         IsNewRecord = true;
-      }
-      else
-      {
-         DialogTitle = "Edit Box";
-         IsNewRecord = false;
-      }
+    [Inject]
+    private IStorageBinCrudService BoxService { get; set; } = null!;
 
-      HashCode = GetHashCodeBase64(Box);
-      await base.OnInitializedAsync();
-   }
+    protected override async Task OnInitializedAsync()
+    {
+        IsNewRecord = Box.StorageBinId <= 0;
+        DialogTitle = IsNewRecord ? "Add Box" : "Edit Box";
 
-   [Inject]
-   private IStorageBinCrudService BoxService
-   {
-      get;
-      set;
-   } = null!;
+        HashCode = GetHashCodeBase64(Box);
+        await base.OnInitializedAsync();
+    }
 
-   protected override async Task Cancel()
-   {
-      await Cancel(Box);
-   }
+    protected override async Task Cancel()
+    {
+        await Cancel(Box);
+    }
 
-   protected override async Task Save()
-   {
-      try
-      {
-         Snackbar.Clear();
+    protected override async Task Save()
+    {
+        try
+        {
+            Snackbar.Clear();
 
-         TrimTextFields(Box);
-         await BoxService.SaveStorageBin(Box);
-      }
-      catch (Exception exception)
-      {
-         Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
-         Snackbar.Add("Unable to save!", Severity.Error);
-      }
-      MudDialog.Close(DialogResult.Ok(Box));
-   }
+            TrimTextFields(Box);
+            await BoxService.SaveStorageBin(Box);
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, $"{MethodBase.GetCurrentMethod()} failed!");
+            Snackbar.Add("Unable to save!", Severity.Error);
+        }
+        MudDialog.Close(DialogResult.Ok(Box));
+    }
 }

@@ -14,7 +14,6 @@ using Domain.Interfaces;
 using IotZoo.Controller;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using System.Reflection;
 
 namespace IotZoo.Dialogs;
 
@@ -48,12 +47,7 @@ public class AboutDialogBase : DialogBase
         if (firstRender)
         {
             Snackbar.Add("😜 Greetings to all makers!", Severity.Info);
-            Version = VersionController.Version;
-
-            if (string.IsNullOrEmpty(Version))
-            {
-                Version = "unknown";
-            }
+            Version = string.IsNullOrEmpty(VersionController.Version) ? "unknown" : VersionController.Version;
             DatabaseVersions = DatabaseVersionService.GetAllVersions();
             await InvokeAsync(StateHasChanged);
         }

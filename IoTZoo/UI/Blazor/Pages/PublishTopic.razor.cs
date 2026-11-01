@@ -31,7 +31,7 @@ public class PublishTopicBase : PageBase, IDisposable
     }
     protected List<TabView> Tabs { get; private set; } = [];
 
-    private bool stateHasChanged;
+    private bool tabsChanged;
     protected int UserIndex { get; set; }
 
     async Task RestoreUserTabs()
@@ -42,16 +42,17 @@ public class PublishTopicBase : PageBase, IDisposable
             Tabs = JsonSerializer.Deserialize<List<TabView>>(json)!;
         }
 
-        if (DataTransferService.SelectedKnownTopic != null)
+        KnownTopic? selectedKnownTopic = DataTransferService.SelectedKnownTopic;
+        if (selectedKnownTopic != null)
         {
             Tabs.Add(new TabView
             {
                 TabGuid = Guid.NewGuid(),
-                LabelText = DataTransferService.SelectedKnownTopic.Topic,
+                LabelText = selectedKnownTopic.Topic,
                 TopicEntry = new TopicEntry
                 {
-                    Topic = $"{DataTransferService.NamespaceName}/{DataTransferService.SelectedProject}/{DataTransferService.SelectedKnownTopic.Topic}",
-                    Payload = DataTransferService.SelectedKnownTopic.LastPayload
+                    Topic = $"{DataTransferService.NamespaceName}/{DataTransferService.SelectedProject}/{selectedKnownTopic.Topic}",
+                    Payload = selectedKnownTopic.LastPayload
                 }
             });
             //DataTransferService.SelectedKnownTopic = null;
@@ -59,12 +60,11 @@ public class PublishTopicBase : PageBase, IDisposable
 
         if (!Tabs.Any())
         {
-            Tabs = [];
             AddTab();
         }
 
         UserIndex = 0;
-        stateHasChanged = true;
+        tabsChanged = true;
     }
 
     protected override async Task OnInitializedAsync()
@@ -78,9 +78,9 @@ public class PublishTopicBase : PageBase, IDisposable
     protected override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
-        if (stateHasChanged)
+        if (tabsChanged)
         {
-            stateHasChanged = false;
+            tabsChanged = false;
             StateHasChanged();
         }
     }
@@ -89,16 +89,16 @@ public class PublishTopicBase : PageBase, IDisposable
     {
         Tabs.Add(new TabView { TabGuid = Guid.NewGuid(), LabelText = $"Topic", TopicEntry = new TopicEntry() });
         UserIndex = Tabs.Count - 1; // Automatically switch to the new tab.
-        stateHasChanged = true;
+        tabsChanged = true;
     }
 
     public void RemoveTab(Guid tabIdentificator)
     {
-        var tabView = Tabs?.FirstOrDefault((t) => Equals(t.TabGuid, tabIdentificator));
+        var tabView = Tabs.FirstOrDefault(t => Equals(t.TabGuid, tabIdentificator));
         if (tabView is not null)
         {
-            Tabs?.Remove(tabView);
-            stateHasChanged = true;
+            Tabs.Remove(tabView);
+            tabsChanged = true;
         }
     }
 

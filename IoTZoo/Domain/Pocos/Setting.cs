@@ -36,6 +36,7 @@ public enum SettingKey
   AppKey = 7,
   IsDarkMode = 8,
   MailReceiverConfigs = 9,
+  MqttExplorerMaxReceivedTopics = 10,
 }
 
 public class Setting : BasePoco

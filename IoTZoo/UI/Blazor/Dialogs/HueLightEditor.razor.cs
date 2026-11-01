@@ -14,15 +14,12 @@ using Domain.Pocos;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using System.Reflection;
-using System.Threading.Channels;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace IotZoo.Dialogs;
 
 public class HueLightEditorBase : EditorBase
 {
     [Parameter]
-
     public HueComponent HueLight { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()

@@ -31,7 +31,7 @@ public class DeleteFromTopicHistoryDialogBase : ComponentBase
 
     protected DateTime? ToDate { get; set; } = DateTime.Today;
 
-    protected TimeSpan? ToTime { get; set; } = TimeSpan.FromDays(1).Subtract(TimeSpan.FromSeconds(1));
+    protected TimeSpan? ToTime { get; set; } = TimeSpan.FromDays(1) - TimeSpan.FromSeconds(1);
 
     protected DateTime From => (FromDate ?? DateTime.Today) + (FromTime ?? TimeSpan.Zero);
 

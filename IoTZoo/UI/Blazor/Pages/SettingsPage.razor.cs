@@ -163,6 +163,11 @@ public class SettingsPageBase : PageBase
         HueBridgeAppKey = DataTransferService.PhilipsHueBridgeSettings.Key;
         DataTransferService.CurrentScreen = ScreenMode.Settings;
         MqttNamespaceName = DataTransferService.NamespaceName;
+        var maxReceivedTopicsSetting = await SettingsService.GetSetting(SettingCategory.UiSettings.ToString(), SettingKey.MqttExplorerMaxReceivedTopics.ToString());
+        if (int.TryParse(maxReceivedTopicsSetting?.SettingValue, out var maxReceivedTopics) && maxReceivedTopics > 0)
+        {
+            DataTransferService.MqttExplorerMaxReceivedTopics = maxReceivedTopics;
+        }
         var jsonMailSettings = await SettingsService.GetSettingString(SettingCategory.Mail, SettingKey.MailReceiverConfigs);
         if (!string.IsNullOrEmpty(jsonMailSettings))
         {
@@ -210,6 +215,7 @@ public class SettingsPageBase : PageBase
         }
 
         await SettingsService.Update(SettingCategory.UiSettings, SettingKey.IsDarkMode, DataTransferService.IsDarkMode);
+        await SettingsService.Update(SettingCategory.UiSettings, SettingKey.MqttExplorerMaxReceivedTopics, DataTransferService.MqttExplorerMaxReceivedTopics);
         if (MqttBrokerSettings.UseInternalMqttBroker)
         {
             await InternalBroker.StartServer();

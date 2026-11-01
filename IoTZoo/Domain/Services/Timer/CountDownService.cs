@@ -46,20 +46,21 @@ namespace Domain.Services.Timer
             if (CountDownData.ReportProgress)
             {
                 CountDownData.Seconds--;
-
                 if (CountDownData.Seconds < 0)
                 {
                     Dispose();
-                }
-                else
-                {
-                    await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{CountDownData.ProjectName}/count_down", JsonSerializer.Serialize(CountDownData));
+                    return;
                 }
             }
             else
             {
                 CountDownData.Seconds = 0;
-                await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{CountDownData.ProjectName}/count_down", JsonSerializer.Serialize(CountDownData));
+            }
+
+            await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{CountDownData.ProjectName}/count_down", JsonSerializer.Serialize(CountDownData));
+
+            if (!CountDownData.ReportProgress)
+            {
                 Dispose();
             }
         }

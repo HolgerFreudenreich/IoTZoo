@@ -19,10 +19,9 @@ namespace Domain.Services.Timer
 {
     public class CountDownFactory : ICountDownFactory
     {
-        public ILogger<CountDownService> Logger { get; } = null!;
+        public ILogger<CountDownService> Logger { get; }
 
         protected IDataTransferService DataTransferService { get; }
-
 
         public CountDownFactory(ILogger<CountDownService> logger, IDataTransferService dataTransferService)
         {

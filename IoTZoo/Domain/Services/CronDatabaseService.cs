@@ -30,8 +30,8 @@ public class CronDatabaseService : DataServiceBase, ICronCrudService
    {
       try
       {
-         int rowsProcessed = await Db.ExecuteAsync(DeleteSql,
-                                                   cronJob);
+         await Db.ExecuteAsync(DeleteSql,
+                               cronJob);
       }
       catch (Exception ex)
       {
@@ -107,8 +107,8 @@ public class CronDatabaseService : DataServiceBase, ICronCrudService
    {
       try
       {
-         int rowsProcessed = await Db.ExecuteAsync(UpdateSql,
-                                                   cronJob);
+         await Db.ExecuteAsync(UpdateSql,
+                               cronJob);
       }
       catch (Exception ex)
       {

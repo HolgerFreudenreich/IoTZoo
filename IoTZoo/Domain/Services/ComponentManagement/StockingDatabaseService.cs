@@ -207,7 +207,7 @@ public class StockingDatabaseService : DataServiceBase, IStockingService
 
    public async Task SaveStocking(Stocking stocking)
    {
-      // Gibt es bereits einen Lagerplatz mit dieser BinLocationId für die Komponente?
+      // Does a storage bin with this BinLocationId already exist for the component?
       var tmpStocking = await GetStocking(stocking.StorageBin,
                                           stocking.Component);
       if (null != tmpStocking)
