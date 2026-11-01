@@ -62,76 +62,55 @@ namespace Domain.Services.RuleEngine
         {
             ExpressionEvaluationResult expressionEvaluationResult = new();
 
-            if (null != expressionPoco && null != payload)
+            if (null == expressionPoco || null == payload || string.IsNullOrEmpty(expressionPoco.Value) || string.IsNullOrEmpty(expressionPoco.Operator))
             {
-                if (string.IsNullOrEmpty(expressionPoco.Value))
-                {
-                    return expressionEvaluationResult;
-                }
-                if (string.IsNullOrEmpty(expressionPoco.Operator))
-                {
-                    return expressionEvaluationResult;
-                }
-                if (expressionPoco.Operator.Equals("Contains", StringComparison.OrdinalIgnoreCase))
-                {
-                    expressionEvaluationResult.Protocol = "contains matches";
-                    expressionEvaluationResult.Matches = payload.Contains(expressionPoco.Value);
-                    return expressionEvaluationResult;
-                }
-                else if (expressionPoco.Operator.Equals("Contains not", StringComparison.OrdinalIgnoreCase))
-                {
-                    expressionEvaluationResult.Protocol = "contains NOT matches";
-
-                    expressionEvaluationResult.Matches = !payload.Contains(expressionPoco.Value);
-                    return expressionEvaluationResult;
-                }
-                else if (expressionPoco.Operator == ">")
-                {
-                    expressionEvaluationResult.Protocol = "> matches";
-                    expressionEvaluationResult.Matches = Convert.ToDouble(payload, CultureInfo.InvariantCulture) > Convert.ToDouble(expressionPoco.Value);
-                    return expressionEvaluationResult;
-                }
-                else if (expressionPoco.Operator == "<")
-                {
-                    expressionEvaluationResult.Protocol = "< matches";
-
-                    expressionEvaluationResult.Matches = Convert.ToDouble(payload, CultureInfo.InvariantCulture) < Convert.ToDouble(expressionPoco.Value);
-                    return expressionEvaluationResult;
-                }
-                else if (expressionPoco.Operator == ">=")
-                {
-                    expressionEvaluationResult.Protocol = ">= matches";
-
-                    expressionEvaluationResult.Matches = Convert.ToDouble(payload, CultureInfo.InvariantCulture) >= Convert.ToDouble(expressionPoco.Value);
-                    return expressionEvaluationResult;
-                }
-                else if (expressionPoco.Operator == "<=")
-                {
-                    expressionEvaluationResult.Protocol = "<= matches";
-
-                    expressionEvaluationResult.Matches = Convert.ToDouble(payload, CultureInfo.InvariantCulture) <= Convert.ToDouble(expressionPoco.Value);
-                    return expressionEvaluationResult;
-                }
-                else if (expressionPoco.Operator == "=" || expressionPoco.Operator == "==")
-                {
-                    expressionEvaluationResult.Protocol = "== matches";
-                    double val;
-                    if (double.TryParse(expressionPoco.Value, out val))
-                    {
-                        expressionEvaluationResult.Matches = Convert.ToDouble(payload, CultureInfo.InvariantCulture) == val;
-                        return expressionEvaluationResult;
-                    }
-                    expressionEvaluationResult.Matches = payload == expressionPoco.Value;
-                    return expressionEvaluationResult;
-                }
-                else if (expressionPoco.Operator == "%")
-                {
-                    expressionEvaluationResult.Protocol = "% matches";
-                    expressionEvaluationResult.Matches = Convert.ToDouble(payload, CultureInfo.InvariantCulture) % Convert.ToDouble(expressionPoco.Value) != 0;
-                    return expressionEvaluationResult;
-                }
+                return expressionEvaluationResult;
             }
-            return expressionEvaluationResult;
+
+            string value = expressionPoco.Value;
+            string operatorSymbol = expressionPoco.Operator;
+
+            if (operatorSymbol.Equals("Contains", StringComparison.OrdinalIgnoreCase))
+            {
+                return CreateResult("contains matches", payload.Contains(value));
+            }
+            if (operatorSymbol.Equals("Contains not", StringComparison.OrdinalIgnoreCase))
+            {
+                return CreateResult("contains NOT matches", !payload.Contains(value));
+            }
+            if (operatorSymbol == "=" || operatorSymbol == "==")
+            {
+                return EvaluateEquality(payload, value);
+            }
+
+            return operatorSymbol switch
+            {
+                ">" => CompareNumeric("> matches", payload, value, (left, right) => left > right),
+                "<" => CompareNumeric("< matches", payload, value, (left, right) => left < right),
+                ">=" => CompareNumeric(">= matches", payload, value, (left, right) => left >= right),
+                "<=" => CompareNumeric("<= matches", payload, value, (left, right) => left <= right),
+                "%" => CompareNumeric("% matches", payload, value, (left, right) => left % right != 0),
+                _ => expressionEvaluationResult
+            };
+        }
+
+        private static ExpressionEvaluationResult CreateResult(string protocol, bool matches)
+        {
+            return new ExpressionEvaluationResult { Protocol = protocol, Matches = matches };
+        }
+
+        private static ExpressionEvaluationResult CompareNumeric(string protocol, string payload, string value, Func<double, double, bool> comparison)
+        {
+            return CreateResult(protocol, comparison(Convert.ToDouble(payload, CultureInfo.InvariantCulture), Convert.ToDouble(value)));
+        }
+
+        private static ExpressionEvaluationResult EvaluateEquality(string payload, string value)
+        {
+            if (double.TryParse(value, out double number))
+            {
+                return CreateResult("== matches", Convert.ToDouble(payload, CultureInfo.InvariantCulture) == number);
+            }
+            return CreateResult("== matches", payload == value);
         }
 
         protected ExpressionEvaluationResult EvaluateJsonExpression(string expression, string? payload)
@@ -171,53 +150,72 @@ namespace Domain.Services.RuleEngine
             //}
             // does expression contain multiple expressions?
 
-            // check for AND
+            ExpressionEvaluationResult? andResult = await EvaluateAndAsync(expressions, payload);
+            if (andResult != null)
+            {
+                return andResult;
+            }
+
+            ExpressionEvaluationResult? orResult = await EvaluateOrAsync(expressions, payload);
+            if (orResult != null)
+            {
+                return orResult;
+            }
+
+            return await EvaluateAsync(expressions, payload);
+        }
+
+        private async Task<ExpressionEvaluationResult?> EvaluateAndAsync(string expressions, string? payload)
+        {
             string[] separatingStringsAnd = { " && ", " and " };
             var splittedByAnd = expressions.Split(separatingStringsAnd, StringSplitOptions.TrimEntries);
-            if (splittedByAnd.Length > 1)
+            if (splittedByAnd.Length <= 1)
             {
-                bool evaluated = false;
-                var expressionEvaluationResult = new ExpressionEvaluationResult();
-                foreach (string expression in splittedByAnd)
-                {
-                    var expressionEvaluationResultTmp = await EvaluateAsync(expression.Trim(), payload);
-                    expressionEvaluationResult.Protocol += expressionEvaluationResultTmp.Protocol + Environment.NewLine;
+                return null;
+            }
 
-                    if (!expressionEvaluationResultTmp.Matches)
-                    {
-                        expressionEvaluationResult.Matches = false;
-                        return expressionEvaluationResult;
-                    }
-                    evaluated = true;
+            var expressionEvaluationResult = new ExpressionEvaluationResult();
+            foreach (string expression in splittedByAnd)
+            {
+                var expressionEvaluationResultTmp = await EvaluateAsync(expression.Trim(), payload);
+                expressionEvaluationResult.Protocol += expressionEvaluationResultTmp.Protocol + Environment.NewLine;
+
+                if (!expressionEvaluationResultTmp.Matches)
+                {
+                    expressionEvaluationResult.Matches = false;
+                    return expressionEvaluationResult;
                 }
-                if (evaluated)
+            }
+
+            expressionEvaluationResult.Matches = true;
+            return expressionEvaluationResult;
+        }
+
+        private async Task<ExpressionEvaluationResult?> EvaluateOrAsync(string expressions, string? payload)
+        {
+            string[] separatingStringsOr = { " || ", " or " };
+            var splittedByOr = expressions.Split(separatingStringsOr, StringSplitOptions.None);
+            if (splittedByOr.Length <= 1)
+            {
+                return null;
+            }
+
+            var expressionEvaluationResult = new ExpressionEvaluationResult();
+            foreach (string expression in splittedByOr)
+            {
+                var expressionEvaluationResultTmp = await EvaluateAsync(expression.Trim(), payload);
+                expressionEvaluationResult.Protocol += expressionEvaluationResultTmp.Protocol + Environment.NewLine;
+
+                if (expressionEvaluationResultTmp.Matches)
                 {
                     expressionEvaluationResult.Matches = true;
                     return expressionEvaluationResult;
                 }
             }
 
-            // check for OR
-            string[] separatingStringsOr = { " || ", " or " };
-            var splittedByOr = expressions.Split(separatingStringsOr, StringSplitOptions.None);
-            if (splittedByOr.Length > 1)
-            {
-                var expressionEvaluationResult = new ExpressionEvaluationResult();
-
-                foreach (string expression in splittedByOr)
-                {
-                    var expressionEvaluationResultTmp = await EvaluateAsync(expression.Trim(), payload);
-                    expressionEvaluationResult.Protocol += expressionEvaluationResultTmp.Protocol + Environment.NewLine;
-
-                    if (expressionEvaluationResultTmp.Matches)
-                    {
-                        expressionEvaluationResult.Matches = true;
-                        return expressionEvaluationResult;
-                    }
-                }
-            }
-            return await EvaluateAsync(expressions, payload);
+            return null;
         }
+
 
         private async Task<ExpressionEvaluationResult> EvaluateAsync(string expression, string? payload)
         {
@@ -226,64 +224,19 @@ namespace Domain.Services.RuleEngine
             {
                 if (expression.Contains("$[") && payload != null)
                 {
-                    int index = expression.LastIndexOf("]");
-                    string location = expression.Substring(0, index + 1);
-                    JsonPath jsonPath = JsonPath.Parse(location);
-
-                    JsonNode? jsonNode = JsonNode.Parse(payload);
-                    PathResult? pathResult = jsonPath.Evaluate(jsonNode);
-
-                    var firstMatch = pathResult.Matches?.FirstOrDefault();
-                    if (firstMatch != null)
-                    {
-                        var value = firstMatch.Value?.ToString();
-                        var isNumeric = double.TryParse(value, out double number);
-                        if (!isNumeric)
-                        {
-                            value = $"'{value}'";
-                        }
-
-                        if (location == firstMatch.Location?.ToString())
-                        {
-                            expression = expression.Replace(location,
-                                                            value);
-                        }
-                    }
+                    expression = ReplaceJsonPathWithValue(expression, payload);
                 }
                 else
                 {
                     if (expression.StartsWith("["))
                     {
-                        // Mehrere Expressions im JSON Format. Werden zunächst mit "OR" verknüpft
-                        var expressionPocos = JsonSerializer.Deserialize<List<ExpressionPoco>>(expression);
-                        if (null != expressionPocos)
-                        {
-                            foreach (var expressionPoco in expressionPocos)
-                            {
-                                var expressionEvaluationResultTmp = Evaluate(expressionPoco, payload);
-                                if (expressionEvaluationResultTmp.Matches)
-                                {
-                                    return new ExpressionEvaluationResult { Matches = true, Protocol = "at least one matches" }; // at least one matches
-                                }
-                            }
-                        }
-                        return new ExpressionEvaluationResult { Protocol = "no match" };
+                        return EvaluateJsonArrayExpression(expression, payload);
                     }
-                    else if (expression.StartsWith("{"))
+                    if (expression.StartsWith("{"))
                     {
                         return EvaluateJsonExpression(expression, payload);
                     }
-                    else
-                    {
-                        string inputValue = payload ?? string.Empty;
-                        if (!double.TryParse(inputValue, NumberStyles.Float, CultureInfo.InvariantCulture, out _) && !inputValue.StartsWith('\'') && !inputValue.StartsWith('"'))
-                        {
-                            inputValue = $"'{inputValue}'";
-                        }
-                        expression = Regex.Replace(expression, $@"(?<![\w/']){FunctionNames.Input}(?![\w'/])", _ => inputValue, RegexOptions.IgnoreCase);
-
-                        expression = await ExpressionParser.ResolveExpression(expression);
-                    }
+                    expression = await ResolvePlainExpression(expression, payload);
                 }
 
                 // Datenbank ist schneller!
@@ -293,6 +246,65 @@ namespace Domain.Services.RuleEngine
                 Debug.WriteLine($"{expression} ➔ {result}");
             }
             return new ExpressionEvaluationResult { Result = result, Matches = Convert.ToBoolean(result), Protocol = $"{expression} ➔ {result}" };
+        }
+
+        private static string ReplaceJsonPathWithValue(string expression, string payload)
+        {
+            int index = expression.LastIndexOf("]");
+            string location = expression.Substring(0, index + 1);
+            JsonPath jsonPath = JsonPath.Parse(location);
+
+            JsonNode? jsonNode = JsonNode.Parse(payload);
+            PathResult? pathResult = jsonPath.Evaluate(jsonNode);
+
+            var firstMatch = pathResult.Matches?.FirstOrDefault();
+            if (firstMatch == null)
+            {
+                return expression;
+            }
+
+            var value = firstMatch.Value?.ToString();
+            var isNumeric = double.TryParse(value, out _);
+            if (!isNumeric)
+            {
+                value = $"'{value}'";
+            }
+
+            if (location == firstMatch.Location?.ToString())
+            {
+                expression = expression.Replace(location, value);
+            }
+            return expression;
+        }
+
+        private ExpressionEvaluationResult EvaluateJsonArrayExpression(string expression, string? payload)
+        {
+            // Mehrere Expressions im JSON Format. Werden zunächst mit "OR" verknüpft
+            var expressionPocos = JsonSerializer.Deserialize<List<ExpressionPoco>>(expression);
+            if (null != expressionPocos)
+            {
+                foreach (var expressionPoco in expressionPocos)
+                {
+                    var expressionEvaluationResultTmp = Evaluate(expressionPoco, payload);
+                    if (expressionEvaluationResultTmp.Matches)
+                    {
+                        return new ExpressionEvaluationResult { Matches = true, Protocol = "at least one matches" }; // at least one matches
+                    }
+                }
+            }
+            return new ExpressionEvaluationResult { Protocol = "no match" };
+        }
+
+        private async Task<string> ResolvePlainExpression(string expression, string? payload)
+        {
+            string inputValue = payload ?? string.Empty;
+            if (!double.TryParse(inputValue, NumberStyles.Float, CultureInfo.InvariantCulture, out _) && !inputValue.StartsWith('\'') && !inputValue.StartsWith('"'))
+            {
+                inputValue = $"'{inputValue}'";
+            }
+            expression = Regex.Replace(expression, $@"(?<![\w/']){FunctionNames.Input}(?![\w'/])", _ => inputValue, RegexOptions.IgnoreCase);
+
+            return await ExpressionParser.ResolveExpression(expression);
         }
     }
 }
