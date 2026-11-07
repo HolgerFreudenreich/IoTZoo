@@ -14,10 +14,13 @@ using DataAccess.Interfaces;
 using Domain.Interfaces.Crud;
 using Domain.Interfaces.MQTT;
 using Domain.Pocos;
+using Domain.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MQTTnet;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace IotZoo.Pages;
@@ -53,7 +56,28 @@ public class SettingsPageBase : PageBase
     } = null!;
 
     [Inject]
+    protected IProjectCrudService ProjectService
+    {
+        get;
+        set;
+    } = null!;
+
+    [Inject]
+    protected IKnownTopicsCrudService KnownTopicsService
+    {
+        get;
+        set;
+    } = null!;
+
+    [Inject]
     protected IJSRuntime JSRuntime
+    {
+        get;
+        set;
+    } = null!;
+
+    [Inject]
+    protected IIoTZooMqttClient IotZooMqttClient
     {
         get;
         set;
@@ -155,10 +179,13 @@ public class SettingsPageBase : PageBase
 
     protected string MqttNamespaceName { get; set; } = string.Empty;
 
-    protected override async void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        MqttBrokerSettings.UseInternalMqttBroker = DataTransferService.MqttBrokerSettings.UseInternalMqttBroker;
-        MqttBrokerSettings.Ip = DataTransferService.MqttBrokerSettings.Ip;
+        var storedMqttBrokerSettings = await SettingsService.GetObject(SettingCategory.MqttBrokerSettings, SettingKey.MqttBrokerSettings) as MqttBrokerSettings;
+        if (null != storedMqttBrokerSettings)
+        {
+            MqttBrokerSettings = storedMqttBrokerSettings;
+        }
         HueBridgeIp = DataTransferService.PhilipsHueBridgeSettings.Ip;
         HueBridgeAppKey = DataTransferService.PhilipsHueBridgeSettings.Key;
         DataTransferService.CurrentScreen = ScreenMode.Settings;
@@ -171,13 +198,72 @@ public class SettingsPageBase : PageBase
         var jsonMailSettings = await SettingsService.GetSettingString(SettingCategory.Mail, SettingKey.MailReceiverConfigs);
         if (!string.IsNullOrEmpty(jsonMailSettings))
         {
-            var config = JsonSerializer.Deserialize<List<MailReceiverConfig>>(jsonMailSettings);
-            if (null != config)
+            try
             {
-                MailReceiverConfigs = config;
+                var config = JsonSerializer.Deserialize<List<MailReceiverConfig>>(jsonMailSettings);
+                if (null != config)
+                {
+                    MailReceiverConfigs = config;
+                }
+            }
+            catch (JsonException exception)
+            {
+                Snackbar.Add($"Mail settings are not valid JSON: {exception.Message}", MudBlazor.Severity.Error);
             }
         }
-        base.OnInitialized();
+        await base.OnInitializedAsync();
+    }
+
+    protected async Task TestMqttConnectionAsync()
+    {
+        using var client = new MqttClientFactory().CreateMqttClient();
+        var options = new MqttClientOptionsBuilder().WithTcpServer(MqttBrokerSettings.Ip, MqttBrokerSettings.Port)
+            .WithBrokerCredentials(MqttBrokerSettings).Build();
+        try
+        {
+            await client.ConnectAsync(options);
+            if (client.IsConnected)
+            {
+                await client.DisconnectAsync();
+                Snackbar.Add("MQTT connection successful.", MudBlazor.Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("MQTT connection failed.", MudBlazor.Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"MQTT connection failed: {ex.Message}", MudBlazor.Severity.Error);
+        }
+    }
+
+    private async Task CreateMailReceiverKnownTopics()
+    {
+        List<Project> projects = await ProjectService.LoadProjects();
+        foreach (MailReceiverConfig mailReceiverConfig in MailReceiverConfigs.Where(c => !string.IsNullOrWhiteSpace(c.UserName)))
+        {
+            foreach (Project project in projects)
+            {
+                await KnownTopicsService.Save(new KnownTopic
+                {
+                    NamespaceName = DataTransferService.NamespaceName,
+                    ProjectName = project.ProjectName,
+                    Topic = $"mail_receiver/{mailReceiverConfig.UserName}/mail_count",
+                    Description = $"Number of mails received by {mailReceiverConfig.UserName}.",
+                    MessageDirection = MessageDirection.Inbound
+                }, allowUpdate: false);
+
+                await KnownTopicsService.Save(new KnownTopic
+                {
+                    NamespaceName = DataTransferService.NamespaceName,
+                    ProjectName = project.ProjectName,
+                    Topic = $"mail_receiver/{mailReceiverConfig.UserName}/subject",
+                    Description = $"Subject of the last mail received by {mailReceiverConfig.UserName}.",
+                    MessageDirection = MessageDirection.Inbound
+                }, allowUpdate: false);
+            }
+        }
     }
 
     protected async Task Save()
@@ -189,20 +275,32 @@ public class SettingsPageBase : PageBase
         //await SettingsService.Update(SettingCategory.General, SettingKey.Namespace, "iot_zoo");
 
         await SettingsService.Update(SettingCategory.General, SettingKey.DateAndTimeFormat, DataTransferService.DateTimeFormat);
-        if (1 == await SettingsService.Update(SettingCategory.MqttBrokerSettings,
-                                              SettingKey.MqttBrokerSettings,
-                                              MqttBrokerSettings))
+        try
         {
-            DataTransferService.MqttBrokerSettings = MqttBrokerSettings;
+            if (1 == await SettingsService.Update(SettingCategory.MqttBrokerSettings,
+                                                  SettingKey.MqttBrokerSettings,
+                                                  MqttBrokerSettings))
+            {
+                DataTransferService.MqttBrokerSettings = MqttBrokerSettings;
+            }
+            else
+            {
+                Snackbar.Add("Unable to save Mqtt Broker Settings!", MudBlazor.Severity.Error);
+            }
         }
-        else
+        catch (CryptographicException exception)
         {
-            Snackbar.Add("Unable to save Mqtt Broker Settings!");
+            Snackbar.Add($"Mqtt password encryption failed: {exception.Message}", MudBlazor.Severity.Error);
+            return;
         }
 
         int rowsUpdated = await SettingsService.Update(SettingCategory.Mail,
                                      SettingKey.MailReceiverConfigs,
                                      MailReceiverConfigs);
+        await CreateMailReceiverKnownTopics();
+
+        bool hueSettingsChanged = HueBridgeIp != DataTransferService.PhilipsHueBridgeSettings.Ip ||
+                                  HueBridgeAppKey != DataTransferService.PhilipsHueBridgeSettings.Key;
 
         if (1 == await SettingsService.Update(SettingCategory.PhilipsHue, SettingKey.Ip, HueBridgeIp))
         {
@@ -214,16 +312,19 @@ public class SettingsPageBase : PageBase
             DataTransferService.PhilipsHueBridgeSettings.Key = HueBridgeAppKey!;
         }
 
+        if (hueSettingsChanged)
+        {
+            HueBridgeService.ApplySettings();
+        }
+
         await SettingsService.Update(SettingCategory.UiSettings, SettingKey.IsDarkMode, DataTransferService.IsDarkMode);
         await SettingsService.Update(SettingCategory.UiSettings, SettingKey.MqttExplorerMaxReceivedTopics, DataTransferService.MqttExplorerMaxReceivedTopics);
+        await InternalBroker.StopServer();
         if (MqttBrokerSettings.UseInternalMqttBroker)
         {
             await InternalBroker.StartServer();
         }
-        else
-        {
-            await InternalBroker.StopServer();
-        }
+        await IotZooMqttClient.Reconnect();
 
         if (MqttNamespaceName != DataTransferService.NamespaceName)
         {
@@ -278,7 +379,6 @@ public class SettingsPageBase : PageBase
             {
                 await Save();
             }
-            HueBridgeService.ApplySettings();
         }
         catch (Exception exception)
         {

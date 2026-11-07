@@ -31,6 +31,7 @@ public interface IIoTZooMqttClient
    void ClearData();
    Task Connect();
    Task Connect(string brokerIp, int port, string topicToSubscribe);
+   Task Reconnect();
    Task<bool> PublishTopic(string topic,
                            string? payload,
                            MqttQualityOfServiceLevel exactlyOnce = MqttQualityOfServiceLevel.AtLeastOnce,

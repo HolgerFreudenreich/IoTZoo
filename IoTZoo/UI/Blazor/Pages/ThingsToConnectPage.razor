@@ -9,7 +9,7 @@
 <MudText Typo="Typo.h5">Presentation of things that can be connected</MudText>
 <br />
 <br />
- <MudText Typo="Typo.h6">Button</MudText>
+<MudText Typo="Typo.h6">Button</MudText>
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
                      Topic="/button/<index>/push_counter"
@@ -491,7 +491,22 @@
                      Payload="<LightId>"
                      ExamplePayload="9">
 </KnownTopicComponent>
+<br />
+<br />
+<MudText Typo="Typo.h6">Interaction with Mailboxes</MudText>
+<br />
+<MudText>IotZoo can respond to incoming emails. You can configure Mail Receiver settings in the Settings page.</MudText>
 
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="<Namespace>/<Project>/mail_receiver/<MailAddress>/mail_count"
+                     Description="Number of emails in the mailbox"
+                     ExamplePayload="48785">
+</KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic="<Namespace>/<Project>/mail_receiver/<MailAddress>/subject"
+                     Description="Subject of the incoming email"
+                     ExamplePayload="[Camera 9] has detected an animal at 2026/11/04 18:21:18">
+</KnownTopicComponent>
 <br />
 <br />
 <MudDivider />

@@ -1,6 +1,6 @@
 ﻿@inherits MailSettingsComponentBase
 
-<MudPaper Class="pa-6" Height="250px" Width="1200px" Elevation="2">
+<MudPaper Class="pa-6" Height="300px" Width="1200px" Elevation="2">
    <MudStack>
       <MudSwitch @bind-Value="MailReceiverConfig.Enabled" Label="Enabled" />
       <MudStack Row=true>
@@ -18,7 +18,7 @@
          </MudTextField>
       </MudStack>
       <MudStack Row=true>
-         <MudTextField Label="User-Name"
+         <MudTextField Label="User-Name / Mail-Address"
                        @bind-Value="MailReceiverConfig.UserName"
                        Variant="@Variant.Text" Clearable>
          </MudTextField>
@@ -26,6 +26,10 @@
                        @bind-Value="MailReceiverConfig.Password"
                        Variant="@Variant.Text" Clearable>
          </MudTextField>
-      </MudStack>
-   </MudStack>
+       </MudStack>
+      <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="width:120px"
+                  Disabled="TestingConnection" OnClick="TestConnectionAsync">
+          Test Connection
+       </MudButton>
+    </MudStack>
 </MudPaper>

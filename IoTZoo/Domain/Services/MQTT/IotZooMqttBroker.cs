@@ -19,6 +19,7 @@ using Domain.Interfaces.MQTT;
 using Domain.Pocos;
 using Microsoft.Extensions.Options;
 using MQTTnet;
+using MQTTnet.Protocol;
 using MQTTnet.Server;
 using System.Net;
 using System.Net.Sockets;
@@ -46,9 +47,10 @@ public class IotZooMqttBroker : IIotZooMqttBroker
 
       if (null == MqttServer)
       {
-         var mqttServerOptions = new MqttServerOptionsBuilder().WithDefaultEndpoint().Build();
-         MqttServer = new MqttServerFactory().CreateMqttServer(mqttServerOptions);
-      }
+            var mqttServerOptions = new MqttServerOptionsBuilder().WithDefaultEndpoint().Build();
+            MqttServer = new MqttServerFactory().CreateMqttServer(mqttServerOptions);
+            MqttServer.ValidatingConnectionAsync += ValidateConnectionAsync;
+         }
 
       if (!MqttServer.IsStarted)
       {
@@ -62,6 +64,23 @@ public class IotZooMqttBroker : IIotZooMqttBroker
       {
          await MqttServer.StopAsync();
       }
+   }
+
+   private Task ValidateConnectionAsync(ValidatingConnectionEventArgs context)
+   {
+      var configuredUser = DataTransferService.MqttBrokerSettings.User;
+      if (string.IsNullOrEmpty(configuredUser))
+      {
+         return Task.CompletedTask;
+      }
+
+      var configuredPassword = DataTransferService.MqttBrokerSettings.Password ?? string.Empty;
+      if (context.UserName != configuredUser || context.Password != configuredPassword)
+      {
+         context.ReasonCode = MqttConnectReasonCode.BadUserNameOrPassword;
+      }
+
+      return Task.CompletedTask;
    }
 
    public IotZooMqttBroker(IOptions<AppSettings> options,

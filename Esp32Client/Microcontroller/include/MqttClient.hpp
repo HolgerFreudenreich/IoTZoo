@@ -26,8 +26,9 @@ namespace IotZoo
         EspMQTTClient* mqttClient = nullptr; // Extends the PubSubClient Library, but requires more memory. Has nice debugging messages.
 
       public:
-        MqttClient(const char* mqttClientName, const char* wifiSsid, const char* wifiPassword, const char* mqttServerIp,
-                   const char* mqttUsername = nullptr, const char* mqttPassword = nullptr, const short mqttServerPort = 1883, int bufferSize = 16384 * 2);
+        MqttClient(const char* mqttClientName, const char* wifiSsid, const char* wifiPassword, const char* mqttBrokerIp,
+                   const short mqttBrokerPort = 1883, const char* mqttUsername = nullptr, const char* mqttPassword = nullptr,
+                   int bufferSize = 16384 * 2);
 
         virtual ~MqttClient();
 

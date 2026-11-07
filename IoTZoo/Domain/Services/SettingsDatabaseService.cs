@@ -14,10 +14,12 @@ using Dapper;
 using Domain.Interfaces.Crud;
 using Domain.Pocos;
 using Domain.Services;
+using Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace DataAccess.Services;
@@ -91,10 +93,49 @@ public class SettingsDatabaseService : DataServiceBase, ISettingsCrudService
       var setting = await GetSetting(category, settingsKey);
       if (null != setting)
       {
+         if (category == SettingCategory.Mail.ToString() && settingsKey == SettingKey.MailReceiverConfigs.ToString())
+         {
+            return DecryptMailReceiverConfigs(setting.SettingValue);
+         }
          return setting.SettingValue;
       }
 
       throw new Exception("unknown settingsKey!");
+   }
+
+   private string DecryptMailReceiverConfigs(string json)
+   {
+      if (string.IsNullOrEmpty(json))
+      {
+         return json;
+      }
+
+      List<MailReceiverConfig>? configs;
+      try
+      {
+         configs = JsonSerializer.Deserialize<List<MailReceiverConfig>>(json);
+      }
+      catch (JsonException)
+      {
+         return json;
+      }
+      if (null == configs)
+      {
+         return json;
+      }
+
+      foreach (var config in configs.Where(config => !string.IsNullOrEmpty(config.Password)))
+      {
+         try
+         {
+            config.Password = PasswordEncryptor.Decrypt(config.Password, AppSettings.MqttPasswordEncryptionKey);
+         }
+         catch (Exception exception) when (exception is CryptographicException or FormatException)
+         {
+            config.Password = string.Empty;
+         }
+      }
+      return JsonSerializer.Serialize(configs);
    }
 
    public async Task<string> GetSettingString(SettingCategory category, SettingKey settingsKey)
@@ -115,7 +156,19 @@ public class SettingsDatabaseService : DataServiceBase, ISettingsCrudService
       {
          throw new Exception($"{setting.SettingKey} is not a valid type!");
       }
-         return JsonSerializer.Deserialize(setting.SettingValue, type);
+         var value = JsonSerializer.Deserialize(setting.SettingValue, type);
+         if (value is MqttBrokerSettings mqttBrokerSettings && !string.IsNullOrEmpty(mqttBrokerSettings.Password))
+         {
+            try
+            {
+               mqttBrokerSettings.Password = PasswordEncryptor.Decrypt(mqttBrokerSettings.Password, AppSettings.MqttPasswordEncryptionKey);
+            }
+            catch (Exception exception) when (exception is CryptographicException or FormatException)
+            {
+               mqttBrokerSettings.Password = string.Empty;
+            }
+         }
+         return value;
       }
 
       public async Task<List<Setting>> GetAllSettings()
@@ -128,7 +181,34 @@ public class SettingsDatabaseService : DataServiceBase, ISettingsCrudService
                                  SettingKey key,
                                  object value)
    {
-      string json = System.Text.Json.JsonSerializer.Serialize(value);
+      if (value is MqttBrokerSettings mqttBrokerSettings)
+      {
+         var storedSettings = new MqttBrokerSettings
+         {
+            UseInternalMqttBroker = mqttBrokerSettings.UseInternalMqttBroker,
+            Ip = mqttBrokerSettings.Ip,
+            Port = mqttBrokerSettings.Port,
+            User = mqttBrokerSettings.User,
+            Password = string.IsNullOrEmpty(mqttBrokerSettings.Password)
+               ? mqttBrokerSettings.Password
+               : PasswordEncryptor.Encrypt(mqttBrokerSettings.Password, AppSettings.MqttPasswordEncryptionKey)
+         };
+            value = storedSettings;
+         }
+         if (value is List<MailReceiverConfig> mailReceiverConfigs)
+         {
+            value = mailReceiverConfigs.Select(config => new MailReceiverConfig
+            {
+               Enabled = config.Enabled,
+               HostName = config.HostName,
+               Password = string.IsNullOrEmpty(config.Password)
+                  ? config.Password
+                  : PasswordEncryptor.Encrypt(config.Password, AppSettings.MqttPasswordEncryptionKey),
+               UserName = config.UserName,
+               Port = config.Port
+            }).ToList();
+         }
+         string json = System.Text.Json.JsonSerializer.Serialize(value);
       return await Update(category,
                           key,
                           json);

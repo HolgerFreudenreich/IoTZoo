@@ -34,7 +34,7 @@ public class MailReceiverService : MqttPublisher, IAsyncDisposable
     private Task? idleTask;
     private CancellationTokenSource serviceCancellationToken = new();
 
-    private volatile bool _mailArrived;
+    private volatile bool mailArrived;
 
     public MailReceiverService(ILogger<MailReceiverService> logger,
         MailReceiverConfig mailReceiverConfig,
@@ -151,9 +151,9 @@ public class MailReceiverService : MqttPublisher, IAsyncDisposable
                 break;
             }
 
-            if (_mailArrived)
+            if (mailArrived)
             {
-                _mailArrived = false;
+                mailArrived = false;
                 await HandleNewMailAsync();
             }
 
@@ -166,7 +166,7 @@ public class MailReceiverService : MqttPublisher, IAsyncDisposable
     private void OnCountChanged(object? sender, EventArgs e)
     {
         Logger.LogInformation("New mail event detected for {user}", MailReceiverConfig.UserName);
-        _mailArrived = true;
+        mailArrived = true;
 
         // Break IDLE so that the loop reacts.
         idleCancellationToken?.Cancel();

@@ -12,6 +12,7 @@
 
 namespace IotZoo.Pages;
 
+using Domain.Services;
 using MQTTnet;
 using MudBlazor;
 using System.Reflection;
@@ -65,7 +66,8 @@ public class MqttPageBase : PageBase, IDisposable
          MqttClient.DisconnectedAsync += Client_Disconnected;
 
          var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
-                                                                              DataTransferService.MqttBrokerSettings.Port).Build();
+                                                                              DataTransferService.MqttBrokerSettings.Port)
+                                                                                                                                                             .WithBrokerCredentials(DataTransferService.MqttBrokerSettings).Build();
 
          MqttClient.DisconnectedAsync += _ => ReconnectAsync(mqttClientOptions);
 

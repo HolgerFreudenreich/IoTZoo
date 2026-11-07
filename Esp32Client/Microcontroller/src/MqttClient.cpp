@@ -36,18 +36,18 @@ namespace IotZoo
     }
     */
 
-    MqttClient::MqttClient(const char* mqttClientName, const char* wifiSsid, const char* wifiPassword, const char* mqttServerIp,
-                           const char* mqttUsername, const char* mqttPassword, const short mqttServerPort, int bufferSize)
+    MqttClient::MqttClient(const char* mqttClientName, const char* wifiSsid, const char* wifiPassword, const char* mqttBrokerIp,
+                           const short mqttBrokerPort, const char* mqttUsername, const char* mqttPassword, int bufferSize)
     {
-        debug("Constructor MqttClient mqttServerIp: " + String(mqttServerIp) + ":" + String(mqttServerPort));
+        debug("Constructor MqttClient mqttServerIp: " + String(mqttBrokerIp) + ":" + String(mqttBrokerPort));
         mqttClient = new EspMQTTClient(wifiSsid,       // SSID
                                        wifiPassword,   // PWD SSID
-                                       mqttServerIp,   // MQTT Broker server ip
+                                       mqttBrokerIp,   // MQTT Broker server ip
                                        mqttUsername,   // MQTT Broker User; Can be omitted if not needed
                                        mqttPassword,   // MQTT Broker Password; Can be omitted if not needed
                                        mqttClientName, // Client name that UNIQUELY identifies your device. macAddress.c_str() does
                                                        // not work! The mqtt client name must be unique otherwise we get disconnects!
-                                       mqttServerPort);
+                                       mqttBrokerPort);
 
         mqttClient->setMaxPacketSize(bufferSize); // default is only 128 bytes! When exeeding the message will not be published!
         mqttClient->enableDebuggingMessages(USE_DEBUG_MESSAGES > 0);

@@ -33,6 +33,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using Quartz;
 using Serilog;
+using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +62,19 @@ builder.Services.AddSignalR(options =>
 {
     options.MaximumReceiveMessageSize = 10 * 1024 * 1024;
 });
+
+const string MqttPasswordEncryptionKeyConfigKey = "AppSettings:MqttPasswordEncryptionKey";
+if (string.IsNullOrWhiteSpace(builder.Configuration[MqttPasswordEncryptionKeyConfigKey]))
+{
+    string databaseDirectory = Path.Combine(builder.Environment.ContentRootPath, "Database");
+    string keyFilePath = Path.Combine(databaseDirectory, "MqttPasswordEncryptionKey.txt");
+    if (!File.Exists(keyFilePath))
+    {
+        Directory.CreateDirectory(databaseDirectory);
+        File.WriteAllText(keyFilePath, Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));
+    }
+    builder.Configuration[MqttPasswordEncryptionKeyConfigKey] = File.ReadAllText(keyFilePath).Trim();
+}
 
 IConfigurationSection configurationSectionAppSettings = builder.Configuration.GetSection(nameof(AppSettings));
 builder.Services.Configure<AppSettings>(configurationSectionAppSettings);
