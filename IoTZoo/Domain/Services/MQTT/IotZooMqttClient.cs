@@ -126,23 +126,27 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
         }
 
         var factory = new MqttClientFactory();
-        Client = factory.CreateMqttClient();
-        var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(brokerIp, port).Build();
+        var client = factory.CreateMqttClient();
+        Client = client;
 
-        Client.ApplicationMessageReceivedAsync += Client_ApplicationMessageReceivedAsync;
+        client.ApplicationMessageReceivedAsync += Client_ApplicationMessageReceivedAsync;
 
-        Client.ConnectedAsync += async e =>
+        client.ConnectedAsync += async e =>
         {
-            await Client.SubscribeAsync(topicToSubscribe, MqttQualityOfServiceLevel.ExactlyOnce);
+            await client.SubscribeAsync(topicToSubscribe, MqttQualityOfServiceLevel.ExactlyOnce);
             await OnConnectedAsync();
         };
 
-        Client.DisconnectedAsync += async e =>
+        client.DisconnectedAsync += async e =>
         {
             await Task.Delay(TimeSpan.FromMilliseconds(1000));
+            if (!ReferenceEquals(client, Client) || client.IsConnected)
+            {
+                return;
+            }
             try
             {
-                await Client.ConnectAsync(mqttClientOptions);
+                await client.ConnectAsync(BuildClientOptions(brokerIp, port));
             }
             catch
             {
@@ -151,7 +155,7 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
         };
         try
         {
-            await Client.ConnectAsync(mqttClientOptions);
+            await client.ConnectAsync(BuildClientOptions(brokerIp, port));
         }
         catch (Exception exception)
         {
@@ -821,5 +825,26 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
         await Connect(DataTransferService.MqttBrokerSettings.Ip,
                       DataTransferService.MqttBrokerSettings.Port,
                       $"{DataTransferService.NamespaceName}/#");
+    }
+
+    public async Task Reconnect()
+    {
+        var oldClient = Client;
+        Client = null!;
+        if (null != oldClient)
+        {
+            if (oldClient.IsConnected)
+            {
+                await oldClient.DisconnectAsync();
+            }
+            oldClient.Dispose();
+        }
+        await Connect();
+    }
+
+    private MqttClientOptions BuildClientOptions(string brokerIp, int port)
+    {
+        return new MqttClientOptionsBuilder().WithTcpServer(brokerIp, port)
+                    .WithBrokerCredentials(DataTransferService.MqttBrokerSettings).Build();
     }
 }

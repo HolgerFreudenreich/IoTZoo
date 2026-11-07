@@ -2022,7 +2022,7 @@ void setup()
         mqttBrokerIp[i] = strMqttBrokerIp[i];
     }
 
-    mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, nullptr, nullptr, 1883);
+    mqttClient = new MqttClient(mqttClientName, ssid, password, mqttBrokerIp, MqttBrokerPortFallback, MqttUserName.c_str(), MqttPassword.c_str());
 
     debug("BaseTopic: " + getBaseTopic());
 #endif // USE_MQTT

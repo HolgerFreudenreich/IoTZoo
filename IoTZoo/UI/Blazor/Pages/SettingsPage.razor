@@ -8,32 +8,57 @@
    <MudFocusTrap Disabled="false"
                  DefaultFocus=DefaultFocus.FirstChild>
       <MudText Typo="Typo.h5">MQTT</MudText>
-      <MudPaper Class="pa-6" Height="250px" Width="1200px" Elevation="2">
+      <MudPaper Class="pa-6" Height="450px" Width="1200px" Elevation="2">
          <MudSwitch T="bool"
                     Value="@MqttBrokerSettings.UseInternalMqttBroker"
                     ValueChanged="UseInternalMqttBrokerChanged"
                     Label="Start internal MQTT Broker"
                     Color="Color.Primary" />
          <br />
-         <MudStack Row=true>
-            <MudTextField ReadOnly="false"
-                          Label="MQTT Broker IPv4 Address"
-                          @bind-Value="MqttBrokerSettings.Ip"
-                          Variant="@Variant.Text" Clearable>
-            </MudTextField>
-            <MudTextField ReadOnly="false"
-                          Label="MQTT Broker Port"
-                          Format="D"
-                          HelperText="Example: 1883"
-                          @bind-Value="MqttBrokerSettings.Port"
-                          Variant="@Variant.Text" Clearable>
-            </MudTextField>
+         <MudStack Row=false>
+            <MudStack Row=true>
+               <MudTextField ReadOnly="false"
+                             Label="MQTT Broker IPv4 Address"
+                             @bind-Value="MqttBrokerSettings.Ip"
+                             Variant="@Variant.Text" Clearable>
+               </MudTextField>
+               <MudTextField ReadOnly="false"
+                             Label="MQTT Broker Port"
+                             Format="D"
+                             HelperText="Example: 1883"
+                             @bind-Value="MqttBrokerSettings.Port"
+                             Variant="@Variant.Text" Clearable>
+               </MudTextField>
+            </MudStack>
+            <MudStack Row=true>
+               <div style="width: 50%">
+                  <MudTextField ReadOnly="false"
+                                Label="MQTT Broker Username"
+                                autocomplete="off"
+                                @bind-Value="MqttBrokerSettings.User"
+                                Variant="@Variant.Text" Clearable>
+                  </MudTextField>
+               </div>
+               <div style="width: 50%">
+                  <MudTextField ReadOnly="false"
+                                Label="MQTT Broker Password"
+                                InputType="InputType.Password"
+                                autocomplete="new-password"
+                                @bind-Value="MqttBrokerSettings.Password"
+                                Variant="@Variant.Text">
+                  </MudTextField>
+               </div>
+            </MudStack>
+            <br />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="width:120px" OnClick="TestMqttConnectionAsync">Test Connection</MudButton>
+            <br />
          </MudStack>
-
-         <MudTextField Label="Namespace Name"
-                       @bind-Value="MqttNamespaceName"
-                       Variant="@Variant.Text" Clearable="false">
-         </MudTextField>
+         <div style="width: 50%">
+            <MudTextField Label="Namespace Name"
+                          @bind-Value="MqttNamespaceName"
+                          Variant="@Variant.Text" Clearable="false">
+            </MudTextField>
+         </div>
       </MudPaper>
       <br />
       <br />
@@ -82,10 +107,10 @@
       <br />
       <MudText Typo="Typo.h5">Mail Receiver</MudText>
       <div style="width:64px; height:64px">
-      <MudIconButton Icon="@Icons.Material.Outlined.Add"
-                     Color="Color.Success"
-                     OnClick="AddMailReceiver">
-      </MudIconButton>
+         <MudIconButton Icon="@Icons.Material.Outlined.Add"
+                        Color="Color.Success"
+                        OnClick="AddMailReceiver">
+         </MudIconButton>
       </div>
       <br />
       @foreach (var mailReceiverConfig in MailReceiverConfigs)
@@ -93,11 +118,11 @@
          <MudStack Row="true">
             <IotZoo.Components.MailSettingsComponent MailReceiverConfig="@mailReceiverConfig">
             </IotZoo.Components.MailSettingsComponent>
-                  <div style="width:64px; height:64px">
-            <MudIconButton Icon="@Icons.Material.Outlined.Remove"
-                           Color="Color.Error"
-                           OnClick="@(()=>RemoveEmailConfig(mailReceiverConfig))">
-            </MudIconButton>
+            <div style="width:64px; height:64px">
+               <MudIconButton Icon="@Icons.Material.Outlined.Remove"
+                              Color="Color.Error"
+                              OnClick="@(()=>RemoveEmailConfig(mailReceiverConfig))">
+               </MudIconButton>
             </div>
          </MudStack>
          <br />

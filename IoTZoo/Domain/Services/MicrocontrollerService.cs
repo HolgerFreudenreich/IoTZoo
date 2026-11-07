@@ -336,7 +336,8 @@ public class MicrocontrollerService : DataServiceBase,
             MqttClient = factory.CreateMqttClient();
 
             var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer(DataTransferService.MqttBrokerSettings.Ip,
-                                                                                 DataTransferService.MqttBrokerSettings.Port).Build();
+                                                                                 DataTransferService.MqttBrokerSettings.Port)
+                                                                                                                                                                  .WithBrokerCredentials(DataTransferService.MqttBrokerSettings).Build();
             MqttClient.ConnectedAsync -= MqttClient_ConnectedAsync;
             MqttClient.ConnectedAsync += MqttClient_ConnectedAsync;
             MqttClient.ApplicationMessageReceivedAsync += MqttClient_ApplicationMessageReceivedAsync;

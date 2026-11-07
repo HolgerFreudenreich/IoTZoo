@@ -32,7 +32,16 @@ namespace Domain.Interfaces
             var jsonMailSettings = settingsCrudService.GetSettingString(SettingCategory.Mail, SettingKey.MailReceiverConfigs).Result;
             if (!string.IsNullOrEmpty(jsonMailSettings))
             {
-                var configs = JsonSerializer.Deserialize<List<MailReceiverConfig>>(jsonMailSettings);
+                List<MailReceiverConfig>? configs;
+                try
+                {
+                    configs = JsonSerializer.Deserialize<List<MailReceiverConfig>>(jsonMailSettings);
+                }
+                catch (JsonException exception)
+                {
+                    Logger.LogError(exception, "Mail receiver configuration is not valid JSON and is ignored");
+                    configs = null;
+                }
                 if (null != configs)
                 {
                     foreach (var config in configs)

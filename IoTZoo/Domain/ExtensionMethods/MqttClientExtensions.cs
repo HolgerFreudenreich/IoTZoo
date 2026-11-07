@@ -10,6 +10,7 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
+using Domain.Pocos;
 using MQTTnet;
 using MQTTnet.Protocol;
 
@@ -17,6 +18,13 @@ namespace Domain.Services;
 
 public static class MqttClientExtensions
 {
+    public static MqttClientOptionsBuilder WithBrokerCredentials(this MqttClientOptionsBuilder builder,
+                                                                 MqttBrokerSettings mqttBrokerSettings)
+    {
+        return string.IsNullOrEmpty(mqttBrokerSettings.User)
+            ? builder
+            : builder.WithCredentials(mqttBrokerSettings.User, mqttBrokerSettings.Password);
+    }
     public static async Task<MqttClientPublishResult> PublishAsync(this IMqttClient client,
                                                                    string topic,
                                                                    string payload,
