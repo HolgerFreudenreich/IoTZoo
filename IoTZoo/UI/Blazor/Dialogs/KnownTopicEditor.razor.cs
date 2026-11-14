@@ -99,6 +99,11 @@ public class KnownTopicEditorBase : EditorBase
       SelectedDashboardItems[dashboardId].DisplayType = displayType;
    }
 
+   protected void OnFontSizeChanged(int dashboardId, int fontSize)
+   {
+      SelectedDashboardItems[dashboardId].FontSize = fontSize;
+   }
+
    protected void OnGaugeSettingsChanged(int dashboardId, Action<GaugeSettings> change)
    {
       var item = SelectedDashboardItems[dashboardId];

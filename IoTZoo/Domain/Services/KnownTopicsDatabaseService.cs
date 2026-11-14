@@ -284,217 +284,254 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
             await RegisterProjectKnownTopicAndCreateCronJob(parentKnownTopic.KnownTopicId, project,
                                                             new CronJob(CronExpression.FromString(cronExpression), $"{TopicConstants.TIMER}/{topicName}", true),
                                                                                                                      description);
-                                                                }
+        }
 
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.SUNRISE_NOW}",
-                                                                    Description = "When the sun rises...",
-                                                                    MessageDirection = MessageDirection.Inbound,
-                                                                    KeepHistory = true
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.SUNSET_NOW}",
-                                                                    Description = "When the sun goes down...",
-                                                                    MessageDirection = MessageDirection.Inbound,
-                                                                    KeepHistory = true
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.MINUTES_NEXT_SUNRISE}",
-                                                                    Description = "Minutes until the next sunrise...",
-                                                                    MessageDirection = MessageDirection.Inbound,
-                                                                    KeepHistory = false
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.MINUTES_NEXT_SUNSET}",
-                                                                    Description = "Minutes until the next sunset...",
-                                                                    MessageDirection = MessageDirection.Inbound,
-                                                                    KeepHistory = false
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.MINUTES_AFTER_SUNRISE}",
-                                                                    Description = "Minutes after the last sunrise...",
-                                                                    MessageDirection = MessageDirection.Inbound,
-                                                                    KeepHistory = false
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.MINUTES_AFTER_SUNSET}",
-                                                                    Description = "Minutes after the last sunset...",
-                                                                    MessageDirection = MessageDirection.Inbound,
-                                                                    KeepHistory = false
-                                                                }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.SUNRISE_NOW}",
+            Description = "When the sun rises...",
+            MessageDirection = MessageDirection.Inbound,
+            KeepHistory = true
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.SUNSET_NOW}",
+            Description = "When the sun goes down...",
+            MessageDirection = MessageDirection.Inbound,
+            KeepHistory = true
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.MINUTES_NEXT_SUNRISE}",
+            Description = "Minutes until the next sunrise...",
+            MessageDirection = MessageDirection.Inbound,
+            KeepHistory = false
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.MINUTES_NEXT_SUNSET}",
+            Description = "Minutes until the next sunset...",
+            MessageDirection = MessageDirection.Inbound,
+            KeepHistory = false
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.MINUTES_AFTER_SUNRISE}",
+            Description = "Minutes after the last sunrise...",
+            MessageDirection = MessageDirection.Inbound,
+            KeepHistory = false
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.MINUTES_AFTER_SUNSET}",
+            Description = "Minutes after the last sunset...",
+            MessageDirection = MessageDirection.Inbound,
+            KeepHistory = false
+        }, allowUpdate: false);
+        // Countdown
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.COUNTDOWN_START}",
+            Description = "Starts or restarts a countdown. Payload: {\"ProjectName\", \"CounterName\", \"Seconds\", \"ReportProgress\"}.",
+            MessageDirection = MessageDirection.Inbound
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.START_COUNTDOWN}",
+            Description = "Alias for countdown_start.",
+            MessageDirection = MessageDirection.Inbound
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.COUNTDOWN_STATUS}",
+            Description = "Countdown progress. Payload: CountDownData with the remaining Seconds.",
+            MessageDirection = MessageDirection.Outbound
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.COUNTDOWN_FINISHED}",
+            Description = "Countdown finished. Payload: CounterName.",
+            MessageDirection = MessageDirection.Outbound
+        }, allowUpdate: false);
+        // Day mode
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.IS_DAY_MODE}",
+            Description = "1 = day, 0 = night",
+            MessageDirection = MessageDirection.Inbound
+        }, allowUpdate: false);
+        // Philps Hue
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.GREEN}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Color change to green. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.YELLOW}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Color change to yellow. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.ORANGE}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Color change to orange. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.RED}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Color change to red. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.BLUE}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Color change to blue. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.PURPLE}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Color change to purple. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.GOLD}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Color change to gold. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.WHITE_COLD}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Color change to cold white. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.WHITE_WARM}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Color change to warm white. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.ON}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Turns the light on. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.OFF}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Turns the light off. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.TOGGLE}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Turns the light off if on and on if off. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.DARKER}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Dims the light. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.BRIGHTER}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Increases the light level. Payload: <LightId>."
+        }, allowUpdate: false);
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.BRIGHTNESS}",
+            MessageDirection = MessageDirection.Outbound,
+            Description = "Adjusts the light level. Payload: { \"LightId\": <LightId>, Brightness\": \"input\" }"
+        }, allowUpdate: false);
+    }
 
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.IS_DAY_MODE}",
-                                                                    Description = "1 = day, 0 = night",
-                                                                    MessageDirection = MessageDirection.Inbound
-                                                                }, allowUpdate: false);
-                                                                // Philps Hue
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.GREEN}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Color change to green. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.YELLOW}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Color change to yellow. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.ORANGE}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Color change to orange. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.RED}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Color change to red. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.BLUE}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Color change to blue. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.PURPLE}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Color change to purple. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.GOLD}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Color change to gold. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.WHITE_COLD}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Color change to cold white. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.COLOR}/{TopicConstants.WHITE_WARM}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Color change to warm white. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.ON}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Turns the light on. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.OFF}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Turns the light off. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.TOGGLE}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Turns the light off if on and on if off. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.DARKER}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Dims the light. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.BRIGHTER}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Increases the light level. Payload: <LightId>."
-                                                                }, allowUpdate: false);
-                                                                await Save(new KnownTopic
-                                                                {
-                                                                    ParentKnownTopicId = parentKnownTopic.KnownTopicId,
-                                                                    NamespaceName = DataTransferService.NamespaceName,
-                                                                    ProjectName = project.ProjectName,
-                                                                    Topic = $"{TopicConstants.HUE}/{TopicConstants.LIGHT}/{TopicConstants.BRIGHTNESS}",
-                                                                    MessageDirection = MessageDirection.Outbound,
-                                                                    Description = "Adjusts the light level. Payload: { \"LightId\": <LightId>, Brightness\": \"input\" }"
-                                                                }, allowUpdate: false);
-                                                            }
-
-                                                            public async Task<KnownTopic?> LoadByTopicName(string topic)
+    public async Task<KnownTopic?> LoadByTopicName(string topic)
     {
         KnownTopic? knownTopic = null;
         string sql = $"select {this.FieldListSelect} from {FullQualifiedTableName} where topic = @Topic;";

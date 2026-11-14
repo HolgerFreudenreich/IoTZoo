@@ -22,6 +22,7 @@ namespace Domain.Interfaces
     public class MailReceiverFactory : IMailReceiverFactory
     {
         protected ILogger<MailReceiverService> Logger { get; }
+        private ISettingsCrudService SettingsCrudService { get; }
 
         public MailReceiverFactory(ILogger<MailReceiverService> logger,
             ISettingsCrudService settingsCrudService,
@@ -29,6 +30,7 @@ namespace Domain.Interfaces
             IProjectCrudService projectCrudService)
         {
             Logger = logger;
+            SettingsCrudService = settingsCrudService;
             var jsonMailSettings = settingsCrudService.GetSettingString(SettingCategory.Mail, SettingKey.MailReceiverConfigs).Result;
             if (!string.IsNullOrEmpty(jsonMailSettings))
             {
@@ -57,7 +59,7 @@ namespace Domain.Interfaces
 
         public MailReceiverService Create(MailReceiverConfig config, IDataTransferService dataTransferService, IProjectCrudService projectCrudService)
         {
-            return new MailReceiverService(Logger, config, dataTransferService, projectCrudService);
+            return new MailReceiverService(Logger, config, dataTransferService, SettingsCrudService, projectCrudService);
         }
     }
 }

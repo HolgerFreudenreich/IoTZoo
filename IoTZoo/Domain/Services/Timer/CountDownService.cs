@@ -10,6 +10,7 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
+using DataAccess.Services;
 using Domain.Interfaces;
 using Domain.Interfaces.Timer;
 using Domain.Pocos;
@@ -24,6 +25,10 @@ namespace Domain.Services.Timer
         protected CountDownData CountDownData { get; }
 
         protected ITimerService TimerService { get; }
+
+        private readonly object stateLock = new();
+
+        public event System.Action<CountDownService>? Completed;
 
         public CountDownService(ILogger<CountDownService> logger, IDataTransferService dataTransferService,
                                 CountDownData countDownData)
@@ -41,25 +46,52 @@ namespace Domain.Services.Timer
             TimerService.OnElapsed += TimerService_OnElapsed;
         }
 
+        public void Restart(CountDownData countDownData)
+        {
+            lock (stateLock)
+            {
+                CountDownData.Seconds = countDownData.Seconds;
+                CountDownData.ReportProgress = countDownData.ReportProgress;
+                TimerService.SetInterval(countDownData.ReportProgress ? 1000 : countDownData.Seconds * 1000);
+                TimerService.Start();
+            }
+        }
+
         private async void TimerService_OnElapsed(System.Timers.Timer timer, TimerServiceEventArgs elapsedEventArgs)
         {
-            if (CountDownData.ReportProgress)
+            string payload;
+            bool publish;
+            bool publishFinished;
+            bool finished;
+            lock (stateLock)
             {
-                CountDownData.Seconds--;
-                if (CountDownData.Seconds < 0)
+                finished = !CountDownData.ReportProgress;
+                publish = !finished || CountDownData.Seconds >= 0;
+                if (CountDownData.ReportProgress)
                 {
-                    Dispose();
-                    return;
+                    CountDownData.Seconds--;
+                    finished = CountDownData.Seconds < 0;
+                    publish = !finished;
                 }
+                else
+                {
+                    CountDownData.Seconds = 0;
+                }
+                publishFinished = CountDownData.Seconds == 0;
+                payload = JsonSerializer.Serialize(CountDownData);
             }
-            else
+
+            if (publish)
             {
-                CountDownData.Seconds = 0;
+                await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{CountDownData.ProjectName}/{TopicConstants.COUNTDOWN_STATUS}", payload);
             }
 
-            await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{CountDownData.ProjectName}/count_down", JsonSerializer.Serialize(CountDownData));
+            if (publishFinished)
+            {
+                await MqttClient.PublishAsync($"{DataTransferService.NamespaceName}/{CountDownData.ProjectName}/{TopicConstants.COUNTDOWN_FINISHED}", CountDownData.CounterName);
+            }
 
-            if (!CountDownData.ReportProgress)
+            if (finished)
             {
                 Dispose();
             }
@@ -69,6 +101,7 @@ namespace Domain.Services.Timer
         {
             base.Dispose();
             TimerService?.Dispose();
+            Completed?.Invoke(this);
         }
     }
 }

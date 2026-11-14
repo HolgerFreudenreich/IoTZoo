@@ -98,7 +98,9 @@
                      var item = SelectedDashboardItems[dashboard.DashboardId];
                      <MudText Typo="Typo.subtitle2" Class="mt-2">@dashboard.DashboardName</MudText>
                      <MudNumericField T="int" Label="Height (px)" Value="item.GaugeSettings.Height"
-                                      ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Height = value))" />
+                                                       ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Height = value))" />
+                                      <MudNumericField T="int" Label="Font size (px)" Value="item.FontSize"
+                                                       ValueChanged="@(value => OnFontSizeChanged(dashboard.DashboardId, value))" />
                      <MudSelect T="TopicDisplayType"
                                 Label="Display type"
                                 Value="item.DisplayType"

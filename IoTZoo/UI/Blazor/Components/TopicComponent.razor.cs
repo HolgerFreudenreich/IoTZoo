@@ -47,6 +47,9 @@ public partial class TopicComponent : ComponentBase
     public TopicDisplayType DisplayType { get; set; } = TopicDisplayType.Text;
 
     [Parameter]
+    public int FontSize { get; set; } = 14;
+
+    [Parameter]
     public GaugeSettings GaugeSettings { get; set; } = new();
 
     [Parameter]
@@ -64,7 +67,7 @@ public partial class TopicComponent : ComponentBase
     [Parameter]
     public EventCallback OnEdit { get; set; }
 
-    private string GaugeStyle => $"width:calc(100% - 24px); height:{GaugeSettings.Height}px; font-size:10px;";
+    private string GaugeStyle => $"width:calc(100% - 24px); height:{GaugeSettings.Height}px; font-size:{FontSize}px;";
 
     private double GaugeValue => double.TryParse(Message, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : 0;
 

@@ -41,7 +41,7 @@ namespace IotZoo
     KY025::KY025(int deviceIndex, Settings* const settings, MqttClient* const mqttClient, const String& baseTopic, u16_t intervalMs, u8_t pinData)
         : DeviceBase(deviceIndex, settings, mqttClient, baseTopic)
     {
-        Serial.println("Constructor KY025, intervalMs: " + String(intervalMs) + ", pinData: " + String(pinData));
+        debug("Constructor KY025, intervalMs: " + String(intervalMs) + ", pinData: " + String(pinData));
         this->intervalMs = intervalMs;
         pinMode(pinData, INPUT_PULLUP);
         attachInterrupt(pinData, isrKY025, FALLING);
@@ -97,6 +97,7 @@ namespace IotZoo
         {
             if (millis() - lastLoopMillis > 3000)
             {
+                rpm = 0.0;
                 mqttClient->publish(getBaseTopic() + "/reed_contact/" + String(getDeviceIndex()) + "/rpm", "0");
                 lastLoopMillis = millis();
             }

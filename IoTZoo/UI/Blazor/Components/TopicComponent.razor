@@ -9,7 +9,7 @@
        @switch (DisplayType)
        {
                case TopicDisplayType.Text:
-                   <MudText Typo="Typo.body1" Style="@($"overflow:hidden; text-overflow:ellipsis; white-space:nowrap; {TextStyle}")">@Message</MudText>
+                   <MudText Typo="Typo.body1" Style="@($"overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:{FontSize}px; {TextStyle}")">@Message</MudText>
                    break;
                case TopicDisplayType.Gauge:
                    <div style="width:100%; display:flex; flex-direction:column; align-items:center;">
@@ -45,7 +45,7 @@
                                </RadzenArcGauge>
                                break;
                        }
-                       <MudText Typo="Typo.caption" Align="Align.Center" Style="@LabelStyle">@GaugeSettings.Label @GaugeSettings.Unit</MudText>
+                       <MudText Typo="Typo.caption" Align="Align.Center" Style="@($"font-size:{FontSize}px; {LabelStyle}")">@GaugeSettings.Label @GaugeSettings.Unit</MudText>
                    </div>
                    break;
            }

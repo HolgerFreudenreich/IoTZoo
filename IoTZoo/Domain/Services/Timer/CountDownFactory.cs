@@ -14,11 +14,16 @@ using Domain.Interfaces;
 using Domain.Interfaces.Timer;
 using Domain.Pocos;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace Domain.Services.Timer
 {
     public class CountDownFactory : ICountDownFactory
     {
+        private readonly Dictionary<string, CountDownService> activeCountDowns = new();
+
+        private readonly object sync = new();
+
         public ILogger<CountDownService> Logger { get; }
 
         protected IDataTransferService DataTransferService { get; }
@@ -31,7 +36,32 @@ namespace Domain.Services.Timer
 
         public CountDownService Create(CountDownData countDownData)
         {
-            return new CountDownService(Logger, DataTransferService, countDownData);
+            string key = $"{countDownData.ProjectName}/{countDownData.CounterName}";
+
+            lock (sync)
+            {
+                if (activeCountDowns.TryGetValue(key, out CountDownService? active))
+                {
+                    Logger.LogInformation("Restart countdown {Key} ({Instance}) with {Seconds}s", key, active.GetHashCode(), countDownData.Seconds);
+                    active.Restart(countDownData);
+                    return active;
+                }
+
+                var countDownService = new CountDownService(Logger, DataTransferService, countDownData);
+                Logger.LogInformation("New countdown {Key} ({Instance}) with {Seconds}s, active: {Count}", key, countDownService.GetHashCode(), countDownData.Seconds, activeCountDowns.Count + 1);
+                countDownService.Completed += service =>
+                {
+                    lock (sync)
+                    {
+                        if (activeCountDowns.TryGetValue(key, out CountDownService? current) && current == service)
+                        {
+                            activeCountDowns.Remove(key);
+                        }
+                    }
+                };
+                activeCountDowns[key] = countDownService;
+                return countDownService;
+            }
         }
     }
 }

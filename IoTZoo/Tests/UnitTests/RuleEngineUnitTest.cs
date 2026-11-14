@@ -1279,7 +1279,7 @@ namespace UnitTests
             Rule rule = new Rule
             {
                 Expression = "$['Seconds'] == 0",
-                SourceTopic = "iotzoo/picea/count_down",
+                SourceTopic = $"iotzoo/picea/{TopicConstants.COUNTDOWN_STATUS}",
                 TargetPayload = "{ \"ProjectName\": \"picea\", \"CounterName\": \"Counter1\", \"Seconds\": 0 }"
             };
 

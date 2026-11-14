@@ -14,13 +14,27 @@
                 Variant="Variant.Text">
   </MudTextField>
    <MudSwitch @bind-Value="TopicEntry.Retain" Label="Retain Message" />
-  <br />
-  <br />
-  <MudButton OnClick="PublishAsync"
-             Variant="Variant.Filled"
-             EndIcon="@Icons.Material.Filled.Send"
-             Color="Color.Primary">
-    Publish
-  </MudButton>
-</MudPaper>
+     <br />
+     <br />
+     <MudStack Row="true">
+       <MudButton OnClick="PublishAsync"
+                  Variant="Variant.Filled"
+                  EndIcon="@Icons.Material.Filled.Send"
+                  Color="Color.Primary">
+         Publish
+       </MudButton>
+       <MudButton OnClick="ExportToClipboardAsync"
+                  Variant="Variant.Outlined"
+                  EndIcon="@Icons.Material.Filled.ContentCopy"
+                  Color="Color.Default">
+         Export
+       </MudButton>
+       <MudButton OnClick="ImportFromClipboardAsync"
+                  Variant="Variant.Outlined"
+                  EndIcon="@Icons.Material.Filled.ContentPaste"
+                  Color="Color.Default">
+         Import
+       </MudButton>
+     </MudStack>
+  </MudPaper>
 <br />
