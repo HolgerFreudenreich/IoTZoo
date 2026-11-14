@@ -19,12 +19,14 @@ using MailKit.Net.Imap;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MimeKit;
+using System.Text.Json;
 
 namespace Domain.Services;
 
 public class MailReceiverService : MqttPublisher, IAsyncDisposable
 {
     private MailReceiverConfig MailReceiverConfig { get; }
+    private ISettingsCrudService SettingsCrudService { get; }
     private IProjectCrudService ProjectCrudService { get; }
     private readonly SemaphoreSlim imapLock = new(1, 1);
 
@@ -39,10 +41,12 @@ public class MailReceiverService : MqttPublisher, IAsyncDisposable
     public MailReceiverService(ILogger<MailReceiverService> logger,
         MailReceiverConfig mailReceiverConfig,
         IDataTransferService dataTransferService,
+        ISettingsCrudService settingsCrudService,
         IProjectCrudService projectCrudService)
         : base(logger, dataTransferService)
     {
         MailReceiverConfig = mailReceiverConfig;
+        SettingsCrudService = settingsCrudService;
         ProjectCrudService = projectCrudService;
         _ = Task.Run(() => StartIdleAsync(serviceCancellationToken.Token));
     }
@@ -90,8 +94,14 @@ public class MailReceiverService : MqttPublisher, IAsyncDisposable
 
     private async Task StartIdleAsync(CancellationToken token)
     {
-        while (!token.IsCancellationRequested)
+        while (!token.IsCancellationRequested && MailReceiverConfig.Enabled)
         {
+            if (string.IsNullOrWhiteSpace(MailReceiverConfig.Password))
+            {
+                await DisableAsync("no password is configured");
+                break;
+            }
+
             try
             {
                 if (imapClient == null || !imapClient.IsConnected || !imapClient.IsAuthenticated)
@@ -106,6 +116,12 @@ public class MailReceiverService : MqttPublisher, IAsyncDisposable
             {
                 Logger.LogInformation("IMAP IDLE loop cancelled for {user}", MailReceiverConfig.UserName);
             }
+            catch (AuthenticationException exception)
+            {
+                Logger.LogWarning(exception, "IMAP authentication failed for {user}; disabling mail receiver", MailReceiverConfig.UserName);
+                await DisableAsync("IMAP authentication failed");
+                break;
+            }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Idle loop crashed, reconnecting...");
@@ -114,6 +130,50 @@ public class MailReceiverService : MqttPublisher, IAsyncDisposable
         }
 
         Logger.LogInformation("MailReceiverService stopped for {user}", MailReceiverConfig.UserName);
+    }
+
+    private async Task DisableAsync(string reason)
+    {
+        MailReceiverConfig.Enabled = false;
+        Logger.LogWarning("Mail receiver for {user} is disabled: {reason}", MailReceiverConfig.UserName, reason);
+
+        try
+        {
+            string json = await SettingsCrudService.GetSettingString(SettingCategory.Mail, SettingKey.MailReceiverConfigs);
+            List<MailReceiverConfig>? configs = JsonSerializer.Deserialize<List<MailReceiverConfig>>(json);
+            if (configs == null)
+            {
+                Logger.LogError("Unable to persist disabled mail receiver for {user}: configuration list is null", MailReceiverConfig.UserName);
+                return;
+            }
+
+            var matchingConfigs = configs.Where(config =>
+                config.Enabled &&
+                config.HostName == MailReceiverConfig.HostName &&
+                config.Port == MailReceiverConfig.Port &&
+                config.UserName == MailReceiverConfig.UserName &&
+                config.Password == MailReceiverConfig.Password).ToList();
+
+            if (matchingConfigs.Count == 0)
+            {
+                Logger.LogError("Unable to persist disabled mail receiver for {user}: matching configuration was not found", MailReceiverConfig.UserName);
+                return;
+            }
+
+            foreach (var config in matchingConfigs)
+            {
+                config.Enabled = false;
+            }
+
+            if (await SettingsCrudService.Update(SettingCategory.Mail, SettingKey.MailReceiverConfigs, configs) != 1)
+            {
+                Logger.LogError("Unable to persist disabled mail receiver for {user}", MailReceiverConfig.UserName);
+            }
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Failed to persist disabled mail receiver for {user}", MailReceiverConfig.UserName);
+        }
     }
 
     private async Task IdleLoopAsync(CancellationToken token)

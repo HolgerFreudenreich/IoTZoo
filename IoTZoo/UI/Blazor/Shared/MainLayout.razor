@@ -26,6 +26,17 @@
                      OnClick="@((e) => DrawerToggle())" />
       <MudText Typo="Typo.h5">@Title</MudText>
       <MudSpacer />
+            @if (AppLock.IsLockEnabled)
+            {
+               <MudTooltip Color="Color.Tertiary">
+                  <ChildContent>
+                     <MudIconButton Icon="@Icons.Material.Filled.Lock" OnClick="LockApp" />
+                  </ChildContent>
+                  <TooltipContent>
+                     <MudText Typo="Typo.h6">Lock IoT Zoo</MudText>
+                  </TooltipContent>
+               </MudTooltip>
+            }
       <MudStack Row="true">
          <MudTooltip Color="Color.Tertiary">
             <ChildContent>

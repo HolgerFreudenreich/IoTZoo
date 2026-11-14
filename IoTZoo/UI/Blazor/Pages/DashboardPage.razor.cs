@@ -34,6 +34,9 @@ public class DashboardPageBase : ComponentBase
     public Dictionary<string, TopicDisplayType> DisplayTypes { get; set; } = new();
 
     [Parameter]
+    public Dictionary<string, int> FontSizes { get; set; } = new();
+
+    [Parameter]
     public Dictionary<string, GaugeSettings> GaugeSettings { get; set; } = new();
 
     [Parameter]
@@ -53,7 +56,7 @@ public class DashboardPageBase : ComponentBase
 
     protected List<TopicItem> TopicItems = [];
 
-    protected record TopicItem(string Topic, string? FriendlyName, string Message, DateTime? DateOfReceipt, TopicDisplayType DisplayType, GaugeSettings GaugeSettings);
+    protected record TopicItem(string Topic, string? FriendlyName, string Message, DateTime? DateOfReceipt, TopicDisplayType DisplayType, int FontSize, GaugeSettings GaugeSettings);
 
     protected override void OnParametersSet()
     {
@@ -62,6 +65,7 @@ public class DashboardPageBase : ComponentBase
                                                           Messages.GetValueOrDefault(topic, string.Empty),
                                                           MessageReceipts.TryGetValue(topic, out var receipt) ? receipt : null,
                                                           DisplayTypes.GetValueOrDefault(topic, TopicDisplayType.Text),
+                                                          FontSizes.GetValueOrDefault(topic, 14),
                                                           GaugeSettings.GetValueOrDefault(topic, new())))
                            .ToList();
     }

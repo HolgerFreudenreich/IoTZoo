@@ -538,7 +538,8 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
     private async Task<bool> HandleCountDown(TopicEntry topicEntry)
     {
         bool ok = false;
-        if (topicEntry.Topic.EndsWith("start_countdown"))
+        if (topicEntry.Topic.EndsWith(TopicConstants.COUNTDOWN_START) ||
+            topicEntry.Topic.EndsWith(TopicConstants.START_COUNTDOWN))
         {
             try
             {

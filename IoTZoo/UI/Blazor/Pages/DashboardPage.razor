@@ -8,7 +8,7 @@
       var currentIndex = index;
       var item = TopicItems[currentIndex];
       <MudStack Row="true" AlignItems="AlignItems.Center">
-         <TopicComponent Topic="@item.Topic" FriendlyName="@item.FriendlyName" Message="@item.Message" DateOfReceipt="@item.DateOfReceipt" DisplayType="@item.DisplayType" GaugeSettings="@item.GaugeSettings" DateTimeFormat="@DateTimeFormat" Project="@Project" OnDelete="OnDelete" OnEdit="OnEdit" />
+         <TopicComponent Topic="@item.Topic" FriendlyName="@item.FriendlyName" Message="@item.Message" DateOfReceipt="@item.DateOfReceipt" DisplayType="@item.DisplayType" FontSize="@item.FontSize" GaugeSettings="@item.GaugeSettings" DateTimeFormat="@DateTimeFormat" Project="@Project" OnDelete="OnDelete" OnEdit="OnEdit" />
          <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
                         Size="Size.Small"
                         Disabled="@(currentIndex == 0)"

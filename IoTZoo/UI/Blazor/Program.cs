@@ -88,6 +88,8 @@ builder.Services.AddSingleton<IDataTransferService, DataTransferService>();
 builder.Services.AddSingleton<ICalculationService, CalculationService>();
 
 builder.Services.AddSingleton<ISettingsCrudService, SettingsDatabaseService>();
+builder.Services.AddScoped<IAppLockService, AppLockService>();
+builder.Services.AddSingleton<IUnlockAttemptTracker, UnlockAttemptTracker>();
 builder.Services.AddSingleton<IProjectCrudService, ProjectDatabaseService>();
 builder.Services.AddTransient<IMicrocontrollerService, MicrocontrollerService>();
 builder.Services.AddSingleton<IKnownTopicsCrudService, KnownTopicsDatabaseService>();

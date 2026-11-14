@@ -47,6 +47,7 @@
             <DashboardPage @key="dashboard.DashboardName"
                            Topics="DashboardTopics.GetValueOrDefault(dashboard.DashboardId, [])"
                            DisplayTypes="DashboardDisplayTypes.GetValueOrDefault(dashboard.DashboardId, new())"
+                           FontSizes="DashboardFontSizes.GetValueOrDefault(dashboard.DashboardId, new())"
                            GaugeSettings="DashboardGaugeSettings.GetValueOrDefault(dashboard.DashboardId, new())"
                            FriendlyNames="DashboardFriendlyNames.GetValueOrDefault(dashboard.DashboardId, new())"
                            Messages="Messages.ToDictionary(m => m.Key, m => m.Value)"

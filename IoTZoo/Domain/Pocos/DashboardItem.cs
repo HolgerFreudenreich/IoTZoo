@@ -26,6 +26,8 @@ public class DashboardItem
 
        public TopicDisplayType DisplayType { get; set; } = TopicDisplayType.Text;
 
+       public int FontSize { get; set; } = 14;
+
        public string? SettingsJson { get; set; }
 
        public GaugeSettings GaugeSettings

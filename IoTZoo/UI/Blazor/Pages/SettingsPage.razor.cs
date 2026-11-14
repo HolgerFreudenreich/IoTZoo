@@ -11,6 +11,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 using DataAccess.Interfaces;
+using Domain.Interfaces;
 using Domain.Interfaces.Crud;
 using Domain.Interfaces.MQTT;
 using Domain.Pocos;
@@ -70,6 +71,13 @@ public class SettingsPageBase : PageBase
     } = null!;
 
     [Inject]
+    protected IAppLockService AppLock
+    {
+        get;
+        set;
+    } = null!;
+
+    [Inject]
     protected IJSRuntime JSRuntime
     {
         get;
@@ -102,6 +110,12 @@ public class SettingsPageBase : PageBase
     } = null!;
 
     public string? HueBridgeAppKey
+    {
+        get;
+        set;
+    }
+
+    protected string? UnlockCodeInput
     {
         get;
         set;
@@ -319,6 +333,11 @@ public class SettingsPageBase : PageBase
 
         await SettingsService.Update(SettingCategory.UiSettings, SettingKey.IsDarkMode, DataTransferService.IsDarkMode);
         await SettingsService.Update(SettingCategory.UiSettings, SettingKey.MqttExplorerMaxReceivedTopics, DataTransferService.MqttExplorerMaxReceivedTopics);
+        if (!string.IsNullOrEmpty(UnlockCodeInput))
+        {
+            await AppLock.SetUnlockCodeAsync(UnlockCodeInput);
+            UnlockCodeInput = null;
+        }
         await InternalBroker.StopServer();
         if (MqttBrokerSettings.UseInternalMqttBroker)
         {
@@ -334,6 +353,13 @@ public class SettingsPageBase : PageBase
 
         AppStatus.NotifyStateChanged();
         Snackbar.Add("Settings saved.", MudBlazor.Severity.Success);
+    }
+
+    protected async Task RemoveUnlockCode()
+    {
+        await AppLock.RemoveUnlockCodeAsync();
+        UnlockCodeInput = null;
+        Snackbar.Add("Unlock code removed. The app runs without login.", MudBlazor.Severity.Success);
     }
 
     public void DarkModeChanged(bool isDarkMode)

@@ -1,0 +1,25 @@
+@page "/Login"
+@layout IotZoo.Shared.LoginLayout
+@using IotZoo.Components
+
+<MudPaper Class="pa-6" Elevation="2" Width="400px" Style="margin: 0 auto;">
+   <MudText Typo="Typo.h5" Class="mb-4" Align="Align.Center">IoT Zoo is locked</MudText>
+   <Logo></Logo>
+   <div class="mb-4"></div>
+   <MudTextField @ref="_unlockCodeField"
+                 T="string"
+                 Label="Unlock code"
+                 InputType="InputType.Password"
+                 autocomplete="current-password"
+                 @bind-Value="UnlockCode"
+                 Error="LoginFailed"
+                 ErrorText="@ErrorMessage"
+                 Disabled="IsWaiting"
+                 Variant="Variant.Text" />
+   <br />
+   <MudButton Variant="Variant.Filled"
+              Color="Color.Primary"
+              FullWidth="true"
+              Disabled="IsWaiting"
+              OnClick="UnlockAsync">Unlock</MudButton>
+</MudPaper>

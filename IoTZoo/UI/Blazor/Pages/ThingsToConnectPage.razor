@@ -715,15 +715,26 @@
 <MudText Typo="Typo.h6">Countdown Service</MudText>
 <br />
 <KnownTopicComponent MessageDirection="MessageDirection.Outbound"
-                     Topic=" &lt;Namespace&gt;/&lt;Project&gt;/start_countdown"
+                     Topic=@($"<Namespace>/<Project>/{TopicConstants.COUNTDOWN_START}")
                      Description="Starts a countdown"
                      ExamplePayload="{ &quot;ProjectName&quot;: &quot;picea&quot;, &quot;CounterName&quot;: &quot;Counter1&quot;, &quot;Seconds&quot;: 10, &quot;ReportProgress&quot;: true }">
 </KnownTopicComponent>
+<KnownTopicComponent MessageDirection="MessageDirection.Outbound"
+                     Topic=@($"<Namespace>/<Project>/{TopicConstants.START_COUNTDOWN}")
+                     Description="Alias for countdown_start"
+                     ExamplePayload="{ &quot;ProjectName&quot;: &quot;picea&quot;, &quot;CounterName&quot;: &quot;Counter1&quot;, &quot;Seconds&quot;: 10, &quot;ReportProgress&quot;: true }">
+</KnownTopicComponent>
 <KnownTopicComponent MessageDirection="MessageDirection.Inbound"
-                     Topic=" &lt;Namespace&gt;/&lt;Project&gt;/countdown"
-                     Description="Starts a countdown"
+                     Topic=@($"<Namespace>/<Project>/{TopicConstants.COUNTDOWN_STATUS}")
+                     Description="countdown status"
                      ExamplePayload="{ &quot;ProjectName&quot;: &quot;picea&quot;, &quot;CounterName&quot;: &quot;Counter1&quot;, &quot;Seconds&quot;: 3 }">
 </KnownTopicComponent>
 <br />
 <MudText>Check if the counter has expired.</MudText>
 <MudText>$[&apos;Seconds&apos;] == 0 &amp;&amp; $[&apos;ProjectName&apos;] == &quot;picea&quot; &amp;&amp; $[&apos;CounterName&apos;] == &quot;Counter1&quot;</MudText>
+<br />
+<KnownTopicComponent MessageDirection="MessageDirection.Inbound"
+                     Topic=@($"<Namespace>/<Project>/{TopicConstants.COUNTDOWN_FINISHED}")
+                     Description="countdown finished"
+                     ExamplePayload="Counter1">
+</KnownTopicComponent>

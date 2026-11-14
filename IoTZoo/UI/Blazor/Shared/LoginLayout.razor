@@ -1,0 +1,15 @@
+@inherits LayoutComponentBase
+@inject Domain.Interfaces.IDataTransferService DataTransferService
+
+<MudThemeProvider IsDarkMode="@DataTransferService.IsDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+   <MudMainContent>
+      <MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+         @Body
+      </MudContainer>
+   </MudMainContent>
+</MudLayout>

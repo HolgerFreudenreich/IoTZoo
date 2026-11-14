@@ -86,6 +86,7 @@ public class DashboardItemsDatabaseService : DataServiceBase, IDashboardItemsCru
          {
             var wanted = dashboardItems[item.DashboardId];
             item.DisplayType = wanted.DisplayType;
+            item.FontSize = wanted.FontSize;
             item.SettingsJson = wanted.SettingsJson;
             await Update(item);
          }
@@ -97,6 +98,7 @@ public class DashboardItemsDatabaseService : DataServiceBase, IDashboardItemsCru
                DashboardId = dashboardId,
                KnownTopicId = knownTopicId,
                DisplayType = wanted.DisplayType,
+               FontSize = wanted.FontSize,
                SettingsJson = wanted.SettingsJson,
                IndexInDashboard = wanted.IndexInDashboard
             });

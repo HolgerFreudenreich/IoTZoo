@@ -1,6 +1,8 @@
 ﻿<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-      <RouteView RouteData="routeData" DefaultLayout="typeof(IotZoo.Shared.MainLayout)" />
+      <IotZoo.Components.UnlockGuard PageType="routeData.PageType">
+                <RouteView RouteData="routeData" DefaultLayout="typeof(IotZoo.Shared.MainLayout)" />
+             </IotZoo.Components.UnlockGuard>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
 </Router>

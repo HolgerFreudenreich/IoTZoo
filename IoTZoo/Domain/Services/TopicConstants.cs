@@ -38,6 +38,11 @@ namespace DataAccess.Services
         public const string MINUTES_AFTER_SUNRISE = "minutes_after_sunrise"; // Minutes after the last sunrise
         public const string MINUTES_AFTER_SUNSET = "minutes_after_sunset"; // Minutes after the last sunset
 
+        public const string COUNTDOWN_START = "countdown_start";
+        public const string START_COUNTDOWN = "start_countdown";
+        public const string COUNTDOWN_STATUS = "countdown_status";
+        public const string COUNTDOWN_FINISHED = "countdown_finished";
+
         public const string INIT = "init";
         public const string EVERY_SECOND = "every_second";
         public const string EVERY_05_SECONDS = "every_05_seconds";

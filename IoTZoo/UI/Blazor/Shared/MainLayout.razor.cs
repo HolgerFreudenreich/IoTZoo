@@ -35,6 +35,20 @@ namespace IotZoo.Shared
             set;
         } = null!;
 
+        [Inject]
+        protected IAppLockService AppLock
+        {
+            get;
+            set;
+        } = null!;
+
+        [Inject]
+        protected NavigationManager NavigationManager
+        {
+            get;
+            set;
+        } = null!;
+
         bool drawerOpen = true;
 
         string Title { get; set; } = "IoT Zoo";
@@ -44,6 +58,12 @@ namespace IotZoo.Shared
         void DrawerToggle()
         {
             drawerOpen = !drawerOpen;
+        }
+
+        void LockApp()
+        {
+            AppLock.Lock();
+            NavigationManager.NavigateTo("/Login");
         }
 
         string GetTitle()

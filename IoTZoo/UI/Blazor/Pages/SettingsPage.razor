@@ -182,6 +182,23 @@
                           Variant="@Variant.Text" />
       </MudPaper>
    </MudFocusTrap>
+       <br />
+       <MudText Typo="Typo.h5">Security</MudText>
+       <MudPaper Class="pa-6" Height="200px" Width="600px" Elevation="1">
+          <MudTextField T="string"
+                        Label="Unlock code"
+                        HelperText="@(AppLock.IsLockEnabled ? "An unlock code is set. Enter a new code to change it." : "No unlock code set: the app runs without login.")"
+                        InputType="InputType.Password"
+                        autocomplete="new-password"
+                        @bind-Value="UnlockCodeInput"
+                        Variant="@Variant.Text" />
+          <br />
+          <MudButton Variant="Variant.Outlined"
+                     Color="Color.Error"
+                     Disabled="@(!AppLock.IsLockEnabled)"
+                     OnClick="RemoveUnlockCode">Remove unlock code</MudButton>
+       </MudPaper>
+       <br />
    <br />
    <div style="position: relative; top: 13px;">
       <MudStack Row="true">

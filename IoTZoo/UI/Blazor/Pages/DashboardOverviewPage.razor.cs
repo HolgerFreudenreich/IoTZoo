@@ -52,6 +52,8 @@ public class DashboardOverviewPageBase : MqttPageBase
 
    public Dictionary<int, Dictionary<string, TopicDisplayType>> DashboardDisplayTypes { get; } = new();
 
+   public Dictionary<int, Dictionary<string, int>> DashboardFontSizes { get; } = new();
+
    public Dictionary<int, Dictionary<string, GaugeSettings>> DashboardGaugeSettings { get; } = new();
 
    public Dictionary<int, Dictionary<string, string?>> DashboardFriendlyNames { get; } = new();
@@ -78,6 +80,7 @@ public class DashboardOverviewPageBase : MqttPageBase
    {
       DashboardTopics.Clear();
       DashboardDisplayTypes.Clear();
+      DashboardFontSizes.Clear();
       DashboardGaugeSettings.Clear();
       DashboardFriendlyNames.Clear();
       Dashboards = SelectedProject == null
@@ -90,6 +93,7 @@ public class DashboardOverviewPageBase : MqttPageBase
          var dashboardItems = await DashboardItemsService.GetDashboardItemsByDashboardId(dashboard.DashboardId);
          var topics = new List<string>();
          var displayTypes = new Dictionary<string, TopicDisplayType>();
+         var fontSizes = new Dictionary<string, int>();
          var gaugeSettings = new Dictionary<string, GaugeSettings>();
          var friendlyNames = new Dictionary<string, string?>();
          foreach (var dashboardItem in dashboardItems.OrderBy(item => item.IndexInDashboard))
@@ -99,6 +103,7 @@ public class DashboardOverviewPageBase : MqttPageBase
             {
                topics.Add(knownTopic.FullQualifiedTopic);
                displayTypes[knownTopic.FullQualifiedTopic] = dashboardItem.DisplayType;
+               fontSizes[knownTopic.FullQualifiedTopic] = dashboardItem.FontSize;
                gaugeSettings[knownTopic.FullQualifiedTopic] = dashboardItem.GaugeSettings;
                friendlyNames[knownTopic.FullQualifiedTopic] = knownTopic.FriendlyName;
                lastPayloads[knownTopic.FullQualifiedTopic] = knownTopic;
@@ -106,6 +111,7 @@ public class DashboardOverviewPageBase : MqttPageBase
          }
          DashboardTopics[dashboard.DashboardId] = topics;
          DashboardDisplayTypes[dashboard.DashboardId] = displayTypes;
+         DashboardFontSizes[dashboard.DashboardId] = fontSizes;
          DashboardGaugeSettings[dashboard.DashboardId] = gaugeSettings;
          DashboardFriendlyNames[dashboard.DashboardId] = friendlyNames;
       }
