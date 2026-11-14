@@ -105,6 +105,38 @@
       </MudPaper>
       <br />
       <br />
+      <MudText Typo="Typo.h5">Mail Sender</MudText>
+      <MudPaper Class="pa-6" Width="1200px" Elevation="2">
+         <MudStack>
+            @if (MailSenderSettingsUnreadable)
+            {
+               <MudAlert Severity="Severity.Error">Mail sender settings could not be read. They will remain unchanged unless you select replacement below. Re-enter the password if the sender is enabled.</MudAlert>
+               <MudSwitch @bind-Value="ReplaceUnreadableMailSenderSettings" Label="Replace unreadable mail sender settings when saving" />
+            }
+            <MudSwitch @bind-Value="MailSenderConfig.Enabled" Label="Enabled" />
+            <MudStack Row="true">
+               <MudTextField Label="SMTP Hostname" @bind-Value="MailSenderConfig.HostName" />
+               <MudNumericField Label="SMTP Port" @bind-Value="MailSenderConfig.Port" Min="1" Max="65535" />
+               <MudSelect T="string" Label="Encryption" @bind-Value="MailSenderConfig.Encryption">
+                  <MudSelectItem Value="@("STARTTLS")">STARTTLS</MudSelectItem>
+                  <MudSelectItem Value="@("SSL")">SSL/TLS</MudSelectItem>
+               </MudSelect>
+            </MudStack>
+            <MudStack Row="true">
+               <MudTextField Label="Username" @bind-Value="MailSenderConfig.UserName" />
+               <MudTextField Label="Password" InputType="InputType.Password" autocomplete="new-password" @bind-Value="MailSenderConfig.Password" />
+               <MudTextField Label="Password reference" @bind-Value="MailSenderConfig.PasswordRef" HelperText="Identifier used in MQTT payloads; not the password" />
+            </MudStack>
+            <MudTextField Label="Allowed attachment directory" @bind-Value="MailSenderConfig.AttachmentDirectory" HelperText="Files must be inside this directory on the server" />
+            <MudStack Row="true">
+               <MudTextField Label="IMAP host for Sent folder (optional)" @bind-Value="MailSenderConfig.ImapHostName" />
+               <MudNumericField Label="IMAP port (SSL/TLS)" @bind-Value="MailSenderConfig.ImapPort" Min="1" Max="65535" />
+            </MudStack>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="width:160px" Disabled="TestingMailSender" OnClick="TestMailSenderAsync">Test SMTP</MudButton>
+         </MudStack>
+      </MudPaper>
+      <br />
+      <br />
       <MudText Typo="Typo.h5">Mail Receiver</MudText>
       <div style="width:64px; height:64px">
          <MudIconButton Icon="@Icons.Material.Outlined.Add"

@@ -33,3 +33,15 @@
    <IotZoo.Components.CronExpression></IotZoo.Components.CronExpression>
    <br />
 </MudPaper>
+<br />
+<MudPaper Elevation="3" Style="padding: 40px;">
+   <MudText>Json Tree Test</MudText>
+   <br />
+   <MudTextField @bind-Value="@JsonText"
+                 Immediate="true"
+                 Lines="6"
+                 Label="Json"
+                 Variant="Variant.Outlined" />
+   <br />
+   <IotZoo.Components.JsonTreeView Json="@JsonText" ExpandLevels="2" />
+</MudPaper>

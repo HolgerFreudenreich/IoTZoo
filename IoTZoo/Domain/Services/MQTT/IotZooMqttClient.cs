@@ -67,6 +67,8 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
 
     public ICountDownFactory CountDownFactory { get; }
 
+    private readonly MailSenderService mailSenderService;
+
     public IotZooMqttClient(IOptions<AppSettings> options,
                             IKnownMicrocontrollerCrudService microcontrollerDatabaseService,
                             IDataTransferService dataTransferService,
@@ -80,8 +82,10 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
                             IExpressionEvaluationService expressionEvaluationService,
                             IPrepareTargetPayload prepareTargetPayload,
                             ICronCrudService cronCrudService,
-                            ICountDownFactory countDownFactory)
+                            ICountDownFactory countDownFactory,
+                            MailSenderService mailSenderService)
     {
+        this.mailSenderService = mailSenderService;
         Logger = logger;
         MicrocontrollerService = microcontrollerDatabaseService;
         RulesService = rulesService;
@@ -220,6 +224,11 @@ public class IotZooMqttClient : IIoTZooMqttClient, IDisposable
                 //string json = JsonSerializer.Serialize(aliveMessage.Microcontroller);
                 await Client.PublishStringAsync(topic, "ok");
             }
+        }
+
+        if (topicEntry.Topic == MailSenderService.SendTopic)
+        {
+            await mailSenderService.HandleAsync(topicEntry.Payload, topicEntry.Retain);
         }
 
         // Is it a known Topic?

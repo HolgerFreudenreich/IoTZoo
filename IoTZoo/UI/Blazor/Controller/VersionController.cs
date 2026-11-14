@@ -21,5 +21,5 @@ public class VersionController : ControllerBase
     [HttpGet]
     public string Get() => Version;
 
-    public static string Version { get; set; } = "0.2.0";
+    public static string Version { get; set; } = "0.2.1";
 }

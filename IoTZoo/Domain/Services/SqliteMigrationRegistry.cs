@@ -24,6 +24,7 @@ public static class SqliteMigrationRegistry
         new("CreateDatabaseIotZoo.txt", 2, "iotzoo_migration_to_version_2.sql"),
         new("CreateDatabaseSettings.txt", 2, "settings_migration_to_version_2.sql"),
         new("CreateDatabaseScripting.txt", 2, "scripting_migration_to_version_2.sql"),
-        new("CreateDatabaseSettings.txt", 3, "settings_migration_to_version_3.sql")
+        new("CreateDatabaseSettings.txt", 3, "settings_migration_to_version_3.sql"),
+        new("CreateDatabaseSettings.txt", 4, "settings_migration_to_version_4.sql")
     ];
 }

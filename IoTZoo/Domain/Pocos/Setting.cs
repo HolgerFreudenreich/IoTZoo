@@ -39,6 +39,7 @@ public enum SettingKey
   MailReceiverConfigs = 9,
   MqttExplorerMaxReceivedTopics = 10,
   UnlockCode = 11,
+  MailSenderConfig = 12,
 }
 
 public class Setting : BasePoco

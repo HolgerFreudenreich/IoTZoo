@@ -261,6 +261,16 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
 
         await Save(parentKnownTopic);
 
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = MailSenderService.SendTopic,
+            Description = "Send an email using the configured mail sender.",
+            MessageDirection = MessageDirection.Outbound
+        }, allowUpdate: false);
+
         var cronJobs = new (string CronExpression, string TopicName, string Description)[]
         {
             ("* * * ? * *", TopicConstants.EVERY_SECOND, "Fires every second."),

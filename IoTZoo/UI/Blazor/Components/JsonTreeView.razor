@@ -1,0 +1,12 @@
+@using MudBlazor
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+   <MudAlert Severity="Severity.Error" Dense="true">@errorMessage</MudAlert>
+}
+else if (root.HasValue)
+{
+   <MudTreeView T="string" Dense="true" Hover="true" ReadOnly="true">
+      @RenderNode(null, root.Value, 0)
+   </MudTreeView>
+}
