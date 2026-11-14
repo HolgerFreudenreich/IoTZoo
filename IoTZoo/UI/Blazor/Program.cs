@@ -137,6 +137,7 @@ builder.Services.AddSingleton<IPrepareTargetPayload, PrepareTargetPayload>();
 builder.Services.AddSingleton<IRulesCrudService, RulesDatabaseService>(); // set ConfigurationDatabaseType in appsetings.json to Postgres or Sqlite!
 
 builder.Services.AddSingleton<IMailReceiverFactory, MailReceiverFactory>();
+builder.Services.AddSingleton<MailSenderService>();
 builder.Services.AddSingleton<ICountDownFactory, CountDownFactory>();
 builder.Services.AddSingleton<SqliteDatabaseInitializer>();
 builder.Services.AddSingleton<IDatabaseVersionService, DatabaseVersionService>();

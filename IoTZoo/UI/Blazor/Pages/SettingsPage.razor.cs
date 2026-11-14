@@ -103,6 +103,15 @@ public class SettingsPageBase : PageBase
         set;
     } = new();
 
+    [Inject]
+    protected MailSenderService MailSenderService { get; set; } = null!;
+
+    protected MailSenderConfig MailSenderConfig { get; set; } = new();
+    protected bool TestingMailSender { get; set; }
+    protected bool MailSenderSettingsUnreadable { get; set; }
+    protected bool ReplaceUnreadableMailSenderSettings { get; set; }
+    private bool mailSenderEnabledWhenLoaded;
+
     public string HueBridgeIp
     {
         get;
@@ -225,8 +234,73 @@ public class SettingsPageBase : PageBase
                 Snackbar.Add($"Mail settings are not valid JSON: {exception.Message}", MudBlazor.Severity.Error);
             }
         }
+        try
+        {
+            MailSenderConfig = await SettingsService.GetObject(SettingCategory.Mail, SettingKey.MailSenderConfig) as MailSenderConfig ?? new();
+            mailSenderEnabledWhenLoaded = MailSenderConfig.Enabled;
+        }
+        catch (Exception exception) when (exception is JsonException or CryptographicException or FormatException)
+        {
+            Logger.LogError(exception, "Unable to load mail sender settings");
+            MailSenderSettingsUnreadable = true;
+            if (exception is not JsonException)
+            {
+                var storedSetting = await SettingsService.GetSetting(SettingCategory.Mail.ToString(), SettingKey.MailSenderConfig.ToString());
+                if (storedSetting != null)
+                {
+                    try
+                    {
+                        MailSenderConfig = JsonSerializer.Deserialize<MailSenderConfig>(storedSetting.SettingValue) ?? new();
+                        MailSenderConfig.Password = string.Empty;
+                    }
+                    catch (JsonException jsonException)
+                    {
+                        Logger.LogError(jsonException, "Unable to recover mail sender settings for editing");
+                    }
+                }
+            }
+            Snackbar.Add("Mail sender settings could not be read. The saved settings are preserved until you explicitly replace them.", MudBlazor.Severity.Error);
+        }
         await base.OnInitializedAsync();
     }
+
+    protected async Task TestMailSenderAsync()
+    {
+        TestingMailSender = true;
+        var attemptedConfig = MailSenderConfig.Copy();
+        try
+        {
+            using var client = CreateMailSenderClient();
+            await client.ConnectAsync(attemptedConfig.HostName, attemptedConfig.Port, Domain.Services.MailSenderService.GetEncryption(attemptedConfig.Encryption));
+            if (!string.IsNullOrWhiteSpace(attemptedConfig.UserName))
+                await client.AuthenticateAsync(attemptedConfig.UserName, attemptedConfig.Password);
+            await client.DisconnectAsync(true);
+            Snackbar.Add("SMTP connection successful.", MudBlazor.Severity.Success);
+        }
+        catch (MailKit.Security.AuthenticationException exception)
+        {
+            if (await MailSenderService.DisableAfterAuthenticationFailureAsync(attemptedConfig))
+            {
+                MailSenderConfig.Enabled = false;
+                mailSenderEnabledWhenLoaded = false;
+                Snackbar.Add($"SMTP authentication failed: {exception.Message}. Mail sender disabled; correct the credentials and enable it again.", MudBlazor.Severity.Error);
+            }
+            else
+            {
+                Snackbar.Add($"SMTP authentication failed: {exception.Message}. Saved sender settings were not disabled; they may differ from the tested settings. Check the application log.", MudBlazor.Severity.Error);
+            }
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"SMTP connection failed: {exception.Message}", MudBlazor.Severity.Error);
+        }
+        finally
+        {
+            TestingMailSender = false;
+        }
+    }
+
+    protected virtual MailKit.Net.Smtp.SmtpClient CreateMailSenderClient() => new();
 
     protected async Task TestMqttConnectionAsync()
     {
@@ -286,6 +360,26 @@ public class SettingsPageBase : PageBase
         {
             return;
         }
+        if (!MailSenderSettingsUnreadable && mailSenderEnabledWhenLoaded && MailSenderConfig.Enabled)
+        {
+            try
+            {
+                var current = await SettingsService.GetObject(SettingCategory.Mail, SettingKey.MailSenderConfig) as MailSenderConfig;
+                if (current != null && !current.Enabled)
+                {
+                    MailSenderConfig.Enabled = false;
+                    mailSenderEnabledWhenLoaded = false;
+                    Snackbar.Add("Mail sender was disabled after these settings were opened. Review the credentials and explicitly enable it before saving.", MudBlazor.Severity.Warning);
+                    return;
+                }
+            }
+            catch (Exception exception) when (exception is JsonException or CryptographicException or FormatException)
+            {
+                Logger.LogError(exception, "Unable to verify mail sender settings before saving");
+                Snackbar.Add("Unable to verify mail sender settings. Reload the page before saving.", MudBlazor.Severity.Error);
+                return;
+            }
+        }
         //await SettingsService.Update(SettingCategory.General, SettingKey.Namespace, "iot_zoo");
 
         await SettingsService.Update(SettingCategory.General, SettingKey.DateAndTimeFormat, DataTransferService.DateTimeFormat);
@@ -311,7 +405,51 @@ public class SettingsPageBase : PageBase
         int rowsUpdated = await SettingsService.Update(SettingCategory.Mail,
                                      SettingKey.MailReceiverConfigs,
                                      MailReceiverConfigs);
+        if (rowsUpdated != 1)
+        {
+            Snackbar.Add("Unable to save mail receiver settings.", MudBlazor.Severity.Error);
+            return;
+        }
+        if (!MailSenderSettingsUnreadable || ReplaceUnreadableMailSenderSettings)
+        {
+            try
+            {
+                if (await SettingsService.Update(SettingCategory.Mail, SettingKey.MailSenderConfig, MailSenderConfig) != 1)
+                {
+                    Snackbar.Add("Unable to save mail sender settings.", MudBlazor.Severity.Error);
+                    return;
+                }
+                MailSenderSettingsUnreadable = false;
+                ReplaceUnreadableMailSenderSettings = false;
+                mailSenderEnabledWhenLoaded = MailSenderConfig.Enabled;
+            }
+            catch (Exception exception) when (exception is CryptographicException or FormatException)
+            {
+                Snackbar.Add($"Mail sender password encryption failed: {exception.Message}", MudBlazor.Severity.Error);
+                return;
+            }
+        }
+        else
+        {
+            Snackbar.Add("Mail sender settings were not changed because they could not be read.", MudBlazor.Severity.Warning);
+        }
+        if (MqttNamespaceName != DataTransferService.NamespaceName)
+        {
+            DataTransferService.NamespaceName = MqttNamespaceName;
+            await NamespaceService.Update(DataTransferService.NamespaceName);
+        }
         await CreateMailReceiverKnownTopics();
+        foreach (var project in await ProjectService.LoadProjects())
+        {
+            await KnownTopicsService.Save(new KnownTopic
+            {
+                NamespaceName = DataTransferService.NamespaceName,
+                ProjectName = project.ProjectName,
+                Topic = Domain.Services.MailSenderService.SendTopic,
+                Description = "Send an email using the configured mail sender.",
+                MessageDirection = MessageDirection.Outbound
+            }, allowUpdate: false);
+        }
 
         bool hueSettingsChanged = HueBridgeIp != DataTransferService.PhilipsHueBridgeSettings.Ip ||
                                   HueBridgeAppKey != DataTransferService.PhilipsHueBridgeSettings.Key;
@@ -344,12 +482,6 @@ public class SettingsPageBase : PageBase
             await InternalBroker.StartServer();
         }
         await IotZooMqttClient.Reconnect();
-
-        if (MqttNamespaceName != DataTransferService.NamespaceName)
-        {
-            DataTransferService.NamespaceName = MqttNamespaceName;
-            await NamespaceService.Update(DataTransferService.NamespaceName);
-        }
 
         AppStatus.NotifyStateChanged();
         Snackbar.Add("Settings saved.", MudBlazor.Severity.Success);
@@ -481,6 +613,14 @@ public class SettingsPageBase : PageBase
 
     private bool Validate()
     {
+        if ((!MailSenderSettingsUnreadable || ReplaceUnreadableMailSenderSettings) && MailSenderConfig.Enabled &&
+            (string.IsNullOrWhiteSpace(MailSenderConfig.HostName) || MailSenderConfig.Port is < 1 or > 65535 ||
+             MailSenderConfig.ImapPort is < 1 or > 65535 ||
+             (!string.IsNullOrWhiteSpace(MailSenderConfig.UserName) && string.IsNullOrEmpty(MailSenderConfig.Password))))
+        {
+            Snackbar.Add("Enter a valid SMTP host and ports, and a password when a username is configured.", MudBlazor.Severity.Error);
+            return false;
+        }
         // ToDo: Validate fields.
         // https://developers.meethue.com/develop/application-design-guidance/hue-bridge-discovery/
         // http://192.168.178.34/api/0/config

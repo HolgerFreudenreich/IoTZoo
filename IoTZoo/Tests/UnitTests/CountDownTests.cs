@@ -40,7 +40,9 @@ public class CountDownTests
             Mock.Of<IKnownTopicsCrudService>(), Mock.Of<IHueBridgeService>(), Mock.Of<IProjectCrudService>(),
             NullLogger<IotZooMqttClient>.Instance, rules.Object, Mock.Of<ISettingsCrudService>(),
             Mock.Of<ITopicHistoryCrudService>(), Mock.Of<IExpressionEvaluationService>(),
-            Mock.Of<IPrepareTargetPayload>(), Mock.Of<ICronCrudService>(), factory.Object);
+            Mock.Of<IPrepareTargetPayload>(), Mock.Of<ICronCrudService>(), factory.Object,
+            new MailSenderService(Mock.Of<ISettingsCrudService>(), Mock.Of<IKnownTopicsCrudService>(), dataTransfer.Object,
+                NullLogger<MailSenderService>.Instance));
 
         await client.HandleMqttMessage(new TopicEntry
         {

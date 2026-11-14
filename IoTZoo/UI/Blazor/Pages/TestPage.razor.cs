@@ -31,6 +31,12 @@ namespace IotZoo.Pages
         protected string Expression { get; set; } = string.Empty;
         protected string Payload { get; set; } = string.Empty;
 
+        protected string JsonText { get; set; } = """
+            { "Microcontroller": { "MacAddress": "e4:65:b8:b0:45:b4", "IpAddress": "192.168.178.77", "ProjectName": "picea", "FirmwareVersion": "0.2.8", "BoardType": "esp32" },
+              "Alive": { "AliveCounter": 70, "LoopCounter": 189880, "LoopDurationMs": 1, "ReconnectionCount": 0, "AliveIntervalMs": 15000, "AliveAckLedEnabled": 2 },
+              "SupportedDevices": { "HW-040": false, "KeyPad": false, "TM1637_4": true, "RestServer": true, "BleHeartRate": false } }
+            """;
+
         protected string ip = string.Empty;
 
         protected override void OnInitialized()

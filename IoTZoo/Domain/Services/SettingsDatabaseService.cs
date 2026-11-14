@@ -168,6 +168,10 @@ public class SettingsDatabaseService : DataServiceBase, ISettingsCrudService
                mqttBrokerSettings.Password = string.Empty;
             }
          }
+         if (value is MailSenderConfig mailSenderConfig && !string.IsNullOrEmpty(mailSenderConfig.Password))
+         {
+            mailSenderConfig.Password = PasswordEncryptor.Decrypt(mailSenderConfig.Password, AppSettings.MqttPasswordEncryptionKey);
+         }
          return value;
       }
 
@@ -176,6 +180,32 @@ public class SettingsDatabaseService : DataServiceBase, ISettingsCrudService
          var settings = await Db.QueryAsync<Setting>($"select {FieldListSelect} from {FullQualifiedTableName} order by category, setting_key;");
          return settings.ToList();
       }
+
+   public async Task<bool> DisableMailSenderIfMatches(MailSenderConfig attemptedConfig)
+   {
+      var setting = await GetSetting(SettingCategory.Mail.ToString(), SettingKey.MailSenderConfig.ToString());
+      if (setting == null)
+         return false;
+
+      var json = System.Text.Json.Nodes.JsonNode.Parse(setting.SettingValue)?.AsObject()
+         ?? throw new JsonException("Mail sender settings are not an object.");
+      var stored = json.Deserialize<MailSenderConfig>()
+         ?? throw new JsonException("Mail sender settings are empty.");
+      if (!stored.Enabled)
+         return false;
+      if (!string.IsNullOrEmpty(stored.Password))
+         stored.Password = PasswordEncryptor.Decrypt(stored.Password, AppSettings.MqttPasswordEncryptionKey);
+      if (stored.HostName != attemptedConfig.HostName || stored.Port != attemptedConfig.Port ||
+          stored.Encryption != attemptedConfig.Encryption || stored.UserName != attemptedConfig.UserName ||
+          stored.Password != attemptedConfig.Password || stored.ImapHostName != attemptedConfig.ImapHostName ||
+          stored.ImapPort != attemptedConfig.ImapPort)
+         return false;
+
+      json[nameof(MailSenderConfig.Enabled)] = false;
+      int rows = await Db.ExecuteAsync($"update {FullQualifiedTableName} set setting_value = @NewValue where setting_id = @SettingId and setting_value = @OldValue;",
+         new { NewValue = json.ToJsonString(), setting.SettingId, OldValue = setting.SettingValue });
+      return rows == 1;
+   }
 
    public async Task<int> Update(SettingCategory category,
                                  SettingKey key,
@@ -194,6 +224,32 @@ public class SettingsDatabaseService : DataServiceBase, ISettingsCrudService
                : PasswordEncryptor.Encrypt(mqttBrokerSettings.Password, AppSettings.MqttPasswordEncryptionKey)
          };
             value = storedSettings;
+         }
+         if (value is MailSenderConfig mailSenderConfig)
+         {
+            value = new MailSenderConfig
+            {
+               Enabled = mailSenderConfig.Enabled,
+               HostName = mailSenderConfig.HostName,
+               Port = mailSenderConfig.Port,
+               Encryption = mailSenderConfig.Encryption,
+               UserName = mailSenderConfig.UserName,
+               Password = string.IsNullOrEmpty(mailSenderConfig.Password) ? mailSenderConfig.Password : PasswordEncryptor.Encrypt(mailSenderConfig.Password, AppSettings.MqttPasswordEncryptionKey),
+               PasswordRef = mailSenderConfig.PasswordRef,
+               AttachmentDirectory = mailSenderConfig.AttachmentDirectory,
+               ImapHostName = mailSenderConfig.ImapHostName,
+               ImapPort = mailSenderConfig.ImapPort
+            };
+            if (category == SettingCategory.Mail && key == SettingKey.MailSenderConfig &&
+                await GetSetting(category.ToString(), key.ToString()) == null)
+            {
+               return await Insert(new Setting
+               {
+                  Category = category.ToString(),
+                  SettingKey = key.ToString(),
+                  SettingValue = JsonSerializer.Serialize(value)
+               });
+            }
          }
          if (value is List<MailReceiverConfig> mailReceiverConfigs)
          {

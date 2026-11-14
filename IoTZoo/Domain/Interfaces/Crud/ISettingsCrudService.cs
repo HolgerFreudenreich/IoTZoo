@@ -41,6 +41,8 @@ namespace Domain.Interfaces.Crud
 
       public Task<object?> GetObject(SettingCategory category, SettingKey settingsKey);
 
+      public Task<bool> DisableMailSenderIfMatches(MailSenderConfig attemptedConfig);
+
       public Task<List<Setting>> GetAllSettings();
 
       public Task<int> Update(SettingCategory category,
