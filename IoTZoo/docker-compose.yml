@@ -16,6 +16,8 @@ services:
       - AppSettings__ConnectionStringSqliteDatabaseComponentManagement=Data Source=./Database/Data/ComponentManagement.db
       - AppSettings__ConnectionStringSqliteDatabaseScripting=Data Source=./Database/Data/Scripting.db
       - AppSettings__ConnectionStringSqliteDatabaseSettings=Data Source=./Database/Data/Settings.db
+      - Serilog__WriteTo__2__Args__connectionString=Data Source=./Database/Data/Logs.db
+
 
 
   # postgres:

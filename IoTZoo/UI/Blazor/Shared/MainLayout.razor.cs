@@ -86,6 +86,9 @@ namespace IotZoo.Shared
                 case ScreenMode.TopicsHistory:
                     Title = "Topics History";
                     break;
+                case ScreenMode.Logfiles:
+                    Title = "Logfiles";
+                    break;
                 case ScreenMode.Rules:
                     Title = "Rules";
                     break;

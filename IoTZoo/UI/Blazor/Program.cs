@@ -107,6 +107,7 @@ builder.Services.AddSingleton<INamespaceCrudService, NamespaceService>();
 builder.Services.AddSingleton<ICronService, CronService>();
 
 builder.Services.AddTransient<ISearchHelper, SearchHelper>();
+builder.Services.AddSingleton<IotZoo.Logging.ILogEntryService, IotZoo.Logging.LogEntryService>();
 
 //builder.Services.AddSingleton<IRestApi, KnownTopicsRestServiceCaller>();
 builder.Services.AddSingleton<IHueBridgeService, HueBridgeService>();

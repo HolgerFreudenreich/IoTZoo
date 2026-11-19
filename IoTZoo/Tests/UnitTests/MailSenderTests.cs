@@ -76,6 +76,63 @@ public class MailSenderTests
         settings.Verify(x => x.GetObject(It.IsAny<SettingCategory>(), It.IsAny<SettingKey>()), Times.Never);
     }
 
+    [Theory]
+    [InlineData("Not JSON")]
+    [InlineData("")]
+    [InlineData("{\"email\":")]
+    [InlineData("{\"email\":42}")]
+    public async Task InvalidJsonIsReportedWithoutAttemptingSmtp(string payload)
+    {
+        var settings = new Mock<ISettingsCrudService>();
+        settings.Setup(x => x.GetObject(SettingCategory.Mail, SettingKey.MailSenderConfig))
+            .ReturnsAsync(new MailSenderConfig { Enabled = true, HostName = "smtp" });
+        var logger = new Mock<ILogger<MailSenderService>>();
+        var smtp = new Mock<MailKit.Net.Smtp.SmtpClient>();
+        var sender = new TestMailSender(settings.Object, smtp.Object, logger.Object);
+
+        await sender.HandleAsync(payload, false);
+
+        smtp.Verify(x => x.ConnectAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<MailKit.Security.SecureSocketOptions>(), It.IsAny<CancellationToken>()), Times.Never);
+        logger.Verify(x => x.Log(LogLevel.Error, It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((state, _) => Convert.ToString(state)!.Contains("Invalid mail sender command") && Convert.ToString(state)!.Contains("no email was sent")),
+            It.IsAny<System.Text.Json.JsonException>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SmtpFailureReportsWhetherSendStarted(bool sendStarted)
+    {
+        var settings = new Mock<ISettingsCrudService>();
+        settings.Setup(x => x.GetObject(SettingCategory.Mail, SettingKey.MailSenderConfig))
+            .ReturnsAsync(new MailSenderConfig { Enabled = true, HostName = "smtp", Encryption = "STARTTLS" });
+        var logger = new Mock<ILogger<MailSenderService>>();
+        var smtp = new Mock<MailKit.Net.Smtp.SmtpClient>();
+        if (sendStarted)
+        {
+            smtp.Setup(x => x.ConnectAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<MailKit.Security.SecureSocketOptions>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            smtp.Setup(x => x.SendAsync(It.IsAny<MailKit.ISendRequest>(), It.IsAny<CancellationToken>())).ThrowsAsync(new IOException("Connection lost"));
+        }
+        else
+        {
+            smtp.Setup(x => x.ConnectAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<MailKit.Security.SecureSocketOptions>(), It.IsAny<CancellationToken>())).ThrowsAsync(new IOException("Connection lost"));
+        }
+        var sender = new TestMailSender(settings.Object, smtp.Object, logger.Object);
+
+        await sender.HandleAsync("""{"email":{"sender":{"address":"a@example.com"},"recipients":{"to":[{"address":"b@example.com"}]},"content":{"text":"hello"}}}""", false);
+
+        smtp.Verify(x => x.SendAsync(It.IsAny<MailKit.ISendRequest>(), It.IsAny<CancellationToken>()), sendStarted ? Times.Once() : Times.Never());
+        logger.Verify(x => x.Log(LogLevel.Error, It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((state, _) => Convert.ToString(state)!.Contains(sendStarted ? "delivery may be uncertain" : "no email was sent")),
+            It.IsAny<IOException>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+    }
+
+    private sealed class TestMailSender(ISettingsCrudService settings, MailKit.Net.Smtp.SmtpClient smtp, ILogger<MailSenderService> logger)
+        : MailSenderService(settings, Mock.Of<IKnownTopicsCrudService>(), Mock.Of<IDataTransferService>(), logger)
+    {
+        protected override MailKit.Net.Smtp.SmtpClient CreateSmtpClient() => smtp;
+    }
+
     [Fact]
     public async Task RejectsPayloadThatOverridesConfiguredServer()
     {

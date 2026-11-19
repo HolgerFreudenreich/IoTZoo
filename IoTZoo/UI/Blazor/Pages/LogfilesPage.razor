@@ -1,0 +1,103 @@
+@page "/Logfiles"
+
+@using IotZoo.Logging
+@using Serilog.Events
+
+@inherits LogfilesPageBase
+
+<MudStack Row="true" AlignItems="AlignItems.Center">
+   <div style="width:180px">
+      <MudSelect T="LogEventLevel"
+                 Margin="Margin.Dense"
+                 Label="Minimum level"
+                 Value="MinimumLevel"
+                 ValueChanged="OnMinimumLevelChanged"
+                 Variant="Variant.Text">
+         @foreach (LogEventLevel level in Levels)
+         {
+            <MudSelectItem Value="@level">@level</MudSelectItem>
+         }
+      </MudSelect>
+   </div>
+   <div style="width:140px">
+      <MudSelect T="int"
+                 Margin="Margin.Dense"
+                 Label="Max. entries"
+                 Value="MaxRows"
+                 ValueChanged="OnMaxRowsChanged"
+                 Variant="Variant.Text">
+         @foreach (int rows in RowOptions)
+         {
+            <MudSelectItem Value="@rows">@rows</MudSelectItem>
+         }
+      </MudSelect>
+   </div>
+   <MudTextField T="string"
+                 Value="SearchText"
+                 ValueChanged="OnSearchTextChanged"
+                 DebounceInterval="500"
+                 Placeholder="Search..."
+                 Adornment="Adornment.Start"
+                 AdornmentIcon="@Icons.Material.Filled.Search"
+                 Margin="Margin.Dense"
+                 Style="max-width: 300px" />
+   <MudButton OnClick="DeleteAll"
+              Style="height: 40px"
+              StartIcon="@Icons.Material.Filled.DeleteForever"
+              Variant="Variant.Filled"
+              Color="Color.Error">
+      Delete all
+   </MudButton>
+   <MudSpacer></MudSpacer>
+   <MudTooltip Color="Color.Tertiary">
+      <ChildContent>
+         <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                        OnClick="RefreshData">
+         </MudIconButton>
+      </ChildContent>
+      <TooltipContent>
+         <MudText Typo="Typo.h6">Refresh</MudText>
+      </TooltipContent>
+   </MudTooltip>
+</MudStack>
+<br />
+<div style="position: relative;">
+   <MudTable Items="@Entries"
+             FixedHeader="true"
+             HorizontalScrollbar="true"
+             Height="900px"
+             Striped="true"
+             Dense="true"
+             Hover="true">
+      <ToolBarContent>
+         <MudText Typo="Typo.h6">Logfiles</MudText>
+      </ToolBarContent>
+      <HeaderContent>
+         <MudTh>Time</MudTh>
+         <MudTh>Level</MudTh>
+         <MudTh>Source</MudTh>
+         <MudTh>Message</MudTh>
+      </HeaderContent>
+      <RowTemplate>
+         <MudTd DataLabel="Time" Style="white-space: nowrap">@context.Timestamp.ToString("yyyy-MM-dd HH:mm:ss.fff")</MudTd>
+         <MudTd DataLabel="Level">
+            <MudChip T="string" Size="Size.Small" Color="@GetColor(context.Level)">@context.Level</MudChip>
+         </MudTd>
+         <MudTd DataLabel="Source">@context.SourceContext</MudTd>
+         <MudTd DataLabel="Message">
+            <div>@context.Message</div>
+            @if (!string.IsNullOrEmpty(context.Exception))
+            {
+               <pre style="margin: 4px 0 0 0; font-size: 0.75rem; white-space: pre-wrap;">@context.Exception</pre>
+            }
+         </MudTd>
+      </RowTemplate>
+      <PagerContent>
+         <MudTablePager PageSizeOptions="new[] { 50, 100, 250, 500 }"
+                        HorizontalAlignment="HorizontalAlignment.Left" />
+      </PagerContent>
+   </MudTable>
+   <MudOverlay Visible="IsBusy" Absolute="true" DarkBackground="true">
+      <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+   </MudOverlay>
+</div>

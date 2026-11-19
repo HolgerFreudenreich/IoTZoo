@@ -78,8 +78,15 @@ public class SqliteDatabaseInitializer(IOptions<AppSettings> options,
         int? currentVersion = databaseVersionService.GetVersion(connectionString);
         if (currentVersion is null)
         {
-            logger.LogWarning("Database migrations skipped, db_version missing: {Script}", scriptFileName);
-            return;
+            // Database created before versioning was introduced: start with version 0, so that all migrations are applied.
+            EnsureVersionTables(connectionString);
+            logger.LogWarning("db_version was missing and has been added with version 0: {Script}", scriptFileName);
+            currentVersion = databaseVersionService.GetVersion(connectionString);
+            if (currentVersion is null)
+            {
+                logger.LogWarning("Database migrations skipped, db_version missing: {Script}", scriptFileName);
+                return;
+            }
         }
 
         IEnumerable<SqliteMigration> pendingMigrations = SqliteMigrationRegistry.Migrations
@@ -98,6 +105,26 @@ public class SqliteDatabaseInitializer(IOptions<AppSettings> options,
             databaseVersionService.AddMigration(connectionString, migration.DatabaseVersionId, migration.MigrationScriptName);
             logger.LogInformation("Database migrated to version {Version} with {Script}", migration.DatabaseVersionId, migration.MigrationScriptName);
         }
+    }
+
+    private static void EnsureVersionTables(string connectionString)
+    {
+        using SqliteConnection connection = new(ToAbsoluteConnectionString(connectionString));
+        connection.Open();
+        using SqliteTransaction transaction = connection.BeginTransaction();
+        using SqliteCommand command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            "create table if not exists db_version (db_version_id integer primary key, version_number integer not null);" +
+            "insert or ignore into db_version (db_version_id, version_number) values (1, 0);" +
+            "create table if not exists db_migration (" +
+            "db_migration_id integer primary key autoincrement, " +
+            "db_version_id integer not null, " +
+            "migration_script_name character varying(200) not null, " +
+            "migration_date datetime not null default current_timestamp, " +
+            "constraint uk_db_migration unique (migration_script_name));";
+        command.ExecuteNonQuery();
+        transaction.Commit();
     }
 
     private static void ExecuteScript(SqliteConnection connection, string scriptPath)

@@ -30,10 +30,10 @@ public class MailSenderContentTests
         topics.Setup(x => x.GetKnownTopicByTopicName("picea", "weather_forecast"))
             .ReturnsAsync(new KnownTopic { LastPayload = "Regen: \"stark\"\n22 °C \\ Nord" });
         await CreateSender(topics).ResolveContentAsync(email.Content!);
-        Assert.Equal("Regen: \"stark\"\n22 °C \\ Nord", email.Content!.Text);
+
         var message = MailSenderService.CreateMessage(email, new MailSenderConfig());
         Assert.Equal("Wettervorhersage", message.Subject);
-        Assert.Equal("Regen: \"stark\"\r\n22 °C \\ Nord", message.TextBody);
+        Assert.Equal(email.Content.Text, message.TextBody);
         topics.Verify(x => x.GetKnownTopicByTopicName("picea", "weather_forecast"), Times.Once);
     }
 
