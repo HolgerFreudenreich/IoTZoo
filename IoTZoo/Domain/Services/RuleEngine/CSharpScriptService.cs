@@ -10,7 +10,9 @@
 // (c) 2025 - 2026 Holger Freudenreich under the MIT license
 // --------------------------------------------------------------------------------------------------------------------
 
+using Domain.Interfaces;
 using Domain.Interfaces.Crud;
+using Domain.Interfaces.MQTT;
 using Domain.Interfaces.RuleEngine;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
@@ -23,11 +25,19 @@ public class CSharpScriptService : IScriptService
 {
     protected ILogger<CSharpScriptService> Logger { get; }
     protected IScriptCrudService ScriptCrudService { get; }
+    private readonly IProjectCrudService projectService;
+    private readonly IDataTransferService dataTransferService;
+    private readonly IMqttPublisher mqttPublisher;
 
-    public CSharpScriptService(ILogger<CSharpScriptService> logger, IScriptCrudService scriptCrudService)
+    public CSharpScriptService(ILogger<CSharpScriptService> logger, IScriptCrudService scriptCrudService,
+                               IProjectCrudService projectService, IDataTransferService dataTransferService,
+                               IMqttPublisher mqttPublisher)
     {
         Logger = logger;
         ScriptCrudService = scriptCrudService;
+        this.projectService = projectService;
+        this.dataTransferService = dataTransferService;
+        this.mqttPublisher = mqttPublisher;
     }
 
     public async Task<string> ProcessScript(string scriptName, string inputData)
@@ -44,7 +54,7 @@ public class CSharpScriptService : IScriptService
 
     public async Task<string> ProcessScript(Pocos.Script script, string inputData)
     {
-        string? baseCode = script.SourceCode;
+         string? baseCode = script.SourceCode;
 
         string sourceCode = string.IsNullOrEmpty(inputData)
            ? baseCode + $"{Environment.NewLine}return {script.ScriptName}();"
@@ -56,7 +66,17 @@ public class CSharpScriptService : IScriptService
             Logger.LogError($"Script {script.ScriptName} has no code!");
         }
 
-        var result = await CSharpScript.EvaluateAsync(sourceCode, scriptOptions);
+        object? result;
+        try
+        {
+            result = await CSharpScript.EvaluateAsync(sourceCode, scriptOptions);
+        }
+        catch (Exception ex)
+        {
+            await PublishExceptionAsync(script, ex);
+            throw;
+        }
+
         if (null == result)
         {
             return string.Empty;
@@ -77,10 +97,48 @@ public class CSharpScriptService : IScriptService
         }
         catch (Exception ex)
         {
+            await PublishExceptionAsync(script, ex);
             return ex.GetBaseException().Message;
         }
 
         return null; // no error!
+    }
+
+    private async Task PublishExceptionAsync(Pocos.Script script, Exception exception)
+    {
+        Logger.LogError(exception, "Script {ScriptName} failed", script.ScriptName);
+
+        try
+        {
+            var projects = await projectService.LoadProjects();
+            if (projects.Count == 0)
+            {
+                Logger.LogWarning("Cannot publish script exception: no projects are configured");
+                return;
+            }
+
+            await mqttPublisher.Initialization;
+            foreach (var project in projects)
+            {
+                string topic = $"{dataTransferService.NamespaceName}/{project.ProjectName}/Exception";
+                try
+                {
+                    var result = await mqttPublisher.MqttClient.PublishAsync(topic, exception.ToString());
+                    if (!result.IsSuccess)
+                    {
+                        Logger.LogError("Could not publish script exception to {Topic}: {Reason}", topic, result.ReasonCode);
+                    }
+                }
+                catch (Exception publishException)
+                {
+                    Logger.LogError(publishException, "Could not publish script exception to {Topic}", topic);
+                }
+            }
+        }
+        catch (Exception notificationException)
+        {
+            Logger.LogError(notificationException, "Could not publish exception for script {ScriptName}", script.ScriptName);
+        }
     }
 
     private ScriptOptions GetScriptOptions()

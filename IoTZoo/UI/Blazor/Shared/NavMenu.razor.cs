@@ -35,7 +35,7 @@ public class NavMenuBase : ComponentBase, IDisposable
         get; set;
     } = null!;
 
-    private string selectedMenuItem = "Message Explorer";
+    private string selectedMenuItem = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -76,6 +76,18 @@ public class NavMenuBase : ComponentBase, IDisposable
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 
+    protected async Task OpenMessageExplorer()
+    {
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("openNewTab", "MessageExplorer");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Could not open Message Explorer in a new tab");
+        }
+    }
+
     public string SelectedMenuItem
     {
         get => selectedMenuItem;
@@ -97,6 +109,7 @@ public class NavMenuBase : ComponentBase, IDisposable
                     case "INSTRUCTIONS":
                     case "COMPONENT MANAGEMENT":
                     case "EXAMPLE PROJECTS":
+                    case "MESSAGE EXPLORER":
                         // do nothing
                         break;
 

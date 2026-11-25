@@ -102,6 +102,7 @@ internal class Program
       services.AddSingleton<ICalculationService, CalculationService>();
       services.AddSingleton<IExpressionEvaluationService, ExpressionEvaluationService>();
       services.AddSingleton<IScriptCrudService, ScriptDatabaseService>();
+      services.AddSingleton<IMqttPublisher, MqttPublisher>();
       services.AddSingleton<IScriptService, CSharpScriptService>();
       services.AddSingleton<IVariablesResolver, VariablesResolver>();
       services.AddSingleton<IScriptsResolver, ScriptsResolver>();

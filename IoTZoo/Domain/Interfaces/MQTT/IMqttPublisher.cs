@@ -20,6 +20,7 @@ namespace Domain.Interfaces.MQTT
     {
         ILogger Logger { get; }
         IMqttClient MqttClient { get; }
+        Task Initialization { get; }
 
         void Dispose();
     }

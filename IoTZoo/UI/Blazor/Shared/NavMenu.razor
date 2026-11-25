@@ -6,8 +6,7 @@
                 Dense="false"
                 ExpandOnClick="true"
                 @bind-SelectedValue="SelectedMenuItem">
-      <MudTreeViewItem Value="@("Message Explorer")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Message" IconColor="Color.Primary">
-      </MudTreeViewItem>
+      <MudTreeViewItem Value="@("Message Explorer")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Message" IconColor="Color.Primary" OnClick="OpenMessageExplorer" />
       <MudDivider></MudDivider>
       <MudTreeViewItem Value="@("Dashboards")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Primary" />
       <MudDivider></MudDivider>
