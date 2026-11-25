@@ -57,10 +57,18 @@ public class LocationPickerDialogBase : DialogBase, IAsyncDisposable
         if (firstRender)
         {
             dotNetRef = DotNetObjectReference.Create(this);
-            await JS.InvokeVoidAsync("locationPicker.create", MapId, Latitude, Longitude, dotNetRef);
-            if (!string.IsNullOrWhiteSpace(Route))
+            try
             {
-                await JS.InvokeVoidAsync("locationPicker.drawRoute", MapId, Route);
+                await JS.InvokeVoidAsync("locationPicker.create", MapId, Latitude, Longitude, dotNetRef);
+                if (!string.IsNullOrWhiteSpace(Route))
+                {
+                    await JS.InvokeVoidAsync("locationPicker.drawRoute", MapId, Route);
+                }
+            }
+            catch (JSException ex)
+            {
+                Logger.LogError(ex, "Could not initialize location picker {MapId}.", MapId);
+                Snackbar.Add("Could not initialize the map.", Severity.Error);
             }
         }
     }
@@ -75,7 +83,15 @@ public class LocationPickerDialogBase : DialogBase, IAsyncDisposable
 
     protected async Task DrawTestRoute()
     {
-        await JS.InvokeVoidAsync("locationPicker.drawRoute", MapId, TestRouteWkt);
+        try
+        {
+            await JS.InvokeVoidAsync("locationPicker.drawRoute", MapId, TestRouteWkt);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "Could not draw test route on location picker {MapId}.", MapId);
+            Snackbar.Add("Could not draw the test route.", Severity.Error);
+        }
     }
 
     protected void Confirm()
@@ -90,7 +106,17 @@ public class LocationPickerDialogBase : DialogBase, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        await JS.InvokeVoidAsync("locationPicker.dispose", MapId);
-        dotNetRef?.Dispose();
+        try
+        {
+            await JS.InvokeVoidAsync("locationPicker.dispose", MapId);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogWarning(ex, "Could not dispose location picker {MapId}.", MapId);
+        }
+        finally
+        {
+            dotNetRef?.Dispose();
+        }
     }
 }
