@@ -40,9 +40,10 @@ namespace IotZoo
         {
             tm1637Display = new TM1637Display6Digits(deviceIndex, settings, mqttClient, baseTopic, pinClk, pinDio);
         }
+#endif
+#if defined(USE_TM1637_4) || defined(USE_TM1637_6)
         tm1637Display->flipDisplay(flipDisplay);
         tm1637Display->setServerDownText(serverDownText);
-
 #endif
         tm1637Display->begin();
     }

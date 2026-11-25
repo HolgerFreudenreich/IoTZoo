@@ -25,6 +25,8 @@ public class MqttPublisher : IMqttPublisher, IDisposable
 
     public IMqttClient MqttClient { get; private set; } = null!;
 
+    public Task Initialization { get; }
+
     protected IDataTransferService DataTransferService { get; } = null!;
 
     public MqttPublisher(ILogger<MqttPublisher> logger,
@@ -32,7 +34,7 @@ public class MqttPublisher : IMqttPublisher, IDisposable
     {
         Logger = logger;
         DataTransferService = dataTransferService;
-        _ = InitMqttClientAsync();
+        Initialization = InitMqttClientAsync();
     }
 
     protected async Task InitMqttClientAsync()

@@ -42,6 +42,7 @@ public class MailSenderService
             return;
         }
 
+        bool sendStarted = false;
         bool sent = false;
         MailSenderConfig? config = null;
         try
@@ -52,9 +53,17 @@ public class MailSenderService
                 logger.LogWarning("Mail sender is disabled or not configured");
                 return;
             }
-            var request = JsonSerializer.Deserialize<MailSenderRequest>(payload ?? string.Empty, JsonOptions)
-                ?? throw new ArgumentException("The mail request is empty.");
-            var email = request.Email ?? throw new ArgumentException("The email object is required.");
+            MailSenderRequest? request;
+            try
+            {
+                request = JsonSerializer.Deserialize<MailSenderRequest>(payload ?? string.Empty, JsonOptions);
+            }
+            catch (JsonException exception)
+            {
+                logger.LogError(exception, "Invalid mail sender command: publish a JSON object with an email property to {topic}; no email was sent", SendTopic);
+                return;
+            }
+            var email = request?.Email ?? throw new ArgumentException("The email object is required.");
             ValidateSmtp(email.Smtp, config);
             if (email.Content != null)
                 await ResolveContentAsync(email.Content);
@@ -84,6 +93,7 @@ public class MailSenderService
                     ?? throw new InvalidOperationException("The IMAP server did not advertise a Sent folder.");
             }
 
+            sendStarted = true;
             await smtp.SendAsync(sendRequest);
             sent = true;
             logger.LogInformation("Mail {id} accepted by SMTP server", email.Id);
@@ -112,8 +122,10 @@ public class MailSenderService
         {
             if (sent)
                 logger.LogError(exception, "Mail was accepted by SMTP, but a subsequent operation failed; do not retry the send");
+            else if (sendStarted)
+                logger.LogError(exception, "Mail sender command failed during SMTP send; delivery may be uncertain if the SMTP connection was interrupted");
             else
-                logger.LogError(exception, "Mail sender command failed; delivery may be uncertain if the SMTP connection was interrupted");
+                logger.LogError(exception, "Mail sender command failed before SMTP send; no email was sent");
         }
     }
 

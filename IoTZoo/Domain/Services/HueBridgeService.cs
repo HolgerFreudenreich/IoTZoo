@@ -42,11 +42,14 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
 
     protected LocalHueApi HueApi { get; set; } = null!;
 
+    private HueResponseDiagnosticsHandler? responseDiagnostics;
+
     public HueBridgeService(ILogger<HueBridgeService> logger,
                             IOptions<AppSettings> options,
                             IDataTransferService dataTransferService,
                             IProjectCrudService projectCrudService,
-                            IKnownTopicsCrudService knownTopicsCrudService) : base(logger, dataTransferService)
+                            IKnownTopicsCrudService knownTopicsCrudService,
+                            TimeProvider? timeProvider = null) : base(logger, dataTransferService)
     {
         KnownTopicsDatabaseService = knownTopicsCrudService;
         ProjectCrudService = projectCrudService;
@@ -61,7 +64,13 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
         if (!string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Ip) &&
             !string.IsNullOrEmpty(DataTransferService.PhilipsHueBridgeSettings.Key))
         {
-            HueApi = new LocalHueApi(DataTransferService.PhilipsHueBridgeSettings.Ip, DataTransferService.PhilipsHueBridgeSettings.Key);
+            responseDiagnostics = new HueResponseDiagnosticsHandler(new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            });
+            HueApi = new LocalHueApi(DataTransferService.PhilipsHueBridgeSettings.Ip,
+                                     DataTransferService.PhilipsHueBridgeSettings.Key,
+                                     new HttpClient(responseDiagnostics));
 
             HueApi.OnEventStreamMessage -= HueApi_OnEventStreamMessage;
             HueApi.OnEventStreamMessage += HueApi_OnEventStreamMessage;
@@ -241,7 +250,16 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
         try
         {
             Logger.LogInformation($"Adjust brightness of lightId {lightId} to {brightnessPercent} %.");
-            var light = await GetLight(lightId);
+            Light? light;
+            try
+            {
+                light = await GetLight(lightId, suppressJsonErrorLogging: true);
+            }
+            catch (JsonException exception)
+            {
+                LogInvalidResponse(exception);
+                return;
+            }
             if (!IsLightDevice(light))
             {
                 return;
@@ -407,21 +425,36 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
         }
     }
 
-    public async Task<HueResponse<Light>> GetLights()
+    public Task<HueResponse<Light>> GetLights() => GetLights(suppressJsonErrorLogging: false);
+
+    protected virtual Task<HueResponse<Light>> FetchLightsAsync()
+    {
+        if (HueApi == null)
+        {
+            throw new InvalidOperationException("Hue bridge is not configured!");
+        }
+        return HueApi.Light.GetAllAsync();
+    }
+
+    private async Task<HueResponse<Light>> GetLights(bool suppressJsonErrorLogging)
     {
         try
         {
-            if (null == this.HueApi)
-            {
-                throw new Exception("Hue bridge is not configured!");
-            }
-            return await HueApi.Light.GetAllAsync();
+            return await FetchLightsAsync();
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!suppressJsonErrorLogging || ex is not JsonException)
         {
             Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
             throw;
         }
+    }
+
+    // The bridge sometimes answers with HTML; HueApi then throws a JsonException. Nothing can be done about it, so it is not an error.
+    private void LogInvalidResponse(JsonException exception)
+    {
+        Logger.LogDebug("Hue bridge returned no valid JSON while retrieving lights. Last bridge response: {BridgeResponse}. {Message}",
+            responseDiagnostics?.LastNonJsonResponse ?? "n/a",
+            exception.Message);
     }
 
     /// <summary>
@@ -429,11 +462,11 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
     /// </summary>
     /// <param name="lightId"></param>
     /// <returns></returns>
-    private async Task<Light?> GetLight(int lightId)
+    private async Task<Light?> GetLight(int lightId, bool suppressJsonErrorLogging = false)
     {
         try
         {
-            HueResponse<Light> lights = await GetLights();
+            HueResponse<Light> lights = await GetLights(suppressJsonErrorLogging);
             if (null == lights)
             {
                 Logger.LogInformation($"No light von with lightId {lightId}.");
@@ -442,7 +475,7 @@ public class HueBridgeService : MqttPublisher, IHueBridgeService, IDisposable
 
             return lights.Data.FirstOrDefault(data => data.IdV1 == $"/lights/{lightId}");
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!suppressJsonErrorLogging || ex is not JsonException)
         {
             Logger.LogError(ex, $"{MethodBase.GetCurrentMethod()} failed!");
             throw;

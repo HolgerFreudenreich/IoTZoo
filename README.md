@@ -28,6 +28,7 @@ The firmware is located in `Esp32Client\Microcontroller` and is built with Platf
 - Provides a web interface for defining rules.
 - Receives all MQTT messages.
 - Processes MQTT messages: checks whether a rule applies, executes it, and publishes a response message. This response may trigger another rule.
+- Publishes script execution exceptions, including compilation errors such as invalid call arguments, to `<Namespace>/<Project>/Exception`, with the exception text (including its stack trace) as the payload. Scripts are shared across projects, so each configured project receives the notification. The project default topics include `Exception` with history enabled; register default topics for existing projects to add it. Existing topic settings are preserved. Compilation errors from the editor's separate compile check are reported in the editor instead. Publishing failures are logged; delivery requires a connection to the MQTT broker.
 
 ### MQTT broker
 The broker acts as an intermediary between publishers and subscribers. It receives all messages, filters them, and forwards them to subscribed clients.

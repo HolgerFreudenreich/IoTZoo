@@ -2,7 +2,7 @@
 
 @inherits InstructionsKnownTopicsPageBase
 
-<MudText>The rule engine subscribes to all topics. Every received message is shown in the <MudLink Href="MessageExplorer">MQTT Message Explorer</MudLink>.</MudText>
+<MudText>The rule engine subscribes to all topics. Every received message is shown in the <MudLink Href="MessageExplorer" Target="_blank" rel="noopener noreferrer">MQTT Message Explorer</MudLink>.</MudText>
 <br />
 <MudText>However, only known topics are relevant for the system. A <MudLink Href="KnownTopics">known topic</MudLink> is one the system knows about and works with.</MudText>
 <br />
@@ -14,4 +14,45 @@
 <br />
 <MudLink Href="Thingstoconnect">Reference of the built-in known topics</MudLink>
 
+<MudText Typo="Typo.h5" Class="mt-6 mb-2">Default project topics</MudText>
+<MudText>Each topic below is relative to <code>&lt;Namespace&gt;/&lt;Project&gt;/</code>. For example, <code>Exception</code> becomes <code>&lt;Namespace&gt;/&lt;Project&gt;/Exception</code>. Default topics are registered when a project is created. For an existing project, use <strong>Register Project Known Topics</strong> on the <MudLink Href="Projects">Projects</MudLink> page to add missing defaults. Existing settings are preserved for default topics other than <code>init</code>, which is updated on registration.</MudText>
 
+<MudText Typo="Typo.h6" Class="mt-4">General</MudText>
+<ul>
+   <li><code>init</code> — published when the IoTZoo client starts; use it to initialize project rules.</li>
+   <li><code>Exception</code> — script execution and invocation errors. The payload is the exception text; history is enabled by default.</li>
+   <li><code>mail_sender/send</code> — sends an email through the configured mail sender. See the <MudLink Href="Thingstoconnect">built-in topics reference</MudLink> for the request format.</li>
+</ul>
+
+<MudText Typo="Typo.h6" Class="mt-4">Timer</MudText>
+<MudText>These topics are published by the project's cron jobs. Their JSON payload contains <code>DateTime</code>, <code>Date</code>, <code>Time</code> and <code>TimeShort</code>. Default schedules use UTC; the payload contains the server's local date and time.</MudText>
+<ul>
+   <li><code>timer/every_second</code>, <code>timer/every_05_seconds</code>, <code>timer/every_10_seconds</code>, <code>timer/every_15_seconds</code>, <code>timer/every_30_seconds</code> — every 1, 5, 10, 15 or 30 seconds, respectively.</li>
+   <li><code>timer/every_minute</code>, <code>timer/every_15_minutes</code>, <code>timer/every_30_minutes</code> — every 1, 15 or 30 minutes, respectively.</li>
+   <li><code>timer/every_hour</code>, <code>timer/every_2_hours</code>, <code>timer/every_3_hours</code>, <code>timer/every_4_hours</code>, <code>timer/every_5_hours</code>, <code>timer/every_6_hours</code>, <code>timer/every_12_hours</code> — every 1, 2, 3, 4, 5, 6 or 12 hours, respectively.</li>
+</ul>
+
+<MudText Typo="Typo.h6" Class="mt-4">Sunrise and sunset</MudText>
+<MudText>These values depend on the configured location.</MudText>
+<ul>
+   <li><code>sunrise_now</code> and <code>sunset_now</code> — published when the sun rises or sets. History is enabled by default.</li>
+   <li><code>minutes_next_sunrise</code> and <code>minutes_next_sunset</code> — minutes until the next sunrise or sunset.</li>
+   <li><code>minutes_after_sunrise</code> and <code>minutes_after_sunset</code> — minutes since today's sunrise or sunset, published after the respective event.</li>
+   <li><code>is_day_mode</code> — <code>True</code> during the day and <code>False</code> at night.</li>
+</ul>
+
+<MudText Typo="Typo.h6" Class="mt-4">Countdown</MudText>
+<ul>
+   <li><code>countdown_start</code> and <code>start_countdown</code> — start or restart a countdown. Example payload: <code>{"ProjectName":"MyProject","CounterName":"Kitchen","Seconds":30,"ReportProgress":true}</code>.</li>
+   <li><code>countdown_status</code> — JSON countdown data, including the remaining <code>Seconds</code>; progress is published each second when <code>ReportProgress</code> is true.</li>
+   <li><code>countdown_finished</code> — published when the countdown reaches zero; the payload is the counter name.</li>
+</ul>
+
+<MudText Typo="Typo.h6" Class="mt-4">Philips Hue</MudText>
+<MudText>These commands require a configured Hue bridge. Except for <code>brightness</code>, the payload is the numeric light ID.</MudText>
+<ul>
+   <li><code>hue/light/on</code>, <code>hue/light/off</code>, <code>hue/light/toggle</code> — turn a light on, off or toggle it.</li>
+   <li><code>hue/light/darker</code> and <code>hue/light/brighter</code> — adjust the light level.</li>
+   <li><code>hue/light/brightness</code> — set the light level using a JSON payload, for example <code>{"LightId":1,"Brightness":50}</code>.</li>
+   <li><code>hue/light/color/green</code>, <code>hue/light/color/yellow</code>, <code>hue/light/color/orange</code>, <code>hue/light/color/red</code>, <code>hue/light/color/blue</code>, <code>hue/light/color/purple</code>, <code>hue/light/color/gold</code>, <code>hue/light/color/white_cold</code>, <code>hue/light/color/white_warm</code> — set the corresponding color.</li>
+</ul>

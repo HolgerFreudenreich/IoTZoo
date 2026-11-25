@@ -28,6 +28,7 @@ public enum ScreenMode
    KnownTopics = 14,
    TestPage = 15,
    Dashboards = 16,
+   Logfiles = 17,
 
    Boxes = 50,
    Components = 51,

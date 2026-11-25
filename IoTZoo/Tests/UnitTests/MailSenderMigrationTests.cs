@@ -52,6 +52,39 @@ public class MailSenderMigrationTests
     }
 
     [Fact]
+    public void MissingDbVersionIsAddedWithVersionZeroAndAllMigrationsAreApplied()
+    {
+        string path = Path.GetTempFileName();
+        string connectionString = new SqliteConnectionStringBuilder { DataSource = path, Pooling = false }.ToString();
+        try
+        {
+            using (var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+                using var command = connection.CreateCommand();
+                command.CommandText = "create table setting (setting_id integer primary key, category text, setting_key text, setting_value text, unique(category, setting_key));";
+                command.ExecuteNonQuery();
+            }
+            var options = Options.Create(new AppSettings { ConnectionStringSqliteDatabaseSettings = connectionString });
+            var versionService = new DatabaseVersionService(options);
+            Assert.Null(versionService.GetVersion(connectionString));
+
+            new SqliteDatabaseInitializer(options, versionService, NullLogger<SqliteDatabaseInitializer>.Instance).Initialize();
+
+            Assert.Equal(4, versionService.GetVersion(connectionString));
+            using var check = new SqliteConnection(connectionString);
+            check.Open();
+            using var query = check.CreateCommand();
+            query.CommandText = "select count(*) from db_migration";
+            Assert.Equal(3L, query.ExecuteScalar());
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
     public async Task MissingSenderSettingIsInsertedWithEncryptedPasswordAndCanBeUpdated()
     {
         string connectionString = new SqliteConnectionStringBuilder

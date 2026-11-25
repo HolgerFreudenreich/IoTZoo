@@ -6,8 +6,7 @@
                 Dense="false"
                 ExpandOnClick="true"
                 @bind-SelectedValue="SelectedMenuItem">
-      <MudTreeViewItem Value="@("Message Explorer")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Message" IconColor="Color.Primary">
-      </MudTreeViewItem>
+      <MudTreeViewItem Value="@("Message Explorer")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Message" IconColor="Color.Primary" OnClick="OpenMessageExplorer" />
       <MudDivider></MudDivider>
       <MudTreeViewItem Value="@("Dashboards")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Dashboard" IconColor="Color.Primary" />
       <MudDivider></MudDivider>
@@ -25,6 +24,8 @@
       <MudDivider></MudDivider>
       <MudTreeViewItem Value="@("Settings")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Settings" IconColor="Color.Primary"></MudTreeViewItem>
       <MudTreeViewItem Value="@("Set Location")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.AddLocation" IconColor="Color.Primary"></MudTreeViewItem>
+      <MudDivider></MudDivider>
+      <MudTreeViewItem Value="@("Logfiles")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Description" IconColor="Color.Primary"></MudTreeViewItem>
       <MudDivider></MudDivider>
       <MudTreeViewItem Value="@("Philips Hue")" TextTypo="Typo.body2" Icon="@Icons.Material.Filled.Light" IconColor="Color.Primary"></MudTreeViewItem>
       <MudDivider></MudDivider>

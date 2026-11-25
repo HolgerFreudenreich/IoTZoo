@@ -271,6 +271,17 @@ public class KnownTopicsDatabaseService : DataServiceBase, IKnownTopicsCrudServi
             MessageDirection = MessageDirection.Outbound
         }, allowUpdate: false);
 
+        await Save(new KnownTopic
+        {
+            ParentKnownTopicId = parentKnownTopic.KnownTopicId,
+            NamespaceName = DataTransferService.NamespaceName,
+            ProjectName = project.ProjectName,
+            Topic = "Exception",
+            Description = "Exceptions raised while executing scripts.",
+            MessageDirection = MessageDirection.Inbound,
+            KeepHistory = true
+        }, allowUpdate: false);
+
         var cronJobs = new (string CronExpression, string TopicName, string Description)[]
         {
             ("* * * ? * *", TopicConstants.EVERY_SECOND, "Fires every second."),

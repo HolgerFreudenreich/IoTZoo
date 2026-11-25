@@ -94,6 +94,7 @@ builder.Services.AddSingleton<IProjectCrudService, ProjectDatabaseService>();
 builder.Services.AddTransient<IMicrocontrollerService, MicrocontrollerService>();
 builder.Services.AddSingleton<IKnownTopicsCrudService, KnownTopicsDatabaseService>();
 builder.Services.AddSingleton<IScriptCrudService, ScriptDatabaseService>();
+builder.Services.AddSingleton<IMqttPublisher, MqttPublisher>();
 builder.Services.AddSingleton<IScriptService, CSharpScriptService>();
 builder.Services.AddSingleton<IDashboardCrudService, DashboardDatabaseService>();
 builder.Services.AddSingleton<IDashboardItemsCrudService, DashboardItemsDatabaseService>();
@@ -107,6 +108,7 @@ builder.Services.AddSingleton<INamespaceCrudService, NamespaceService>();
 builder.Services.AddSingleton<ICronService, CronService>();
 
 builder.Services.AddTransient<ISearchHelper, SearchHelper>();
+builder.Services.AddSingleton<IotZoo.Logging.ILogEntryService, IotZoo.Logging.LogEntryService>();
 
 //builder.Services.AddSingleton<IRestApi, KnownTopicsRestServiceCaller>();
 builder.Services.AddSingleton<IHueBridgeService, HueBridgeService>();

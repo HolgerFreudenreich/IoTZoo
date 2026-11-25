@@ -190,7 +190,14 @@ namespace IotZoo
 
             debug("device index: " + String(deviceIndex) + "; number: " + String(number) + "; LeadingZeros: " + String(showLeadingZeros) +
                   "; displayLength: " + String(displayLength) + "; position: " + String(position) + "; dots: " + String(dots));
-            display->showNumberDec(number, dots, showLeadingZeros, displayLength, position);
+            if (display->getDisplayType() == Tm1637DisplayType::Digits4 && number > 9999)
+            {
+                display->showString("over");
+            }
+            else
+            {
+                display->showNumberDec(number, dots, showLeadingZeros, displayLength, position);
+            }
         }
     }
 
