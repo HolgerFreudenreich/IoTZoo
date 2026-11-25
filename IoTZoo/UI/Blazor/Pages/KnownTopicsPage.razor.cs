@@ -105,7 +105,7 @@ public class KnownTopicsPageBase : PageBase
     protected async Task PublishTopic(KnownTopic topic)
     {
         DataTransferService.SelectedKnownTopic = topic;
-        await JsRuntime.InvokeVoidAsync("openNewTab", "PublishTopic");
+        await OpenBrowserTab("PublishTopic");
     }
 
     protected override async Task LoadData()
