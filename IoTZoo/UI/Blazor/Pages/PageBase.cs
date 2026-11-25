@@ -158,6 +158,14 @@ public class PageBase : ComponentBase
 
     protected async Task OpenBrowserTab(string url)
     {
-        await JsRuntime.InvokeVoidAsync("openNewTab", url);
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("openNewTab", url);
+        }
+        catch (JSException ex)
+        {
+            Logger.LogError(ex, "Could not open browser tab for {Url}.", url);
+            Snackbar.Add("Could not open browser tab.", Severity.Error);
+        }
     }
 }
