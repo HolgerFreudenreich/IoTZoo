@@ -1,5 +1,7 @@
 ﻿@page "/TestPage"
 
+@using IotZoo.Components
+
 @inherits TestPageBase
 
 <MudStack Row="true">
@@ -45,3 +47,24 @@
    <br />
    <IotZoo.Components.JsonTreeView Json="@JsonText" ExpandLevels="2" />
 </MudPaper>
+<br />
+<TM1637_4Display Value="1.234" LeadingZeros="true" />
+<TM1637_4Display Value="1234" LeadingZeros="true" />
+<TM1637_4Display Value="12:34" />
+<br />
+<TM1637_6Display Value="123.456" LeadingZeros="false" />
+<TM1637_6Display Value="1974" LeadingZeros="true" />
+<TM1637_6Display Value="123456" LeadingZeros="false" />
+<TM1637_6Display Value="123456" LeadingZeros="false" ShowConnections="false" />
+<TM1637_6Display Value="12:34:12" Label="Time" />
+<br />
+<TM1637_6Display Value="12:34:12" Label="Time" />
+<Lcd1602Display Value="Holger Freudenreich"></Lcd1602Display>
+<br />
+<MudStack>
+   <TM1637_6Display Value="12:34:12" Label="Time" Width="500" ShowConnections="true"></TM1637_6Display>
+   <Lcd1602Display Value="Holger Freudenreich" Width="500" ShowConnections="true" Label="IoT Zoo"></Lcd1602Display>
+   <Lcd1604Display Value="äöü ÖÄÜ ß é @@€µ Example Text" ShowConnections="true" Label="IoT Zoo 16x04"></Lcd1604Display>
+   <Lcd2004Display Value="This text is longer." ShowConnections="true" Label="IoT Zoo 20x04"></Lcd2004Display>
+</MudStack>
+

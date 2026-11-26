@@ -14,6 +14,8 @@ namespace Domain.Pocos;
 
 public class GaugeSettings
 {
+    public const string DefaultSegmentColor = "#ff7777";
+
     public double Min { get; set; } = 0;
 
     public double Max { get; set; } = 100;
@@ -23,6 +25,16 @@ public class GaugeSettings
     public string Unit { get; set; } = string.Empty;
 
     public int Height { get; set; } = 240;
+
+    public int? Width { get; set; }
+
+    public bool LeadingZeros { get; set; }
+
+    public bool ShowConnections { get; set; } = true;
+
+    public string? DisplayLabel { get; set; }
+
+    public string SegmentColor { get; set; } = DefaultSegmentColor;
 
     public GaugeType GaugeType { get; set; } = GaugeType.Arc;
 

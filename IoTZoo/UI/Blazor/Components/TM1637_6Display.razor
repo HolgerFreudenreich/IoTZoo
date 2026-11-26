@@ -1,0 +1,46 @@
+@inherits TM1637DisplayBase
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="@ViewBox" width="@VisibleWidth" height="231"
+     preserveAspectRatio="@AspectRatio" role="img" aria-label="@AccessibleLabel" style="@DisplayStyle">
+   <rect x="3" y="1" width="564" height="229" rx="10" fill="#1f4a84" />
+   <g fill="#d5d9db" stroke="#a9b0b4" stroke-width="2">
+      <circle cx="22" cy="18" r="12" /><circle cx="548" cy="18" r="12" />
+      <circle cx="22" cy="213" r="12" /><circle cx="548" cy="213" r="12" />
+   </g>
+   <g fill="#293746">
+      <circle cx="22" cy="18" r="6" /><circle cx="548" cy="18" r="6" />
+      <circle cx="22" cy="213" r="6" /><circle cx="548" cy="213" r="6" />
+   </g>
+   @if (ShowConnections)
+   {
+      <g class="tm1637-connections">
+         <rect x="518" y="61" width="32" height="108" rx="2" fill="none" stroke="#c5d2e3" stroke-width="2" />
+         @for (int pin = 0; pin < 4; pin++)
+         {
+            <rect x="522" y="@(63 + pin * 25)" width="26" height="25" rx="5" fill="#15191c" />
+            <rect x="535" y="@(72 + pin * 25)" width="79" height="8" rx="2" fill="#c6cbd0" />
+         }
+      </g>
+   }
+   <text x="281" y="213" fill="#fff" font-size="19" text-anchor="middle" font-family="sans-serif">@(Label ?? "6-Digit Display")</text>
+   <rect x="48" y="56" width="465" height="119" rx="2" fill="#1a0809" stroke="#171717" stroke-width="4" />
+   <rect x="53" y="61" width="455" height="109" fill="#2a080b" />
+   @for (int digit = 0; digit < 6; digit++)
+   {
+      <g transform="translate(@(66 + digit * 72 + (digit >= 2 ? 8 : 0) + (digit >= 4 ? 8 : 0)) 72)">
+         @for (int segment = 0; segment < SegmentPoints.Length; segment++)
+         {
+            <polygon points="@SegmentPoints[segment]" fill="@(IsSegmentOn(digit, segment) ? SegmentColor : UnlitColor)" />
+         }
+         <circle cx="55" cy="82" r="4" fill="@(decimalPosition == digit ? SegmentColor : UnlitColor)" />
+      </g>
+   }
+   <g fill="@(showSecondsColon ? SegmentColor : UnlitColor)">
+      <circle cx="204" cy="97" r="5" />
+      <circle cx="204" cy="138" r="5" />
+   </g>
+   <g fill="@(showColon ? SegmentColor : UnlitColor)">
+      <circle cx="356" cy="97" r="5" />
+      <circle cx="356" cy="138" r="5" />
+   </g>
+</svg>

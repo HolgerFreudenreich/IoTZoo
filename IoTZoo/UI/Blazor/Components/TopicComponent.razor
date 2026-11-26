@@ -14,6 +14,124 @@
                case TopicDisplayType.Json:
                    <JsonTreeView Json="@Message" ExpandLevels="1" />
                    break;
+               case TopicDisplayType.Tm1637_4:
+                   @if (Message.Length == 0 && DateOfReceipt == null)
+                   {
+                       <MudText Typo="Typo.body1">Waiting for a message</MudText>
+                   }
+                   else if (!TM1637_4Display.IsValidValue(Message))
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display message on TM1637: expected a number of up to four digits (including the minus sign) or a time in HH:mm format.</MudText>
+                   }
+                   else if (GaugeSettings.Height <= 0)
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display TM1637: height must be greater than zero.</MudText>
+                   }
+                   else if (GaugeSettings.Width is <= 0)
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display TM1637: width must be greater than zero.</MudText>
+                   }
+                   else if (!TM1637DisplayBase.IsValidSegmentColor(GaugeSettings.SegmentColor))
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display TM1637: segment color must be in #RRGGBB format.</MudText>
+                   }
+                   else
+                   {
+                       <TM1637_4Display Value="@Message" Height="@GaugeSettings.Height" Width="@GaugeSettings.Width" LeadingZeros="@GaugeSettings.LeadingZeros" ShowConnections="@GaugeSettings.ShowConnections" Label="@GaugeSettings.DisplayLabel" SegmentColor="@GaugeSettings.SegmentColor" />
+                   }
+                   break;
+               case TopicDisplayType.Tm1637_6:
+                   @if (Message.Length == 0 && DateOfReceipt == null)
+                   {
+                       <MudText Typo="Typo.body1">Waiting for a message</MudText>
+                   }
+                   else if (!TM1637_6Display.IsValidValue(Message))
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display message on TM1637: expected a number of up to six characters (including the minus sign) or a time in HH:mm or HH:mm:ss format.</MudText>
+                   }
+                   else if (GaugeSettings.Height <= 0)
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display TM1637: height must be greater than zero.</MudText>
+                   }
+                   else if (GaugeSettings.Width is <= 0)
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display TM1637: width must be greater than zero.</MudText>
+                   }
+                   else if (!TM1637DisplayBase.IsValidSegmentColor(GaugeSettings.SegmentColor))
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display TM1637: segment color must be in #RRGGBB format.</MudText>
+                   }
+                   else
+                   {
+                       <TM1637_6Display Value="@Message" Height="@GaugeSettings.Height" Width="@GaugeSettings.Width" LeadingZeros="@GaugeSettings.LeadingZeros" ShowConnections="@GaugeSettings.ShowConnections" Label="@GaugeSettings.DisplayLabel" SegmentColor="@GaugeSettings.SegmentColor" />
+                   }
+                   break;
+               case TopicDisplayType.Lcd1602:
+                   @if (Message.Length == 0 && DateOfReceipt == null)
+                   {
+                       <MudText Typo="Typo.body1">Waiting for a message</MudText>
+                   }
+                   else if (!Lcd1602Display.IsValidValue(Message))
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display message on LCD1602: expected up to two lines of 16 printable characters.</MudText>
+                   }
+                   else if (GaugeSettings.Height <= 0)
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display LCD1602: height must be greater than zero.</MudText>
+                   }
+                   else if (GaugeSettings.Width is <= 0)
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display LCD1602: width must be greater than zero.</MudText>
+                   }
+                   else
+                   {
+                       <Lcd1602Display Value="@Message" Height="@GaugeSettings.Height" Width="@GaugeSettings.Width" ShowConnections="@GaugeSettings.ShowConnections" Label="@GaugeSettings.DisplayLabel" />
+                   }
+                   break;
+               case TopicDisplayType.Lcd1604:
+                   @if (Message.Length == 0 && DateOfReceipt == null)
+                   {
+                       <MudText Typo="Typo.body1">Waiting for a message</MudText>
+                   }
+                   else if (!Lcd1604Display.IsValidValue(Message))
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display message on LCD1604: expected up to four lines of 16 printable characters.</MudText>
+                   }
+                   else if (GaugeSettings.Height <= 0)
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display LCD1604: height must be greater than zero.</MudText>
+                   }
+                   else if (GaugeSettings.Width is <= 0)
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display LCD1604: width must be greater than zero.</MudText>
+                   }
+                   else
+                   {
+                       <Lcd1604Display Value="@Message" Height="@GaugeSettings.Height" Width="@GaugeSettings.Width" ShowConnections="@GaugeSettings.ShowConnections" Label="@GaugeSettings.DisplayLabel" />
+                   }
+                   break;
+               case TopicDisplayType.Lcd2004:
+                   @if (Message.Length == 0 && DateOfReceipt == null)
+                   {
+                       <MudText Typo="Typo.body1">Waiting for a message</MudText>
+                   }
+                   else if (!Lcd2004Display.IsValidValue(Message))
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display message on LCD2004: expected up to four lines of 20 printable characters.</MudText>
+                   }
+                   else if (GaugeSettings.Height <= 0)
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display LCD2004: height must be greater than zero.</MudText>
+                   }
+                   else if (GaugeSettings.Width is <= 0)
+                   {
+                       <MudText Typo="Typo.body1" Color="Color.Error">Cannot display LCD2004: width must be greater than zero.</MudText>
+                   }
+                   else
+                   {
+                       <Lcd2004Display Value="@Message" Height="@GaugeSettings.Height" Width="@GaugeSettings.Width" ShowConnections="@GaugeSettings.ShowConnections" Label="@GaugeSettings.DisplayLabel" />
+                   }
+                   break;
                case TopicDisplayType.Gauge:
                    <div style="width:100%; display:flex; flex-direction:column; align-items:center;">
                        @switch (GaugeSettings.GaugeType)
