@@ -17,4 +17,9 @@ public enum TopicDisplayType
     Text,
     Json,
     Gauge,
+    Tm1637_4,
+    Tm1637_6,
+    Lcd1602,
+    Lcd1604,
+    Lcd2004,
 }

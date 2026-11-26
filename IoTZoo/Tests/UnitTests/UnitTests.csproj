@@ -41,6 +41,7 @@
     <ProjectReference Include="..\..\Infrastructure\Infrastructure.csproj" />
     <ProjectReference Include="..\..\SunriseCalculator\SunriseAndSunset.csproj" />
     <ProjectReference Include="..\..\UI\Blazor\IotZoo.csproj" />
+    <ProjectReference Include="..\DeveloperTests\DeveloperTests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

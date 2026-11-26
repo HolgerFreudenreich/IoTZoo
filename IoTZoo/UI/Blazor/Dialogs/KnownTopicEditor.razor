@@ -98,9 +98,37 @@
                      var item = SelectedDashboardItems[dashboard.DashboardId];
                      <MudText Typo="Typo.subtitle2" Class="mt-2">@dashboard.DashboardName</MudText>
                      <MudNumericField T="int" Label="Height (px)" Value="item.GaugeSettings.Height"
+                                                       Min="@(item.DisplayType is TopicDisplayType.Tm1637_4 or TopicDisplayType.Tm1637_6 or TopicDisplayType.Lcd1602 or TopicDisplayType.Lcd1604 or TopicDisplayType.Lcd2004 ? 1 : int.MinValue)"
                                                        ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Height = value))" />
-                                      <MudNumericField T="int" Label="Font size (px)" Value="item.FontSize"
-                                                       ValueChanged="@(value => OnFontSizeChanged(dashboard.DashboardId, value))" />
+                     @if (item.DisplayType is TopicDisplayType.Tm1637_4 or TopicDisplayType.Tm1637_6 or TopicDisplayType.Lcd1602 or TopicDisplayType.Lcd1604 or TopicDisplayType.Lcd2004)
+                     {
+                        <MudNumericField T="int?" Label="Width (px)" Value="item.GaugeSettings.Width" Min="1" Clearable="true"
+                                         ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.Width = value))" />
+                     }
+                     @if (item.DisplayType is TopicDisplayType.Tm1637_4 or TopicDisplayType.Tm1637_6)
+                     {
+                        <MudSwitch T="bool" Label="Leading Zeros" Value="item.GaugeSettings.LeadingZeros"
+                                   ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.LeadingZeros = value))" />
+                        <MudSwitch T="bool" Label="Show Connections" Value="item.GaugeSettings.ShowConnections"
+                                   ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.ShowConnections = value))" />
+                        <MudTextField T="string" Label="Display label" Value="@(item.GaugeSettings.DisplayLabel ?? (item.DisplayType == TopicDisplayType.Tm1637_4 ? "4-Digit Display" : "6-Digit Display"))"
+                                      ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.DisplayLabel = value ?? string.Empty))" />
+                        <MudColorPicker Label="Segment color" Value="@(new MudBlazor.Utilities.MudColor(item.GaugeSettings.SegmentColor))"
+                                        ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.SegmentColor = value.ToString(MudBlazor.Utilities.MudColorOutputFormats.Hex)))"
+                                        ShowAlpha="false" Variant="Variant.Text" Margin="Margin.Normal" />
+                     }
+                     else if (item.DisplayType is TopicDisplayType.Lcd1602 or TopicDisplayType.Lcd1604 or TopicDisplayType.Lcd2004)
+                     {
+                        <MudSwitch T="bool" Label="Show Connections" Value="item.GaugeSettings.ShowConnections"
+                                   ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.ShowConnections = value))" />
+                        <MudTextField T="string" Label="Display label" Value="@(item.GaugeSettings.DisplayLabel ?? (item.DisplayType == TopicDisplayType.Lcd1602 ? "LCD1602" : item.DisplayType == TopicDisplayType.Lcd1604 ? "LCD1604" : "LCD2004"))"
+                                      ValueChanged="@(value => OnGaugeSettingsChanged(dashboard.DashboardId, s => s.DisplayLabel = value ?? string.Empty))" />
+                     }
+                     else
+                     {
+                        <MudNumericField T="int" Label="Font size (px)" Value="item.FontSize"
+                                         ValueChanged="@(value => OnFontSizeChanged(dashboard.DashboardId, value))" />
+                     }
                      <MudSelect T="TopicDisplayType"
                                 Label="Display type"
                                 Value="item.DisplayType"

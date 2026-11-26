@@ -38,7 +38,12 @@ internal class Program
    {
       // create service collection
       var services = new ServiceCollection();
-      ConfigureServices(services);
+      var configuration = new ConfigurationBuilder()
+         .SetBasePath(Directory.GetCurrentDirectory())
+         .AddJsonFile("appsettings.json", optional: false)
+         .AddEnvironmentVariables()
+         .Build();
+      ConfigureServices(services, configuration);
 
       // create service provider
       await using var serviceProvider = services.BuildServiceProvider();
@@ -66,7 +71,7 @@ internal class Program
       var testCases = serviceProvider.GetService<TestCases>();
    }
 
-   static void ConfigureServices(IServiceCollection services)
+   internal static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
    {
       // configure logging
       services.AddLogging(builder =>
@@ -74,12 +79,6 @@ internal class Program
          builder.AddConsole();
          builder.AddDebug();
       });
-      // build config
-      var configuration = new ConfigurationBuilder()
-         .SetBasePath(Directory.GetCurrentDirectory())
-         .AddJsonFile("appsettings.json", optional: false)
-         .AddEnvironmentVariables()
-         .Build();
 
       services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
 
@@ -132,6 +131,7 @@ internal class Program
       //services.AddSingleton<IHueBridgeService, HueBridgeService>();
       services.AddSingleton(new Mock<IHueBridgeService>().Object);
 
+      services.AddSingleton<MailSenderService>();
       services.AddSingleton<IIoTZooMqttClient, IotZooMqttClient>();
       //services.AddSingleton(new Mock<IIoTZooMqttClient>().Object);
 
